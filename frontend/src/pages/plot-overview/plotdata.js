@@ -1,0 +1,28 @@
+export const plotData = {
+    1: { buyer: "Alice Johnson", contact: "123-456-7890", status: "sold" },
+    2: { buyer: "Bob Smith", contact: "987-654-3210", status: "booked" },
+    3: { status: "available" },
+    4: { buyer: "Charlie Davis", contact: "456-789-1234", status: "sold" },
+    5: { status: "available" },
+    6: { buyer: "David Brown", contact: "654-321-9876", status: "sold" },
+    7: { status: "available" },
+    8: { buyer: "Emma Wilson", contact: "111-222-3333", status: "booked" },
+    9: { status: "available" },
+    10: { buyer: "Frank Green", contact: "555-666-7777", status: "sold" },
+    11: { status: "available" },
+    12: { buyer: "Grace White", contact: "888-999-0000", status: "booked" },
+    13: { status: "available" },
+    14: { buyer: "Henry Black", contact: "333-444-5555", status: "sold" },
+    15: { status: "available" },
+    16: { buyer: "Isla Blue", contact: "222-333-4444", status: "booked" },
+    17: { status: "available" },
+    18: { buyer: "Jack Red", contact: "777-888-9999", status: "sold" },
+    19: { status: "available" },
+    20: { buyer: "Karen Gold", contact: "666-777-8888", status: "booked" },
+    21: { status: "available" },
+    22: { buyer: "Leo Purple", contact: "111-222-3333", status: "sold" },
+    23: { status: "available" },
+    24: { buyer: "Mia Silver", contact: "444-555-6666", status: "booked" },
+    // Add up to 48 plots
+  };
+  

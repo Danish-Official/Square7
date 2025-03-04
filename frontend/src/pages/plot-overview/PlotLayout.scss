@@ -1,0 +1,168 @@
+.plotLayout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.plots {
+  width: 80px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  cursor: pointer;
+  position: relative;
+  font-weight: bold;
+
+  &.available {
+    background-color: #90ee90; // Light green
+  }
+
+  &.sold {
+    background-color: #ff6b6b; // Red
+  }
+
+  &.booked {
+    background-color: #ffd700; // Yellow
+  }
+}
+
+.popup {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 10;
+}
+
+.plots:hover .popup {
+  display: block;
+}
+
+  .upperLayout, .bottomPlots {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .leftPlots, .middleSection {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .middleSection {
+    justify-content: space-between;
+  }
+  
+  .rightPlots, .middlePlots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .openSpace {
+    text-align: center;
+    background-color: rgb(208, 207, 207);
+    height: 100%;
+  }
+  
+  .bottomWrapper {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .roadExtension {
+    width: 100px;
+    height: 61px;
+    background-color: #333;
+  }
+  
+    .rightPlots .plots {
+    height: 60px;
+  }
+  
+  .bottomPlots .plots {
+    width: 33px;
+    height: 60px;
+  }
+  
+  .bottomPlots .plots:last-child {
+    width: 76px;
+  }
+  
+  .road {
+    background-color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+  
+  .roadText {
+    transform: rotate(90deg);
+    white-space: nowrap;
+  }
+  
+  .bottomRoad .roadText {
+    transform: rotate(0);
+  }
+    
+  .rightPlots .amenity {
+    grid-row: span 4;
+    background-color: #9acd32;
+    text-align: center;
+    height: auto;
+  }
+
+  .leftRoad, .middleRoad{
+    width: 60px;
+  }
+
+  .rightRoad {
+    width: 100px;
+  }
+
+  .bottomRoad {
+    height: 80px;
+  }
+
+/* Legend Styles */
+.legend {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.color-box {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  border: 1px solid black;
+
+  &.available {
+    background-color: #90ee90;
+  }
+
+  &.booked {
+    background-color: #ffd700;
+  }
+
+  &.sold {
+    background-color: #ff6b6b;
+  }
+}
