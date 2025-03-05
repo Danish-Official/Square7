@@ -7,8 +7,10 @@ const Sidebar = () => {
       <h2 className="text-xl font-bold mb-6">Dashboard</h2>
       <nav className="flex flex-col space-y-2">
         <NavItem to="/" icon={<Home size={20} />} label="Dashboard" />
+        <NavItem to="/plot-management" icon={<UserRoundCog size={20} />} label="Plot Management" />
         <NavItem to="/buyer-management" icon={<Users size={20} />} label="Manage Buyers" />
         <NavItem to="/finance" icon={<Banknote size={20} />} label="Finance" />
+        <NavItem to="/user-management" icon={<UserRoundCog size={20} />} label="Billing Invoice" />
         <NavItem to="/user-management" icon={<UserRoundCog size={20} />} label="Manage Users" />
       </nav>
     </div>

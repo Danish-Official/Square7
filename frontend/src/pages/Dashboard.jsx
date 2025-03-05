@@ -51,12 +51,6 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
-      <Card className="p-4">
-        <CardContent>
-          <h2 className="text-lg font-semibold mb-4">Plot Layout</h2>
-          <LayoutMap />
-        </CardContent>
-      </Card>
       <div className="grid grid-cols-4 gap-4">
         {Object.entries(stats).map(([key, value]) => (
           <Card key={key} className="p-4 shadow-md">
