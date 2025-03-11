@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,10 @@ import { Calendar } from "@/components/ui/calendar";
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("Selected Date:", selectedDate);
+  }, [selectedDate]);
 
   const stats = {
     totalPlots: 100,
@@ -80,11 +84,11 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 shadow-md flex items-center justify-center">
           <CardContent>
             <Link to="/new-booking">
-              <Button className="text-xl font-semibold capitalize py-3 px-6 w-11/12 h-11/12">
+              <Button className="text-xl font-semibold capitalize py-3 px-6 w-full h-full">
                 new booking
               </Button>
             </Link>
@@ -102,13 +106,18 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2 p-4">
           <CardContent>
             <h2 className="text-lg font-semibold mb-4">Sales Analytics</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={salesData}>
-                <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, angle: -45 }}
+                />
                 <YAxis hide={true} />
                 <Tooltip />
                 <Bar dataKey="sales" fill="#ADD8E6" radius={[10, 10, 0, 0]} />
@@ -120,7 +129,12 @@ export default function Dashboard() {
         <Card className="p-4 flex items-center justify-center">
           <CardContent>
             <h2 className="text-lg font-semibold mb-4 text-center">Calendar</h2>
-            <Calendar onSelect={handleDateClick} />
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => handleDateClick(date)}
+              className="rounded-md border"
+            />
           </CardContent>
         </Card>
       </div>
