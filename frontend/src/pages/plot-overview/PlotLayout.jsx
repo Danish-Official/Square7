@@ -3,20 +3,10 @@ import "./PlotLayout.scss";
 import { plotData } from "./plotdata";
 
 const PlotLayout = () => {
-  // const [selectedPlot, setSelectedPlot] = useState(null);
-
-  // const handlePlotClick = (plotId) => {
-  //   setSelectedPlot(
-  //     selectedPlot?.id === plotId ? null : { id: plotId, ...plotData[plotId] }
-  //   );
-  // };
-
   const getPlotClass = (status) => {
     switch (status) {
       case "sold":
         return "sold";
-      case "booked":
-        return "booked";
       default:
         return "available";
     }
@@ -24,7 +14,10 @@ const PlotLayout = () => {
 
   const createPlots = (numbers) =>
     numbers.map((num) => (
-      <div key={num} className={`plots ${getPlotClass(plotData[num]?.status)}`}>
+      <div
+        key={num}
+        className={`plots ${getPlotClass(plotData[num]?.status)}`}
+      >
         {num}
         {plotData[num]?.buyer && (
           <div className="popup">

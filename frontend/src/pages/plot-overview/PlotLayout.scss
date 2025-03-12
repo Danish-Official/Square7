@@ -15,21 +15,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid black;
+  border-radius: 10px;
   cursor: pointer;
   position: relative;
   font-weight: bold;
+  box-shadow: inset 5px 6px 6px rgba(0, 0, 0, 0.4);
 
   &.available {
-    background-color: #90ee90; // Light green
+    background-color: #98c1d9;
   }
 
   &.sold {
-    background-color: #ff6b6b; // Red
-  }
-
-  &.booked {
-    background-color: #ffd700; // Yellow
+    background-color: #1f263e;
+    color: white;
   }
 }
 
@@ -49,91 +47,123 @@
   display: block;
 }
 
-  .upperLayout, .bottomPlots {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  .leftPlots, .middleSection {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .middleSection {
-    justify-content: space-between;
-  }
-  
-  .rightPlots, .middlePlots {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-  }
-  
-  .openSpace {
-    text-align: center;
-    background-color: rgb(208, 207, 207);
-    height: 100%;
-  }
-  
-  .bottomWrapper {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .roadExtension {
-    width: 100px;
-    height: 61px;
-    background-color: #333;
-  }
-  
-    .rightPlots .plots {
-    height: 60px;
-  }
-  
-  .bottomPlots .plots {
-    width: 33px;
-    height: 60px;
-  }
-  
-  .bottomPlots .plots:last-child {
-    width: 76px;
-  }
-  
-  .road {
-    background-color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-  }
-  
-  .roadText {
-    transform: rotate(90deg);
-    white-space: nowrap;
-  }
-  
-  .bottomRoad .roadText {
-    transform: rotate(0);
-  }
-    
-  .rightPlots .amenity {
-    grid-row: span 4;
-    background-color: #9acd32;
-    text-align: center;
-    height: auto;
-  }
+.upperLayout,
+.bottomPlots {
+  display: flex;
+  gap: 0.5rem;
+}
 
-  .leftRoad, .middleRoad{
-    width: 60px;
-  }
+.leftPlots,
+.middleSection {
+  display: flex;
+  flex-direction: column;
+}
 
-  .rightRoad {
-    width: 100px;
-  }
+.middleSection {
+  justify-content: space-between;
+}
 
-  .bottomRoad {
-    height: 80px;
+.rightPlots,
+.middlePlots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.2rem;
+  margin-bottom: 0.2rem;
+  .plots {
+    width: 85px;
   }
+}
+
+.openSpace {
+  text-align: center;
+  background-color: rgb(208, 207, 207);
+  height: 100%;
+  box-shadow: inset 5px 6px 6px rgba(0, 0, 0, 0.4),
+    inset -3px -3px 4px rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.2rem;
+}
+
+.bottomWrapper {
+  display: flex;
+}
+
+.roadExtension {
+  width: 99px;
+  height: 85px;
+  background-color: #000000;
+  margin-left: 4px;
+}
+
+.rightPlots .plots {
+  height: 47px;
+}
+
+.leftPlots {
+  gap: 0.2rem;
+  .plots {
+    width: 85px;
+    height: 33px;
+  }
+}
+
+.middlePlots .plots {
+  height: 38px;
+}
+
+.bottomPlots {
+  gap: 0.2rem;
+}
+
+.bottomPlots .plots {
+  width: 40px;
+  height: 85px;
+}
+
+.bottomPlots .plots:last-child {
+  width: 70px;
+}
+
+.road {
+  background-color: #000000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  position: relative; // Ensure the road-strips are positioned correctly
+}
+
+.roadText {
+  transform: rotate(90deg); // Rotate text to be vertical
+  white-space: nowrap;
+}
+
+.bottomRoad .roadText {
+  transform: rotate(0); // Keep text horizontal for bottom road
+}
+
+.rightPlots .amenity {
+  grid-row: span 4;
+  background-color: #9acd32;
+  text-align: center;
+  height: auto;
+}
+
+.leftRoad,
+.middleRoad {
+  width: 60px;
+}
+
+.rightRoad {
+  width: 100px;
+}
+
+.bottomRoad {
+  height: 80px;
+}
 
 /* Legend Styles */
 .legend {
