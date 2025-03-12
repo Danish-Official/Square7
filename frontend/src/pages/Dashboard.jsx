@@ -46,6 +46,8 @@ export default function Dashboard() {
       plot: "23",
       amount: "$50,000",
       date: "2025-03-01",
+      contactNo: "123-456-7890",
+      invoiceNo: "INV-001",
     },
     {
       id: 2,
@@ -53,22 +55,51 @@ export default function Dashboard() {
       plot: "13",
       amount: "$75,000",
       date: "2025-03-02",
+      contactNo: "987-654-3210",
+      invoiceNo: "INV-002",
+    },
+    {
+      id: 2,
+      buyer: "Jane Smith",
+      plot: "13",
+      amount: "$75,000",
+      date: "2025-03-02",
+      contactNo: "987-654-3210",
+      invoiceNo: "INV-002",
+    },
+    {
+      id: 2,
+      buyer: "Jane Smith",
+      plot: "13",
+      amount: "$75,000",
+      date: "2025-03-02",
+      contactNo: "987-654-3210",
+      invoiceNo: "INV-002",
+    },
+    {
+      id: 2,
+      buyer: "Jane Smith",
+      plot: "13",
+      amount: "$75,000",
+      date: "2025-03-02",
+      contactNo: "987-654-3210",
+      invoiceNo: "INV-002",
     },
   ];
 
-  const salesData = [
-    { month: "Jan", sales: 10 },
-    { month: "Feb", sales: 15 },
-    { month: "Mar", sales: 20 },
-    { month: "Apr", sales: 25 },
-    { month: "May", sales: 30 },
-    { month: "Jun", sales: 35 },
-    { month: "Jul", sales: 40 },
-    { month: "Aug", sales: 45 },
-    { month: "Sep", sales: 50 },
-    { month: "Oct", sales: 55 },
-    { month: "Nov", sales: 60 },
-    { month: "Dec", sales: 65 },
+  const revenueData = [
+    { month: "Jan", revenue: 10000 },
+    { month: "Feb", revenue: 15000 },
+    { month: "Mar", revenue: 50000 },
+    { month: "Apr", revenue: 25000 },
+    { month: "May", revenue: 30000 },
+    { month: "Jun", revenue: 35000 },
+    { month: "Jul", revenue: 20000 },
+    { month: "Aug", revenue: 45000 },
+    { month: "Sep", revenue: 60000 },
+    { month: "Oct", revenue: 55000 },
+    { month: "Nov", revenue: 28000 },
+    { month: "Dec", revenue: 65000 },
   ];
 
   const handleDateClick = (date) => {
@@ -88,7 +119,12 @@ export default function Dashboard() {
         <Card className="p-4 shadow-md flex items-center justify-center">
           <CardContent>
             <Link to="/new-booking">
-              <Button className="text-xl font-semibold capitalize py-3 px-6 w-full h-full">
+              <Button
+                className="text-xl font-semibold capitalize py-3 px-6 w-full h-full cursor-pointer hover:opacity-90"
+                style={{
+                  background: "linear-gradient(to bottom, #1F263E, #5266A4)",
+                }}
+              >
                 new booking
               </Button>
             </Link>
@@ -111,7 +147,7 @@ export default function Dashboard() {
           <CardContent>
             <h2 className="text-lg font-semibold mb-4">Sales Analytics</h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={salesData}>
+              <BarChart data={revenueData}>
                 <XAxis
                   dataKey="month"
                   axisLine={false}
@@ -120,7 +156,7 @@ export default function Dashboard() {
                 />
                 <YAxis hide={true} />
                 <Tooltip />
-                <Bar dataKey="sales" fill="#ADD8E6" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="revenue" fill="#ADD8E6" radius={[10, 10, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -141,23 +177,25 @@ export default function Dashboard() {
 
       <Card className="p-4">
         <CardContent>
-          <h2 className="text-lg font-semibold mb-4">Recent Transactions</h2>
+          <h2 className="text-lg font-semibold mb-4">Recent Contacts</h2>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableCell>Buyer</TableCell>
-                <TableCell>Plot</TableCell>
-                <TableCell>Amount</TableCell>
-                <TableCell>Date</TableCell>
+                <TableCell className="font-bold">Name</TableCell>
+                <TableCell className="font-bold">Contact No.</TableCell>
+                <TableCell className="font-bold">Booking Date</TableCell>
+                <TableCell className="font-bold">Plot No.</TableCell>
+                <TableCell className="font-bold">Invoice No.</TableCell>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell>{tx.buyer}</TableCell>
-                  <TableCell>{tx.plot}</TableCell>
-                  <TableCell>{tx.amount}</TableCell>
+                  <TableCell>{tx.contactNo}</TableCell>
                   <TableCell>{tx.date}</TableCell>
+                  <TableCell>{tx.plot}</TableCell>
+                  <TableCell>{tx.invoiceNo}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
