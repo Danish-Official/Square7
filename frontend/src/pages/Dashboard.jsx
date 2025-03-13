@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
+import { FilePlus } from "lucide-react";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -116,20 +117,6 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 shadow-md flex items-center justify-center">
-          <CardContent>
-            <Link to="/new-booking">
-              <Button
-                className="text-xl font-semibold capitalize py-3 px-6 w-full h-full cursor-pointer hover:opacity-90"
-                style={{
-                  background: "linear-gradient(to bottom, #1F263E, #5266A4)",
-                }}
-              >
-                new booking
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
         {Object.entries(stats).map(([key, value]) => (
           <Card key={key} className="p-4 shadow-md">
             <CardContent>
@@ -140,8 +127,18 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ))}
+        <Link to="/new-booking">
+          <Button
+            className="text-xl font-semibold capitalize w-full h-full cursor-pointer hover:bg-[#5266A4]"
+            style={{
+              background: "linear-gradient(to bottom, #1F263E, #5266A4)",
+            }}
+          >
+            new booking
+            <FilePlus size={40} />
+          </Button>
+        </Link>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2 p-4">
           <CardContent>
@@ -161,17 +158,13 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        <Card className="p-4 flex items-center justify-center">
-          <CardContent>
-            <h2 className="text-lg font-semibold mb-4 text-center">Calendar</h2>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => handleDateClick(date)}
-              className="rounded-md border"
-            />
-          </CardContent>
+        <Card>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => handleDateClick(date)}
+            className="flex justify-center"
+          />
         </Card>
       </div>
 

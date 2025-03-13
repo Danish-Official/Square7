@@ -57,8 +57,8 @@ const PlotLayout = () => {
             {createPlots([4, 3, 2, 1])}
           </div>
           <div className="road rightRoad h-[145%] z-10">
-            <div className="roadText z-50 absolute">15.00 M WIDE ROAD</div>
-            <div className="h-full absolute z-0">
+            <div className="roadText">15.00 M WIDE ROAD</div>
+            <div className="h-full absolute">
               <div className="road-strips w-1 h-full" />
             </div>
           </div>
