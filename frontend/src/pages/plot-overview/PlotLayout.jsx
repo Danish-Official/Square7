@@ -14,10 +14,7 @@ const PlotLayout = () => {
 
   const createPlots = (numbers) =>
     numbers.map((num) => (
-      <div
-        key={num}
-        className={`plots ${getPlotClass(plotData[num]?.status)}`}
-      >
+      <div key={num} className={`plots ${getPlotClass(plotData[num]?.status)}`}>
         {num}
         {plotData[num]?.buyer && (
           <div className="popup">
@@ -38,6 +35,9 @@ const PlotLayout = () => {
           </div>
           <div className="road leftRoad">
             <div className="roadText">09.00 M WIDE ROAD</div>
+            <div className="h-full absolute">
+              <div className="road-strips w-1 h-full" />
+            </div>
           </div>
           <div className="middleSection">
             <div className="openSpace">Open Space</div>
@@ -47,28 +47,34 @@ const PlotLayout = () => {
           </div>
           <div className="road middleRoad">
             <div className="roadText">09.00 M WIDE ROAD</div>
+            <div className="h-full absolute">
+              <div className="road-strips w-1 h-full" />
+            </div>
           </div>
           <div className="rightPlots">
             {createPlots([9, 8, 10, 7, 11, 6, 12, 5])}
             <div className="plots amenity">Amenity Space</div>
             {createPlots([4, 3, 2, 1])}
           </div>
-          <div className="road rightRoad">
-            <div className="roadText">15.00 M WIDE ROAD</div>
+          <div className="road rightRoad h-[145%] z-10">
+            <div className="roadText z-50 absolute">15.00 M WIDE ROAD</div>
+            <div className="h-full absolute z-0">
+              <div className="road-strips w-1 h-full" />
+            </div>
           </div>
         </div>
         <div className="lowerLayout">
           <div className="road bottomRoad">
             <div className="roadText">12.00 M WIDE ROAD</div>
+            <div className="w-full absolute">
+              <div className="road-strips-bottom w-full h-1" />
+            </div>
           </div>
-          <div className="bottomWrapper">
             <div className="bottomPlots">
               {createPlots([
                 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
               ])}
             </div>
-            <div className="roadExtension"></div>
-          </div>
         </div>
       </div>
 
