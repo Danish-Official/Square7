@@ -5,6 +5,7 @@ import UserManagment from "./pages/UserManagment";
 import Finance from "./pages/Finance";
 import Layout from "./pages/Layout";
 import PlotManagement from "./pages/PlotManagement";
+import NewBooking from "./pages/NewBooking";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="buyer-management" element={<BuyerManagement />} />
         <Route path="user-management" element={<UserManagment />} />
         <Route path="finance" element={<Finance />} />
+        <Route path="new-booking" element={<NewBooking />} />
       </Route>
     </Routes>
   );
