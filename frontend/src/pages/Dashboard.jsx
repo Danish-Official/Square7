@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,10 +26,13 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { FilePlus } from "lucide-react";
+import Login from "../components/Login";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(true); // Open modal by default
+  const navigate = useNavigate(); // Initialize navigate
 
   useEffect(() => {
     console.log("Selected Date:", selectedDate);
@@ -113,8 +117,13 @@ export default function Dashboard() {
     setSelectedDate(null);
   };
 
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
+    navigate("/"); // Redirect to dashboard/home page after login
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(stats).map(([key, value]) => (
@@ -196,19 +205,26 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
-        <DialogContent>
+      <Dialog open={isLoginModalOpen}>
+        <DialogContent hideClose={true}>
           <DialogHeader>
-            <DialogTitle>Buyer Details</DialogTitle>
+            <DialogTitle>Login</DialogTitle>
           </DialogHeader>
-          {selectedDate && (
-            <div>
-              <p>Date: {selectedDate.toDateString()}</p>
-              {/* Add buyer details here */}
-            </div>
-          )}
-          <Button onClick={closeDialog}>Close</Button>
+          <Login onClose={closeLoginModal} />
         </DialogContent>
+      </Dialog>
+
+      <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
+        <DialogHeader>
+          <DialogTitle>Buyer Details</DialogTitle>
+        </DialogHeader>
+        {selectedDate && (
+          <div>
+            <p>Date: {selectedDate.toDateString()}</p>
+            {/* Add buyer details here */}
+          </div>
+        )}
+        <Button onClick={closeDialog}>Close</Button>
       </Dialog>
     </div>
   );

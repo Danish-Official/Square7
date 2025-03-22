@@ -53,19 +53,14 @@ const Sidebar = () => {
             label="Manage Buyers"
           />
           <NavItem
-            to="/finance"
-            icon={<Banknote size={20} />}
-            label="Finance"
-          />
-          <NavItem
-            to="/user-management"
-            icon={<UserRoundCog size={20} />}
-            label="Billing Invoice"
-          />
-          <NavItem
             to="/user-management"
             icon={<UserRoundCog size={20} />}
             label="Manage Users"
+          />
+          <NavItem
+            to="/invoices"
+            icon={<UserRoundCog size={20} />}
+            label="Billing Invoice"
           />
         </nav>
       </div>
