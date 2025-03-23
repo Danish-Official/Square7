@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label"; // Import Label component
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
 
 export default function NewBooking() {
   const [plots, setPlots] = useState(null);
@@ -21,17 +21,18 @@ export default function NewBooking() {
     plotId: "",
     ratePerSqFt: 0,
     areaSqFt: 0,
-    totalCost: 0,
     paymentType: "Cash",
     brokerReference: "",
     firstPayment: 0,
+    totalCost: 0,
   });
+  const [errors, setErrors] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
     async function fetchPlots() {
       try {
-        const { data } = await axios.get("/api/plots/get-plots"); // Ensure relative path
-        console.log("hello", data);
+        const { data } = await apiClient.get("/plots/available-plots"); // Fetch only available plots
         setPlots(data);
       } catch (error) {
         console.error("Error fetching plots", error);
@@ -40,9 +41,42 @@ export default function NewBooking() {
     fetchPlots();
   }, []);
 
+  useEffect(() => {
+    // Check if the form is valid
+    const hasErrors = Object.values(errors).some((error) => error !== "");
+    setIsFormValid(
+      !hasErrors &&
+        formData.buyerName &&
+        formData.phoneNumber &&
+        formData.firstPayment > 0
+    );
+  }, [errors, formData]);
+
+  const validateField = (name, value) => {
+    let error = "";
+    if (name === "buyerName") {
+      const nameRegex = /^[A-Za-z\s]+$/;
+      if (!nameRegex.test(value)) {
+        error = "Buyer name should contain only alphabets.";
+      }
+    } else if (name === "phoneNumber") {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(value)) {
+        error = "Phone number should be exactly 10 digits.";
+      }
+    } else if (name === "firstPayment") {
+      if (value <= 0 || value > formData.totalCost) {
+        error =
+          "First payment should be greater than 0 and less than or equal to the total cost.";
+      }
+    }
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    validateField(name, value);
 
     if (name === "plotId") {
       const selectedPlot = plots.find((plot) => plot._id === value);
@@ -61,7 +95,7 @@ export default function NewBooking() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/api/bookings", formData); // Ensure relative path
+      await apiClient.post("/bookings", formData); // Ensure relative path
       alert("Booking created successfully");
     } catch (error) {
       console.error("Error creating booking", error);
@@ -82,6 +116,9 @@ export default function NewBooking() {
             placeholder="Buyer Name"
             required
           />
+          {errors.buyerName && (
+            <p className="text-red-500 text-sm">{errors.buyerName}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -106,6 +143,9 @@ export default function NewBooking() {
             placeholder="Phone Number"
             required
           />
+          {errors.phoneNumber && (
+            <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -218,9 +258,14 @@ export default function NewBooking() {
             placeholder="First Payment"
             required
           />
+          {errors.firstPayment && (
+            <p className="text-red-500 text-sm">{errors.firstPayment}</p>
+          )}
         </div>
 
-        <Button type="submit">Create Booking</Button>
+        <Button type="submit" disabled={!isFormValid}>
+          Create Booking
+        </Button>
       </form>
     </div>
   );

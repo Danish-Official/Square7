@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
 
 export default function Enquiries() {
   const [enquiries, setEnquiries] = useState([]);
@@ -21,7 +21,7 @@ export default function Enquiries() {
 
   async function fetchEnquiries() {
     try {
-      const { data } = await axios.get("/api/enquiries"); // Ensure relative path
+      const { data } = await apiClient.get("/enquiries"); // Ensure relative path
       setEnquiries(data);
     } catch (error) {
       console.error("Error fetching enquiries", error);
@@ -31,7 +31,7 @@ export default function Enquiries() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this enquiry?")) return;
     try {
-      await axios.delete(`/api/enquiries/${id}`); // Ensure relative path
+      await apiClient.delete(`/enquiries/${id}`); // Ensure relative path
       alert("Enquiry deleted successfully");
       fetchEnquiries();
     } catch (error) {

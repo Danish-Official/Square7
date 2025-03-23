@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { jwtDecode } from "jwt-decode"; // Import jwt-decode to validate token
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,12 +32,27 @@ import Login from "../components/Login";
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(true); // Open modal by default
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Default to false
   const navigate = useNavigate(); // Initialize navigate
 
   useEffect(() => {
-    console.log("Selected Date:", selectedDate);
-  }, [selectedDate]);
+    const token = localStorage.getItem("token");
+    if (!token || isTokenExpired(token)) {
+      setIsLoginModalOpen(true); // Open login modal if token is invalid or expired
+    }
+  }, []);
+
+  const isTokenExpired = (token) => {
+    try {
+      const { exp } = jwtDecode(token); // Decode token to get expiration time
+      return Date.now() >= exp * 1000; // Check if token is expired
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      return true; // Treat invalid tokens as expired
+    }
+  };
+
+  const isTokenMissing = !localStorage.getItem("token"); // Check if token is missing
 
   const stats = {
     totalPlots: 100,
@@ -210,6 +226,12 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>Login</DialogTitle>
           </DialogHeader>
+          {!isTokenMissing && (
+            <p className="text-red-500 mb-4">
+              Session expired. Please login again.
+            </p>
+          )}{" "}
+          {/* Show message only if token is expired */}
           <Login onClose={closeLoginModal} />
         </DialogContent>
       </Dialog>

@@ -9,7 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 export default function BuyersManagement() {
   const [buyers, setBuyers] = useState([]);
@@ -22,7 +23,7 @@ export default function BuyersManagement() {
 
   async function fetchBuyers() {
     try {
-      const { data } = await axios.get("/api/bookings"); // Ensure relative path
+      const { data } = await apiClient.get("/bookings");
       setBuyers(data);
     } catch (error) {
       console.error("Error fetching buyers", error);
@@ -32,7 +33,7 @@ export default function BuyersManagement() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this buyer?")) return;
     try {
-      await axios.delete(`/api/bookings/${id}`); // Ensure relative path
+      await apiClient.delete(`/bookings/${id}`);
       alert("Buyer deleted successfully");
       fetchBuyers();
     } catch (error) {
@@ -46,7 +47,7 @@ export default function BuyersManagement() {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`/api/bookings/${editingBuyer._id}`, editingBuyer); // Ensure relative path
+      await apiClient.put(`/bookings/${editingBuyer._id}`, editingBuyer);
       alert("Buyer updated successfully");
       setEditingBuyer(null);
       fetchBuyers();
@@ -129,12 +130,7 @@ export default function BuyersManagement() {
                 <Button variant="outline" onClick={() => handleEdit(buyer)}>
                   Edit
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDelete(buyer._id)}
-                >
-                  Delete
-                </Button>
+                <Trash2 color="#f00505" className="self-center" onClick={() => handleDelete(buyer._id)}/>
               </TableCell>
             </TableRow>
           ))}

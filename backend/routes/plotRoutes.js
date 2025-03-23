@@ -24,14 +24,11 @@ router.get("/get-plots", authenticate(), async (req, res) => {
   }
 });
 
-// Get a single plot by ID
-router.get("/:id", authenticate(), async (req, res) => {
+// Get available plots
+router.get("/available-plots", authenticate(), async (req, res) => {
   try {
-    const plot = await Plot.findById(req.params.id);
-    if (!plot) {
-      return res.status(404).json({ message: "Plot not found" });
-    }
-    res.status(200).json(plot);
+    const availablePlots = await Plot.find({ status: { $ne: "sold" } });
+    res.status(200).json(availablePlots);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
@@ -43,9 +40,12 @@ router.put("/:id", authenticate("superadmin"), async (req, res) => {
     const updatedPlot = await Plot.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
+    if (!updatedPlot) {
+      return res.status(404).json({ message: "Plot not found" });
+    }
     res.status(200).json(updatedPlot);
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 

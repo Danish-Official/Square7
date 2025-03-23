@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
 
 export default function UsersManagement() {
   const [users, setUsers] = useState([]);
@@ -21,7 +21,7 @@ export default function UsersManagement() {
 
   async function fetchUsers() {
     try {
-      const { data } = await axios.get("/api/users"); // Ensure relative path
+      const { data } = await apiClient.get("/users"); // Ensure relative path
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users", error);
@@ -31,7 +31,7 @@ export default function UsersManagement() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
-      await axios.delete(`/api/users/${id}`);
+      await apiClient.delete(`/users/${id}`);
       alert("User deleted successfully");
       fetchUsers();
     } catch (error) {

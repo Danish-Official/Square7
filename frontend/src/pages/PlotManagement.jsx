@@ -12,56 +12,99 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 const PlotManagement = () => {
-  const [plots, setPlots] = useState(null);
+  const [plots, setPlots] = useState([]);
+  const [editingPlotId, setEditingPlotId] = useState(null);
   const [formData, setFormData] = useState({
     plotNumber: "",
     areaSqMt: "",
     areaSqFt: "",
     ratePerSqFt: "",
   });
-  const [selectedPlot, setSelectedPlot] = useState(null);
+  const [errors, setErrors] = useState({});
+  // Removed unused isFormValid state
 
   useEffect(() => {
     fetchPlots();
   }, []);
 
+  useEffect(() => {
+    // Check if the form is valid
+    const hasErrors = Object.values(errors).some((error) => error !== "");
+    !hasErrors &&
+    formData.plotNumber &&
+    formData.areaSqMt &&
+    formData.areaSqFt &&
+    formData.ratePerSqFt; // Removed unused isFormValid assignment
+  }, [errors, formData]);
+
   async function fetchPlots() {
     try {
-      const { data } = await axios.get("/api/plots/get-plots"); // Fix response handling
-      setPlots(data);
+      const { data } = await apiClient.get("/plots/get-plots");
+      setPlots(data || []);
     } catch (error) {
       console.error("Error fetching plots", error);
     }
   }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const validateField = (name, value) => {
+    let error = "";
+    if (name === "plotNumber") {
+      if (!value) {
+        error = "Plot number is required.";
+      } else if (plots.some((plot) => plot.plotNumber === value)) {
+        error = "Plot number already exists.";
+      }
+    } else if (
+      name === "areaSqMt" ||
+      name === "areaSqFt" ||
+      name === "ratePerSqFt"
+    ) {
+      if (!value || isNaN(value) || value <= 0) {
+        error = `${name} must be a positive number.`;
+      }
+    }
+    setErrors((prev) => ({ ...prev, [name]: error }));
+    return error;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleChange = (e, id) => {
+    const { name, value } = e.target;
+    if (id) {
+      setPlots((prev) =>
+        prev.map((plot) =>
+          plot._id === id ? { ...plot, [name]: value } : plot
+        )
+      );
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      validateField(name, value);
+    }
+  };
+
+  const handleSave = async (id) => {
+    const plotToUpdate = plots.find((plot) => plot._id === id);
+    const hasErrors = Object.keys(plotToUpdate).some((key) =>
+      validateField(key, plotToUpdate[key])
+    );
+    if (hasErrors) return;
+
     try {
-      await axios.post("/api/plots/add-plot", formData);
-      alert("Plot added successfully");
+      await apiClient.put(`/plots/${id}`, plotToUpdate);
+      alert("Plot updated successfully");
+      setEditingPlotId(null);
       fetchPlots();
-      setFormData({
-        plotNumber: "",
-        areaSqMt: "",
-        areaSqFt: "",
-        ratePerSqFt: "",
-      });
     } catch (error) {
-      console.error("Error adding plot", error);
+      console.error("Error updating plot", error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/plots/${id}`);
+      await apiClient.delete(`/plots/${id}`);
       alert("Plot deleted successfully");
       fetchPlots();
     } catch (error) {
@@ -69,17 +112,21 @@ const PlotManagement = () => {
     }
   };
 
-  const handleViewDetails = async (id) => {
-    try {
-      const { data } = await axios.get(`/api/plots/${id}`);
-      setSelectedPlot(data);
-    } catch (error) {
-      console.error("Error fetching plot details", error);
-    }
+  const handleEdit = (id) => {
+    setEditingPlotId(id);
   };
 
-  const closeDetails = () => {
-    setSelectedPlot(null);
+  const handleAddPlot = () => {
+    const newPlot = {
+      _id: `new-${Date.now()}`, // Temporary ID for the new plot
+      plotNumber: "",
+      areaSqMt: "",
+      areaSqFt: "",
+      ratePerSqFt: "",
+      status: "available",
+    };
+    setPlots((prev) => [...prev, newPlot]);
+    setEditingPlotId(newPlot._id);
   };
 
   return (
@@ -95,39 +142,6 @@ const PlotManagement = () => {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <h1 className="text-3xl font-semibold">Plot Management</h1>
 
-        {/* Add Plot Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            name="plotNumber"
-            value={formData.plotNumber}
-            onChange={handleChange}
-            placeholder="Plot Number"
-            required
-          />
-          <Input
-            name="areaSqMt"
-            value={formData.areaSqMt}
-            onChange={handleChange}
-            placeholder="Area (sq mt)"
-            required
-          />
-          <Input
-            name="areaSqFt"
-            value={formData.areaSqFt}
-            onChange={handleChange}
-            placeholder="Area (sq ft)"
-            required
-          />
-          <Input
-            name="ratePerSqFt"
-            value={formData.ratePerSqFt}
-            onChange={handleChange}
-            placeholder="Rate per sq ft"
-            required
-          />
-          <Button type="submit">Add Plot</Button>
-        </form>
-
         {/* Plot List */}
         <Table>
           <TableHeader>
@@ -136,55 +150,95 @@ const PlotManagement = () => {
               <TableHead>Area (sq mt)</TableHead>
               <TableHead>Area (sq ft)</TableHead>
               <TableHead>Rate per sq ft</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {Array.isArray(plots) &&
-              plots.length > 0 &&
               plots.map((plot) => (
                 <TableRow key={plot._id}>
-                  <TableCell>{plot.plotNumber}</TableCell>
-                  <TableCell>{plot.areaSqMt}</TableCell>
-                  <TableCell>{plot.areaSqFt}</TableCell>
-                  <TableCell>{plot.ratePerSqFt}</TableCell>
+                  <TableCell>
+                    <Input
+                      name="plotNumber"
+                      value={plot.plotNumber}
+                      onChange={(e) => handleChange(e, plot._id)}
+                      disabled={editingPlotId !== plot._id} // Allow editing only when in edit mode
+                    />
+                    {editingPlotId === plot._id && errors.plotNumber && (
+                      <p className="text-red-500">{errors.plotNumber}</p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      name="areaSqMt"
+                      value={plot.areaSqMt}
+                      onChange={(e) => handleChange(e, plot._id)}
+                      disabled={editingPlotId !== plot._id}
+                    />
+                    {editingPlotId === plot._id && errors.areaSqMt && (
+                      <p className="text-red-500">{errors.areaSqMt}</p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      name="areaSqFt"
+                      value={plot.areaSqFt}
+                      onChange={(e) => handleChange(e, plot._id)}
+                      disabled={editingPlotId !== plot._id}
+                    />
+                    {editingPlotId === plot._id && errors.areaSqFt && (
+                      <p className="text-red-500">{errors.areaSqFt}</p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      name="ratePerSqFt"
+                      value={plot.ratePerSqFt}
+                      onChange={(e) => handleChange(e, plot._id)}
+                      disabled={editingPlotId !== plot._id}
+                    />
+                    {editingPlotId === plot._id && errors.ratePerSqFt && (
+                      <p className="text-red-500">{errors.ratePerSqFt}</p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      name="status"
+                      value={plot.status}
+                      onChange={(e) => handleChange(e, plot._id)}
+                      disabled={editingPlotId !== plot._id}
+                    />
+                  </TableCell>
                   <TableCell className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleViewDetails(plot._id)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      variant="destructive"
+                    {editingPlotId === plot._id ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleSave(plot._id)}
+                      >
+                        Save
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleEdit(plot._id)}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    <Trash2
+                      color="#f00505"
+                      className="self-center"
                       onClick={() => handleDelete(plot._id)}
-                    >
-                      Delete
-                    </Button>
+                    />
                   </TableCell>
                 </TableRow>
               ))}
           </TableBody>
         </Table>
-
-        {selectedPlot && (
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-2xl">Plot Details</h2>
-            <p>
-              <strong>Plot Number:</strong> {selectedPlot.plotNumber}
-            </p>
-            <p>
-              <strong>Area (sq mt):</strong> {selectedPlot.areaSqMt}
-            </p>
-            <p>
-              <strong>Area (sq ft):</strong> {selectedPlot.areaSqFt}
-            </p>
-            <p>
-              <strong>Rate per sq ft:</strong> {selectedPlot.ratePerSqFt}
-            </p>
-            <Button onClick={closeDetails}>Close</Button>
-          </div>
-        )}
+        <Button className="mt-4" onClick={handleAddPlot}>
+          Add Plot
+        </Button>
       </div>
     </>
   );

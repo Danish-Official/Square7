@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
@@ -21,7 +21,7 @@ export default function Invoices() {
 
   async function fetchInvoices() {
     try {
-      const { data } = await axios.get("/api/invoices"); // Ensure relative path
+      const { data } = await apiClient.get("/invoices"); // Ensure relative path
       setInvoices(data);
     } catch (error) {
       console.error("Error fetching invoices", error);
@@ -31,7 +31,7 @@ export default function Invoices() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this invoice?")) return;
     try {
-      await axios.delete(`/api/invoices/${id}`); // Ensure relative path
+      await apiClient.delete(`/invoices/${id}`); // Ensure relative path
       alert("Invoice deleted successfully");
       fetchInvoices();
     } catch (error) {

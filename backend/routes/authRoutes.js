@@ -1,35 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
+const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const authenticate = require("../middleware/authenticate");
 
-router.post("/register", authenticate("superadmin"), async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+dotenv.config();
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "User already exists" });
+async function createSuperAdmin() {
+  const existingSuperAdmin = await User.findOne({ role: "superadmin" });
+  if (existingSuperAdmin) return;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new User({ name, email, password: hashedPassword, role });
-    await newUser.save();
-
-    res.status(201).json({ message: "Admin created successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error" });
-  }
-});
+  const hashedPassword = await bcrypt.hash(process.env.SUPERADMIN_PASSWORD, 10);
+  const superAdmin = new User({
+    name: process.env.SUPERADMIN_NAME,
+    email: process.env.SUPERADMIN_EMAIL,
+    password: hashedPassword,
+    role: "superadmin",
+  });
+  await superAdmin.save();
+  console.log("Super Admin created successfully");
+}
 
 // Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
+    console.log(user);
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -42,15 +40,13 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res
-      .status(200)
-      .json({
-        token,
-        user: { name: user.name, email: user.email, role: user.role },
-      });
+    res.status(200).json({
+      token,
+      user: { name: user.name, email: user.email, role: user.role },
+    });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
 });
 
-module.exports = router;
+module.exports = { router, createSuperAdmin };

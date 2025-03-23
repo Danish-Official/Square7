@@ -7,6 +7,10 @@ import {
   Users,
   PanelRightClose,
   PanelLeftClose,
+  BookUser,
+  ReceiptIndianRupee,
+  LayoutDashboard,
+  MessageCircleQuestion,
 } from "lucide-react"; // Icons
 
 const Sidebar = () => {
@@ -44,23 +48,28 @@ const Sidebar = () => {
           <NavItem to="/" icon={<Home size={20} />} label="Dashboard" />
           <NavItem
             to="/plot-management"
-            icon={<UserRoundCog size={20} />}
+            icon={<LayoutDashboard size={20} />}
             label="Plot Management"
           />
           <NavItem
             to="/buyer-management"
-            icon={<Users size={20} />}
+            icon={<BookUser size={20} />}
             label="Manage Buyers"
+          />
+          <NavItem
+            to="/invoices"
+            icon={<ReceiptIndianRupee size={20} />}
+            label="Billing History"
+          />
+          <NavItem
+            to="/enquiries"
+            icon={<MessageCircleQuestion size={20} />}
+            label="Enquiries"
           />
           <NavItem
             to="/user-management"
             icon={<UserRoundCog size={20} />}
             label="Manage Users"
-          />
-          <NavItem
-            to="/invoices"
-            icon={<UserRoundCog size={20} />}
-            label="Billing Invoice"
           />
         </nav>
       </div>

@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const authRoutes = require("./routes/authRoutes");
+const { router: authRoutes, createSuperAdmin } = require("./routes/authRoutes");
 const plotRoutes = require("./routes/plotRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
@@ -11,7 +11,7 @@ const enquiryRoutes = require("./routes/enquiryRoutes");
 dotenv.config();
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173" })); // Allow requests from the frontend
 
 if (!process.env.MONGO_URI) {
   console.error(
@@ -22,7 +22,10 @@ if (!process.env.MONGO_URI) {
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
+  .then(() => {
+    console.log("MongoDB connected");
+    createSuperAdmin(); // Moved here to ensure it runs after DB connection
+  })
   .catch((err) => console.log("DB not connected", err));
 
 // Routes

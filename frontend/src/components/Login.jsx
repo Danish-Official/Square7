@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import { apiClient } from "@/lib/utils";
 
 export default function Login({ onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -15,12 +15,12 @@ export default function Login({ onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("/api/auth/login", formData);
+      const { data } = await apiClient.post("/auth/login", formData);
       localStorage.setItem("token", data.token);
       alert("Login successful");
       onClose(); // Close the modal on successful login
-      // eslint-disable-next-line no-unused-vars
     } catch (err) {
+      console.log(err);
       setError("Invalid email or password");
     }
   };
