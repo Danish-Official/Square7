@@ -1,7 +1,7 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const connectDB = require("./db"); // Import the reusable DB connection
 const { router: authRoutes, createSuperAdmin } = require("./routes/authRoutes");
 const plotRoutes = require("./routes/plotRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
@@ -13,20 +13,15 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:5173" })); // Allow requests from the frontend
 
-if (!process.env.MONGO_URI) {
-  console.error(
-    "Error: MONGO_URI is not defined in the environment variables."
-  );
-  process.exit(1); // Exit the application if MONGO_URI is missing
-}
-
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-    createSuperAdmin(); // Moved here to ensure it runs after DB connection
-  })
-  .catch((err) => console.log("DB not connected", err));
+(async () => {
+  try {
+    await connectDB(); // Connect to the database
+    createSuperAdmin(); // Ensure super admin is created after DB connection
+  } catch (error) {
+    console.error("Error connecting to the database:", error.message);
+    process.exit(1); // Exit the application if DB connection fails
+  }
+})();
 
 // Routes
 app.use("/api/auth", authRoutes);

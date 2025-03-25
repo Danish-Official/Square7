@@ -1,8 +1,25 @@
 // import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import "./PlotLayout.scss";
-import { plotData } from "./plotdata";
+import { apiClient } from "@/lib/utils";
 
 const PlotLayout = () => {
+  const [plots, setPlots] = useState([]);
+
+  useEffect(() => {
+    fetchPlots();
+  }, []);
+
+  async function fetchPlots() {
+    try {
+      const { data } = await apiClient.get("/plots/get-plots");
+      setPlots(data || []);
+    } catch (error) {
+      console.error("Error fetching plots", error);
+    }
+  }
+
+
   const getPlotClass = (status) => {
     switch (status) {
       case "sold":
@@ -14,13 +31,13 @@ const PlotLayout = () => {
 
   const createPlots = (numbers) =>
     numbers.map((num) => (
-      <div key={num} className={`plots ${getPlotClass(plotData[num]?.status)}`}>
+      <div key={num} className={`plots ${getPlotClass(plots[num]?.status)}`}>
         {num}
-        {plotData[num]?.buyer && (
+        {plots[num]?.buyer && (
           <div className="popup">
-            <strong>{plotData[num].buyer}</strong>
+            <strong>{plots[num].buyer}</strong>
             <br />
-            {plotData[num].contact}
+            {plots[num].contact}
           </div>
         )}
       </div>
