@@ -22,29 +22,37 @@
   box-shadow: inset 5px 6px 6px rgba(0, 0, 0, 0.4);
 
   &.available {
-    background-color: #98c1d9;
+    background-color: #98c1d9; // Light blue for available plots
   }
 
   &.sold {
-    background-color: #1f263e;
+    background-color: #1F263E; // Red for sold plots
     color: white;
   }
 }
 
-.popup {
-  display: none;
+.popup-hover {
+  display: none; /* Default to hidden */
   position: absolute;
-  top: 100%;
+  top: 100%; /* Position below the plot */
   left: 50%;
   transform: translateX(-50%);
   background-color: white;
+  color: black; /* Set text color to black for visibility */
   border: 1px solid #ccc;
-  padding: 10px;
-  z-index: 10;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 4;
+  white-space: nowrap;
 }
 
 .plots:hover .popup {
   display: block;
+}
+
+.plots:hover .popup-hover {
+  display: block; /* Show popup on hover */
 }
 
 .upperLayout,
@@ -136,6 +144,8 @@
 .roadText {
   transform: rotate(-90deg); // Rotate text to be vertical
   white-space: nowrap;
+  background-color: black;
+  z-index: 3;
 }
 
 .bottomRoad .roadText {
@@ -182,21 +192,66 @@
   border: 1px solid black;
 
   &.available {
-    background-color: #90ee90;
-  }
-
-  &.booked {
-    background-color: #ffd700;
+    background-color: #98c1d9; // Light blue for available plots
   }
 
   &.sold {
-    background-color: #ff6b6b;
+    background-color: #1F263E; // Red for sold plots
   }
 }
 
 .road-strips {
-  background: repeating-linear-gradient(0deg, white, 0px, white, 20px, transparent 20px, transparent 40px)
+  background: repeating-linear-gradient(
+    0deg,
+    white,
+    0px,
+    white,
+    20px,
+    transparent 20px,
+    transparent 40px
+  );
 }
 .road-strips-bottom {
-  background: repeating-linear-gradient(90deg, white, 0px, white, 20px, transparent 20px, transparent 40px)
+  background: repeating-linear-gradient(
+    90deg,
+    white,
+    0px,
+    white,
+    20px,
+    transparent 20px,
+    transparent 40px
+  );
+}
+
+.plot-details-modal {
+  display: flex; /* Ensure modal is visible */
+  position: absolute;
+  top: 50%;
+  left: 60%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 5; /* Ensure it appears above other elements */
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-content button {
+  align-self: flex-end;
+  padding: 5px 10px;
+  background-color: #1F263E; // Match sold plot color
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-content button:hover {
+  background-color: #1F263E; // Slightly darker shade for hover
 }

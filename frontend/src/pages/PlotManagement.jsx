@@ -1,16 +1,16 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import LayoutMap from "./plot-overview/LayoutMap";
+import PlotLayout from "../components/plot-overview/PlotLayout";
 
 const PlotManagement = () => {
 
   return (
     <>
-      <div>
+      <div className="w-fit m-auto">
         <Card className="p-4">
           <CardContent>
             <h2 className="text-lg font-semibold mb-4">Plot Layout</h2>
-            <LayoutMap />
+              <PlotLayout />
           </CardContent>
         </Card>
       </div>

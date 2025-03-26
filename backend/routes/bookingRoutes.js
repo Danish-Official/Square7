@@ -11,7 +11,7 @@ router.post("/", authenticate(), async (req, res) => {
 
     // Validate that the plot exists and is available
     const plot = await Plot.findById(plotId);
-    if (!plot || plot.status === "sold") {
+    if (!plot || plot.status !== "available") {
       return res.status(400).json({ message: "Plot is not available" });
     }
 

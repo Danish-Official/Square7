@@ -8,7 +8,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label"; // Import Label component
+import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/utils";
 
 export default function NewBooking() {
@@ -19,8 +19,8 @@ export default function NewBooking() {
     phoneNumber: "",
     gender: "Male",
     plotId: "",
-    ratePerSqFt: 0,
     areaSqFt: 0,
+    ratePerSqFt: 0, // Added for frontend calculation
     paymentType: "Cash",
     brokerReference: "",
     firstPayment: 0,
@@ -32,7 +32,7 @@ export default function NewBooking() {
   useEffect(() => {
     async function fetchPlots() {
       try {
-        const { data } = await apiClient.get("/plots/available-plots"); // Fetch only available plots
+        const { data } = await apiClient.get("/plots/available-plots");
         setPlots(data);
       } catch (error) {
         console.error("Error fetching plots", error);
@@ -42,7 +42,6 @@ export default function NewBooking() {
   }, []);
 
   useEffect(() => {
-    // Check if the form is valid
     const hasErrors = Object.values(errors).some((error) => error !== "");
     setIsFormValid(
       !hasErrors &&
@@ -81,21 +80,26 @@ export default function NewBooking() {
     if (name === "plotId") {
       const selectedPlot = plots.find((plot) => plot._id === value);
       if (selectedPlot) {
-        const totalCost = selectedPlot.areaSqFt * selectedPlot.ratePerSqFt;
         setFormData((prev) => ({
           ...prev,
-          ratePerSqFt: selectedPlot.ratePerSqFt,
           areaSqFt: selectedPlot.areaSqFt,
-          totalCost,
+          totalCost: selectedPlot.areaSqFt * prev.ratePerSqFt, // Calculate totalCost dynamically
         }));
       }
+    }
+
+    if (name === "ratePerSqFt") {
+      setFormData((prev) => ({
+        ...prev,
+        totalCost: prev.areaSqFt * value, // Recalculate totalCost when ratePerSqFt changes
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await apiClient.post("/bookings", formData); // Ensure relative path
+      await apiClient.post("/bookings", formData);
       alert("Booking created successfully");
     } catch (error) {
       console.error("Error creating booking", error);
@@ -202,9 +206,12 @@ export default function NewBooking() {
           <Label htmlFor="ratePerSqFt">Rate per sq ft</Label>
           <Input
             id="ratePerSqFt"
+            name="ratePerSqFt"
+            type="number"
             value={formData.ratePerSqFt}
-            readOnly
+            onChange={handleChange}
             placeholder="Rate per sq ft"
+            required
           />
         </div>
 
