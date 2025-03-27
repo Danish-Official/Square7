@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 export default function Login({ onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const { login } = useAuth(); // Access login from context
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,7 +18,7 @@ export default function Login({ onClose }) {
     e.preventDefault();
     try {
       const { data } = await apiClient.post("/auth/login", formData);
-      localStorage.setItem("token", data.token);
+      login(data.user.name, data.token); // Update context with user and token
       alert("Login successful");
       onClose(); // Close the modal on successful login
     } catch (err) {

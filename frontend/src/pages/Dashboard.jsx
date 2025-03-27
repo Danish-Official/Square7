@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { jwtDecode } from "jwt-decode"; // Import jwt-decode to validate token
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,19 +27,22 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { FilePlus } from "lucide-react";
 import Login from "../components/Login";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Default to false
-  const navigate = useNavigate(); // Initialize navigate
+  const [manualLogout, setManualLogout] = useState(false); // Track manual logout
+  const { auth } = useAuth(); // Access auth from context
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token || isTokenExpired(token)) {
-      setIsLoginModalOpen(true); // Open login modal if token is invalid or expired
+    if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
+      if (!manualLogout) {
+        setIsLoginModalOpen(true); // Open login modal if token is invalid, empty, or expired
+      }
     }
-  }, []);
+  }, [auth.token, manualLogout]); // Depend on manualLogout
 
   const isTokenExpired = (token) => {
     try {
@@ -51,8 +53,6 @@ export default function Dashboard() {
       return true; // Treat invalid tokens as expired
     }
   };
-
-  const isTokenMissing = !localStorage.getItem("token"); // Check if token is missing
 
   const stats = {
     totalPlots: 100,
@@ -133,10 +133,7 @@ export default function Dashboard() {
     setSelectedDate(null);
   };
 
-  const closeLoginModal = () => {
-    setIsLoginModalOpen(false);
-    navigate("/"); // Redirect to dashboard/home page after login
-  };
+  // Removed unused closeLoginModal function to resolve the error
 
   return (
     <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
@@ -226,13 +223,18 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>Login</DialogTitle>
           </DialogHeader>
-          {!isTokenMissing && (
+          {!manualLogout && isTokenExpired(auth.token) && (
             <p className="text-red-500 mb-4">
               Session expired. Please login again.
             </p>
-          )}{" "}
-          {/* Show message only if token is expired */}
-          <Login onClose={closeLoginModal} />
+          )}
+          {/* Show message only if token is expired and not manually logged out */}
+          <Login
+            onClose={() => {
+              setIsLoginModalOpen(false);
+              setManualLogout(false); // Reset manualLogout flag after login
+            }}
+          />
         </DialogContent>
       </Dialog>
 

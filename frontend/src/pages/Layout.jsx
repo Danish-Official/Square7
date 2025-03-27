@@ -1,3 +1,4 @@
+import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Outlet } from "react-router-dom";
 
@@ -5,7 +6,8 @@ const Layout = () => {
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1 p-6 bg-gray-100 min-h-screen">
+      <main className="flex-1 pb-6 bg-gray-100 min-h-screen">
+        <Header />
         <Outlet />
       </main>
     </div>
