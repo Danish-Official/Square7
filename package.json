@@ -3,6 +3,7 @@
     "devServer": "cd ./backend && npm run server",
     "server": "cd ./backend && node server.js",
     "client": "cd ./frontend && npm run dev",
+    "build": "cd ./frontend && npm run build",
     "start": "concurrently \"npm run devServer\" \"npm run client\""
   },
   "devDependencies": {
