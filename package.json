@@ -1,7 +1,7 @@
 {
   "scripts": {
     "devServer": "cd ./backend && npm run server",
-    "server": "cd ./backend && node server.js",
+    "server": "cd ./backend && npm install && node server.js",
     "client": "cd ./frontend && npm run dev",
     "build": "cd ./frontend && npm install && npm run build",
     "start": "concurrently \"npm run devServer\" \"npm run client\""
