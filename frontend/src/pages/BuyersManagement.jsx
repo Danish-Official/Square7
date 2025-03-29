@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,62 +9,66 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { apiClient } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
+import { useBuyers } from "@/context/BuyersContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import jsPDF from "jspdf";
 
 export default function BuyersManagement() {
-  const [buyers, setBuyers] = useState([]);
+  const { buyers, deleteBuyer, updateBuyer, fetchBuyers } = useBuyers();
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingBuyer, setEditingBuyer] = useState(null);
+  const [selectedBuyer, setSelectedBuyer] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    fetchBuyers();
-  }, []);
-
-  async function fetchBuyers() {
-    try {
-      const { data } = await apiClient.get("/bookings");
-      setBuyers(data);
-    } catch (error) {
-      console.error("Error fetching buyers", error);
-    }
-  }
-
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this buyer?")) return;
-    try {
-      await apiClient.delete(`/bookings/${id}`);
-      alert("Buyer deleted successfully");
-      fetchBuyers();
-    } catch (error) {
-      console.error("Error deleting buyer", error);
+  const handleDelete = (id) => {
+    if (confirm("Are you sure you want to delete this buyer?")) {
+      deleteBuyer(id);
     }
   };
 
   const handleEdit = (buyer) => {
-    setEditingBuyer(buyer);
+    setSelectedBuyer(buyer);
+    setIsDialogOpen(true);
+    setIsEditing(false); // Start in view mode
   };
 
-  const handleUpdate = async () => {
+  const handleSave = async () => {
     try {
-      await apiClient.put(`/bookings/${editingBuyer._id}`, editingBuyer);
-      alert("Buyer updated successfully");
-      setEditingBuyer(null);
-      fetchBuyers();
+      await updateBuyer(selectedBuyer); // Trigger backend update
+      setIsEditing(false); // Exit edit mode
+      alert("Buyer details updated successfully");
+      await fetchBuyers(); // Refresh the table with updated data
     } catch (error) {
-      console.error("Error updating buyer", error);
+      console.error("Error updating buyer details:", error);
+      alert("Failed to update buyer details");
     }
   };
 
   const handleChange = (e) => {
-    setEditingBuyer({ ...editingBuyer, [e.target.name]: e.target.value });
+    setSelectedBuyer({ ...selectedBuyer, [e.target.name]: e.target.value });
   };
 
-  const filteredBuyers = Array.isArray(buyers)
-    ? buyers.filter((buyer) =>
-        buyer.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text(`Buyer Details`, 10, 10);
+    doc.text(`Name: ${selectedBuyer.buyerName}`, 10, 20);
+    doc.text(`Address: ${selectedBuyer.address}`, 10, 30);
+    doc.text(`Phone Number: ${selectedBuyer.phoneNumber}`, 10, 40);
+    doc.text(`Gender: ${selectedBuyer.gender}`, 10, 50);
+    doc.text(`Plot Number: ${selectedBuyer.plot.plotNumber}`, 10, 60);
+    doc.text(`Total Cost: ${selectedBuyer.totalCost}`, 10, 70);
+    doc.save(`${selectedBuyer.buyerName}_details.pdf`);
+  };
+
+  const filteredBuyers = buyers.filter((buyer) =>
+    buyer.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -77,60 +81,110 @@ export default function BuyersManagement() {
         className="mb-4"
       />
 
-      {editingBuyer && (
-        <div className="space-y-4 p-4 border rounded-lg">
-          <h2 className="text-2xl">Edit Buyer</h2>
-          <Input
-            name="buyerName"
-            value={editingBuyer.buyerName}
-            onChange={handleChange}
-            placeholder="Buyer Name"
-          />
-          <Input
-            name="address"
-            value={editingBuyer.address}
-            onChange={handleChange}
-            placeholder="Address"
-          />
-          <Input
-            name="phoneNumber"
-            value={editingBuyer.phoneNumber}
-            onChange={handleChange}
-            placeholder="Phone Number"
-          />
-          <Button onClick={handleUpdate}>Save Changes</Button>
-          <Button variant="outline" onClick={() => setEditingBuyer(null)}>
-            Cancel
-          </Button>
-        </div>
-      )}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          {selectedBuyer && (
+            <div className="space-y-4 p-4">
+              <DialogHeader>
+                <DialogTitle>Buyer Details</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2">
+                <label className="block font-medium">Name</label>
+                {isEditing ? (
+                  <Input
+                    name="buyerName"
+                    value={selectedBuyer.buyerName}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <p>{selectedBuyer.buyerName}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block font-medium">Address</label>
+                {isEditing ? (
+                  <Input
+                    name="address"
+                    value={selectedBuyer.address}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <p>{selectedBuyer.address}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block font-medium">Phone Number</label>
+                {isEditing ? (
+                  <Input
+                    name="phoneNumber"
+                    value={selectedBuyer.phoneNumber}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <p>{selectedBuyer.phoneNumber}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block font-medium">Gender</label>
+                <p>{selectedBuyer.gender}</p>
+              </div>
+              <div className="space-y-2">
+                <label className="block font-medium">Plot Number</label>
+                <p>{selectedBuyer.plot.plotNumber}</p>
+              </div>
+              <div className="space-y-2">
+                <label className="block font-medium">Total Cost</label>
+                <p>{selectedBuyer.totalCost}</p>
+              </div>
+              <div className="flex space-x-4">
+                {isEditing ? (
+                  <Button onClick={handleSave}>Save</Button>
+                ) : (
+                  <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                )}
+                <Button variant="outline" onClick={handleDownloadPDF}>
+                  Download PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Buyer Name</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead>Phone Number</TableHead>
-            <TableHead>Gender</TableHead>
             <TableHead>Plot Number</TableHead>
-            <TableHead>Total Cost</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Delete</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredBuyers.map((buyer) => (
             <TableRow key={buyer._id}>
-              <TableCell>{buyer.buyerName}</TableCell>
-              <TableCell>{buyer.address}</TableCell>
+              <TableCell
+                className="cursor-pointer text-blue-500"
+                onClick={() => handleEdit(buyer)}
+              >
+                {buyer.buyerName}
+              </TableCell>
               <TableCell>{buyer.phoneNumber}</TableCell>
-              <TableCell>{buyer.gender}</TableCell>
               <TableCell>{buyer.plot.plotNumber}</TableCell>
-              <TableCell>${buyer.totalCost}</TableCell>
-              <TableCell className="flex gap-2">
-                <Button variant="outline" onClick={() => handleEdit(buyer)}>
-                  Edit
-                </Button>
-                <Trash2 color="#f00505" className="self-center" onClick={() => handleDelete(buyer._id)}/>
+              <TableCell>{buyer.plot.createdAt}</TableCell>
+              <TableCell>
+                <Trash2
+                  color="#f00505"
+                  className="self-center"
+                  onClick={() => handleDelete(buyer._id)}
+                />
               </TableCell>
             </TableRow>
           ))}

@@ -52,14 +52,14 @@ const Sidebar = () => {
             label="Plot Management"
           />
           <NavItem
-            to="/buyer-management"
+            to="/contact-list"
             icon={<BookUser size={20} />}
-            label="Manage Buyers"
+            label="Contact List"
           />
           <NavItem
             to="/invoices"
             icon={<ReceiptIndianRupee size={20} />}
-            label="Billing History"
+            label="Invoices"
           />
           <NavItem
             to="/enquiries"

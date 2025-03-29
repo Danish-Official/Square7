@@ -8,6 +8,7 @@ import Invoices from "./pages/Invoices";
 import NewBooking from "./pages/NewBooking";
 import { useEffect } from "react";
 import Enquiries from "./pages/Enquiries";
+import { BuyersProvider } from "@/context/BuyersContext";
 
 function App() {
   const navigate = useNavigate();
@@ -20,17 +21,19 @@ function App() {
   }, [navigate]);
 
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="plot-management" element={<PlotManagement />} />
-        <Route path="buyer-management" element={<BuyersManagement />} />
-        <Route path="user-management" element={<UsersManagement />} />
-        <Route path="invoices" element={<Invoices />} />
-        <Route path="enquiries" element={<Enquiries />} />
-        <Route path="new-booking" element={<NewBooking />} />
-      </Route>
-    </Routes>
+    <BuyersProvider>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="plot-management" element={<PlotManagement />} />
+          <Route path="contact-list" element={<BuyersManagement />} />
+          <Route path="user-management" element={<UsersManagement />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="enquiries" element={<Enquiries />} />
+          <Route path="new-booking" element={<NewBooking />} />
+        </Route>
+      </Routes>
+    </BuyersProvider>
   );
 }
 

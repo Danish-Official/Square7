@@ -38,6 +38,24 @@ router.get("/", authenticate(), async (req, res) => {
   }
 });
 
+// Update Booking
+router.put("/:id", authenticate(), async (req, res) => {
+  try {
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updatedBooking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    res.status(200).json(updatedBooking);
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
 // Delete Booking
 router.delete("/:id", authenticate(), async (req, res) => {
   try {

@@ -28,6 +28,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { FilePlus } from "lucide-react";
 import Login from "../components/Login";
 import { useAuth } from "@/context/AuthContext";
+import { useBuyers } from "@/context/BuyersContext";
 import "../styles/dashboard.scss"; // Import your CSS file for styling
 
 export default function Dashboard() {
@@ -36,6 +37,8 @@ export default function Dashboard() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Default to false
   const [manualLogout, setManualLogout] = useState(false); // Track manual logout
   const { auth } = useAuth(); // Access auth from context
+  const { buyers } = useBuyers();
+  const recentBuyers = buyers.slice(-5).reverse();
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
@@ -60,54 +63,6 @@ export default function Dashboard() {
     soldPlots: 60,
     availablePlots: 40,
   };
-
-  const transactions = [
-    {
-      id: 1,
-      buyer: "John Doe",
-      plot: "23",
-      amount: "$50,000",
-      date: "2025-03-01",
-      contactNo: "123-456-7890",
-      invoiceNo: "INV-001",
-    },
-    {
-      id: 2,
-      buyer: "Jane Smith",
-      plot: "13",
-      amount: "$75,000",
-      date: "2025-03-02",
-      contactNo: "987-654-3210",
-      invoiceNo: "INV-002",
-    },
-    {
-      id: 2,
-      buyer: "Jane Smith",
-      plot: "13",
-      amount: "$75,000",
-      date: "2025-03-02",
-      contactNo: "987-654-3210",
-      invoiceNo: "INV-002",
-    },
-    {
-      id: 2,
-      buyer: "Jane Smith",
-      plot: "13",
-      amount: "$75,000",
-      date: "2025-03-02",
-      contactNo: "987-654-3210",
-      invoiceNo: "INV-002",
-    },
-    {
-      id: 2,
-      buyer: "Jane Smith",
-      plot: "13",
-      amount: "$75,000",
-      date: "2025-03-02",
-      contactNo: "987-654-3210",
-      invoiceNo: "INV-002",
-    },
-  ];
 
   const revenueData = [
     { month: "Jan", revenue: 10000 },
@@ -199,19 +154,17 @@ export default function Dashboard() {
               <TableRow>
                 <TableCell className="font-bold">Name</TableCell>
                 <TableCell className="font-bold">Contact No.</TableCell>
-                <TableCell className="font-bold">Booking Date</TableCell>
                 <TableCell className="font-bold">Plot No.</TableCell>
-                <TableCell className="font-bold">Invoice No.</TableCell>
+                <TableCell className="font-bold">Booking Date</TableCell>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell>{tx.buyer}</TableCell>
-                  <TableCell>{tx.contactNo}</TableCell>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>{tx.plot}</TableCell>
-                  <TableCell>{tx.invoiceNo}</TableCell>
+              {recentBuyers.map((buyer) => (
+                <TableRow key={buyer._id}>
+                  <TableCell>{buyer.buyerName}</TableCell>
+                  <TableCell>{buyer.phoneNumber}</TableCell>
+                  <TableCell>{buyer.plot.plotNumber}</TableCell>
+                  <TableCell>{buyer.plot.createdAt}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -220,12 +173,9 @@ export default function Dashboard() {
       </Card>
 
       <Dialog open={isLoginModalOpen}>
-        <DialogContent hideClose={true}>
-          <DialogHeader>
-            <DialogTitle>Login</DialogTitle>
-          </DialogHeader>
+        <DialogContent hideClose={true} className="sm:max-w-[650px]">
           {!manualLogout && isTokenExpired(auth.token) && (
-            <p className="text-red-500 mb-4">
+            <p className="text-red-500 mb-4 text-center">
               Session expired. Please login again.
             </p>
           )}
