@@ -7,6 +7,7 @@ const plotRoutes = require("./routes/plotRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
 const enquiryRoutes = require("./routes/enquiryRoutes");
+const path = require("path");
 
 dotenv.config();
 const app = express();
@@ -34,6 +35,11 @@ app.use("/api/enquiries", enquiryRoutes);
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Internal Server Error" });
+});
+
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
 const PORT = process.env.PORT || 5000;
