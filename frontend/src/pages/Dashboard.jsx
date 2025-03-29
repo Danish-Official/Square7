@@ -28,6 +28,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { FilePlus } from "lucide-react";
 import Login from "../components/Login";
 import { useAuth } from "@/context/AuthContext";
+import "../styles/dashboard.scss"; // Import your CSS file for styling
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -139,16 +140,6 @@ export default function Dashboard() {
     <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.entries(stats).map(([key, value]) => (
-          <Card key={key} className="p-4 shadow-md">
-            <CardContent>
-              <h2 className="text-lg font-semibold capitalize">
-                {key.replace(/([A-Z])/g, " $1")}
-              </h2>
-              <p className="text-xl font-bold">{value}</p>
-            </CardContent>
-          </Card>
-        ))}
         <Link to="/new-booking">
           <Button
             className="text-xl font-semibold capitalize w-full h-full cursor-pointer hover:bg-[#5266A4]"
@@ -160,6 +151,16 @@ export default function Dashboard() {
             <FilePlus size={40} />
           </Button>
         </Link>
+        {Object.entries(stats).map(([key, value]) => (
+          <Card key={key} className="p-4 shadow-md">
+            <CardContent>
+              <h2 className="text-lg capitalize font-light font-oxygen">
+                {key.replace(/([A-Z])/g, " $1")}
+              </h2>
+              <p className="text-xl font-bold font-philosopher">{value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2 p-4">
