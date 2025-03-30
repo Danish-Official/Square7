@@ -10,10 +10,23 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 
 export default function UsersManagement() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -21,7 +34,7 @@ export default function UsersManagement() {
 
   async function fetchUsers() {
     try {
-      const { data } = await apiClient.get("/users"); // Ensure relative path
+      const { data } = await apiClient.get("/auth/users"); // Ensure relative path
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users", error);
@@ -31,11 +44,23 @@ export default function UsersManagement() {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
-      await apiClient.delete(`/users/${id}`);
+      await apiClient.delete(`/auth/users/${id}`);
       alert("User deleted successfully");
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user", error);
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    try {
+      await apiClient.post("/auth/create-admin", newAdmin);
+      alert("Admin user created successfully");
+      setIsDialogOpen(false);
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error("Error creating admin user:", error);
+      alert("Failed to create admin user");
     }
   };
 
@@ -56,6 +81,41 @@ export default function UsersManagement() {
         className="mb-4"
       />
 
+      <Button onClick={() => setIsDialogOpen(true)}>Create Admin</Button>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Admin</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Name"
+              value={newAdmin.name}
+              onChange={(e) =>
+                setNewAdmin((prev) => ({ ...prev, name: e.target.value }))
+              }
+            />
+            <Input
+              placeholder="Email"
+              value={newAdmin.email}
+              onChange={(e) =>
+                setNewAdmin((prev) => ({ ...prev, email: e.target.value }))
+              }
+            />
+            <Input
+              placeholder="Password"
+              type="password"
+              value={newAdmin.password}
+              onChange={(e) =>
+                setNewAdmin((prev) => ({ ...prev, password: e.target.value }))
+              }
+            />
+            <Button onClick={handleCreateAdmin}>Create</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -72,12 +132,11 @@ export default function UsersManagement() {
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
-                <Button
-                  variant="destructive"
+                <Trash2
+                  color="#f00505"
+                  className="self-center cursor-pointer"
                   onClick={() => handleDelete(user._id)}
-                >
-                  Delete
-                </Button>
+                />
               </TableCell>
             </TableRow>
           ))}

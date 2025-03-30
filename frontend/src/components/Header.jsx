@@ -13,7 +13,8 @@ const Header = () => {
 
   return (
     <div className="p-4 bg-white text-gray-800 flex justify-end items-center gap-4 shadow-md">
-      {auth.user && <p>Welcome, {auth.user}!</p>} {/* Display username */}
+      {auth.user && <p>Welcome, {auth.user.name}!</p>}{" "}
+      {/* Display user's name */}
       <button
         onClick={handleLogout}
         className="p-2 bg-[#27304f] text-white rounded-lg hover:bg-[#37446e]"

@@ -89,12 +89,31 @@ export default function Dashboard() {
     setSelectedDate(null);
   };
 
-  // Removed unused closeLoginModal function to resolve the error
+  const getBuyerDetailsByDate = (date) => {
+    return buyers.find(
+      (buyer) =>
+        new Date(buyer.plot.createdAt).toDateString() === date.toDateString()
+    );
+  };
+
+  const isBuyerPresentOnDate = (date) => {
+    return buyers.some(
+      (buyer) =>
+        new Date(buyer.plot.createdAt).toDateString() === date.toDateString()
+    );
+  };
 
   return (
     <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* {auth.user?.role === "superadmin" && (
+          <Link to="/user-management">
+            <Button className="text-xl font-semibold capitalize w-full h-full">
+              Manage Users
+            </Button>
+          </Link>
+        )} */}
         <Link to="/new-booking">
           <Button
             className="text-xl font-semibold capitalize w-full h-full cursor-pointer hover:bg-[#5266A4]"
@@ -140,7 +159,17 @@ export default function Dashboard() {
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={(date) => handleDateClick(date)}
+            onSelect={(date) => {
+              if (isBuyerPresentOnDate(date)) {
+                handleDateClick(date);
+              }
+            }}
+            modifiers={{
+              hasBuyer: (date) => isBuyerPresentOnDate(date),
+            }}
+            modifiersClassNames={{
+              hasBuyer: "bg-green-500 rounded-full",
+            }}
             className="flex justify-center"
           />
         </Card>
@@ -164,7 +193,9 @@ export default function Dashboard() {
                   <TableCell>{buyer.buyerName}</TableCell>
                   <TableCell>{buyer.phoneNumber}</TableCell>
                   <TableCell>{buyer.plot.plotNumber}</TableCell>
-                  <TableCell>{buyer.plot.createdAt}</TableCell>
+                  <TableCell>
+                    {new Date(buyer.plot.createdAt).toLocaleDateString()}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -173,7 +204,7 @@ export default function Dashboard() {
       </Card>
 
       <Dialog open={isLoginModalOpen}>
-        <DialogContent hideClose={true} className="sm:max-w-[650px]">
+        <DialogContent className="sm:max-w-[650px]">
           {!manualLogout && isTokenExpired(auth.token) && (
             <p className="text-red-500 mb-4 text-center">
               Session expired. Please login again.
@@ -190,16 +221,27 @@ export default function Dashboard() {
       </Dialog>
 
       <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
-        <DialogHeader>
-          <DialogTitle>Buyer Details</DialogTitle>
-        </DialogHeader>
-        {selectedDate && (
-          <div>
-            <p>Date: {selectedDate.toDateString()}</p>
-            {/* Add buyer details here */}
-          </div>
-        )}
-        <Button onClick={closeDialog}>Close</Button>
+        <DialogContent className="flex flex-col items-center justify-center">
+          <DialogHeader>
+            <DialogTitle>Buyer Details</DialogTitle>
+          </DialogHeader>
+          {selectedDate &&
+            (() => {
+              const buyerDetails = getBuyerDetailsByDate(selectedDate);
+              return buyerDetails ? (
+                <div className="space-y-4">
+                  <p className="text-lg">Name: {buyerDetails.buyerName}</p>
+                  <p className="text-lg">
+                    Contact No.: {buyerDetails.phoneNumber}
+                  </p>
+                  <p className="text-lg">
+                    Plot No.: {buyerDetails.plot.plotNumber}
+                  </p>
+                </div>
+              ) : null;
+            })()}
+          <Button onClick={closeDialog}>Close</Button>
+        </DialogContent>
       </Dialog>
     </div>
   );

@@ -20,7 +20,7 @@ export default function Login({ onClose }) {
     e.preventDefault();
     try {
       const { data } = await apiClient.post("/auth/login", formData);
-      login(data.user.name, data.token); // Update context with user and token
+      login(data.user, data.token); // Pass the entire user object
       alert("Login successful");
       onClose(); // Close the modal on successful login
     } catch (err) {
@@ -41,7 +41,10 @@ export default function Login({ onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="mb-4">
             <div className="relative">
-              <Mail color="black" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Mail
+                color="black"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <Input
                 id="email"
                 name="email"
@@ -56,7 +59,10 @@ export default function Login({ onClose }) {
           </div>
           <div className="mb-4">
             <div className="relative">
-              <LockKeyholeOpen color="black" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <LockKeyholeOpen
+                color="black"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <Input
                 id="password"
                 name="password"
@@ -69,7 +75,10 @@ export default function Login({ onClose }) {
               />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-[#1F263E] hover:bg-[#383e52] rounded-[25px]">
+          <Button
+            type="submit"
+            className="w-full bg-[#1F263E] hover:bg-[#383e52] rounded-[25px]"
+          >
             Login
           </Button>
         </form>

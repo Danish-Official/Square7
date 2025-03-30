@@ -10,9 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/utils";
+import { useBuyers } from "@/context/BuyersContext";
+import { useNavigate } from "react-router-dom";
 
 export default function NewBooking() {
   const [plots, setPlots] = useState(null);
+  useBuyers(); // Call the hook without destructuring unused variables
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     buyerName: "",
     address: "",
@@ -20,7 +24,7 @@ export default function NewBooking() {
     gender: "Male",
     plotId: "",
     areaSqFt: 0,
-    ratePerSqFt: 0, // Added for frontend calculation
+    ratePerSqFt: 0,
     paymentType: "Cash",
     brokerReference: "",
     firstPayment: 0,
@@ -83,7 +87,7 @@ export default function NewBooking() {
         setFormData((prev) => ({
           ...prev,
           areaSqFt: selectedPlot.areaSqFt,
-          totalCost: selectedPlot.areaSqFt * prev.ratePerSqFt, // Calculate totalCost dynamically
+          totalCost: selectedPlot.areaSqFt * prev.ratePerSqFt,
         }));
       }
     }
@@ -91,7 +95,7 @@ export default function NewBooking() {
     if (name === "ratePerSqFt") {
       setFormData((prev) => ({
         ...prev,
-        totalCost: prev.areaSqFt * value, // Recalculate totalCost when ratePerSqFt changes
+        totalCost: prev.areaSqFt * value,
       }));
     }
   };
@@ -101,8 +105,10 @@ export default function NewBooking() {
     try {
       await apiClient.post("/bookings", formData);
       alert("Booking created successfully");
+      navigate("/contact-list");
     } catch (error) {
-      console.error("Error creating booking", error);
+      console.error("Error creating booking:", error);
+      alert(error.response?.data?.message || "Failed to create booking");
     }
   };
 

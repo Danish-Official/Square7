@@ -19,14 +19,14 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       enum: ["Cash", "Cheque", "Online"],
       required: true,
-    }, // Add enum for validation
+    },
     brokerReference: { type: String },
     firstPayment: {
       type: Number,
       required: true,
       validate: {
         validator: function (value) {
-          return value > 0 && value <= this.totalCost; // Greater than 0 and less than or equal to total cost
+          return value > 0 && value <= this.totalCost;
         },
         message:
           "First payment must be greater than 0 and less than or equal to the total cost.",

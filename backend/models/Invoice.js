@@ -7,8 +7,17 @@ const invoiceSchema = new mongoose.Schema(
       ref: "Booking",
       required: true,
     },
-    amount: { type: Number, required: true },
-    paymentDate: { type: Date, default: Date.now },
+    subsequentPayments: [
+      {
+        amount: { type: Number, required: true },
+        paymentDate: { type: Date, default: Date.now },
+        paymentType: {
+          type: String,
+          enum: ["Cash", "Cheque", "Online"],
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

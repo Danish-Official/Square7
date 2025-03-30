@@ -41,9 +41,39 @@ router.get("/", authenticate(), async (req, res) => {
 // Update Booking
 router.put("/:id", authenticate(), async (req, res) => {
   try {
+    // Retrieve the existing booking
+    const existingBooking = await Booking.findById(req.params.id);
+    if (!existingBooking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    // Convert numeric fields if provided, else use existing values
+    const updatedFirstPayment =
+      req.body.firstPayment !== undefined
+        ? Number(req.body.firstPayment)
+        : existingBooking.firstPayment;
+    const updatedTotalCost =
+      req.body.totalCost !== undefined
+        ? Number(req.body.totalCost)
+        : existingBooking.totalCost;
+
+    // Check that firstPayment is greater than 0 and less than or equal to totalCost
+    if (updatedFirstPayment <= 0 || updatedFirstPayment > updatedTotalCost) {
+      return res.status(400).json({
+        message:
+          "First payment must be greater than 0 and less than or equal to the total cost.",
+      });
+    }
+
+    // Merge the incoming data with the safe numeric values
+    const updateData = {
+      ...req.body,
+      firstPayment: updatedFirstPayment,
+      totalCost: updatedTotalCost,
+    };
+
     const updatedBooking = await Booking.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     if (!updatedBooking) {

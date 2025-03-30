@@ -25,6 +25,7 @@ export default function BuyersManagement() {
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleDelete = (id) => {
     if (confirm("Are you sure you want to delete this buyer?")) {
@@ -39,6 +40,25 @@ export default function BuyersManagement() {
   };
 
   const handleSave = async () => {
+    const errors = {};
+    if (
+      !selectedBuyer.buyerName ||
+      !/^[A-Za-z\s]+$/.test(selectedBuyer.buyerName)
+    ) {
+      errors.buyerName = "Name should contain only alphabets and spaces.";
+    }
+    if (
+      !selectedBuyer.phoneNumber ||
+      !/^\d{10}$/.test(selectedBuyer.phoneNumber)
+    ) {
+      errors.phoneNumber = "Phone number should be exactly 10 digits.";
+    }
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      alert("Please fix the errors before saving.");
+      return;
+    }
+
     try {
       await updateBuyer(selectedBuyer); // Trigger backend update
       setIsEditing(false); // Exit edit mode
@@ -82,7 +102,7 @@ export default function BuyersManagement() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
           {selectedBuyer && (
             <div className="space-y-4 p-4">
               <DialogHeader>
@@ -91,11 +111,16 @@ export default function BuyersManagement() {
               <div className="space-y-2">
                 <label className="block font-medium">Name</label>
                 {isEditing ? (
-                  <Input
-                    name="buyerName"
-                    value={selectedBuyer.buyerName}
-                    onChange={handleChange}
-                  />
+                  <>
+                    <Input
+                      name="buyerName"
+                      value={selectedBuyer.buyerName}
+                      onChange={handleChange}
+                    />
+                    {errors.buyerName && (
+                      <p className="text-red-500 text-sm">{errors.buyerName}</p>
+                    )}
+                  </>
                 ) : (
                   <p>{selectedBuyer.buyerName}</p>
                 )}
@@ -103,23 +128,42 @@ export default function BuyersManagement() {
               <div className="space-y-2">
                 <label className="block font-medium">Address</label>
                 {isEditing ? (
-                  <Input
-                    name="address"
-                    value={selectedBuyer.address}
-                    onChange={handleChange}
-                  />
+                  <>
+                    <Input
+                      name="address"
+                      value={selectedBuyer.address}
+                      onChange={(e) => {
+                        if (e.target.value.split(" ").length <= 120) {
+                          handleChange(e);
+                        }
+                      }}
+                      className="break-words max-w-full"
+                    />
+                    <p className="text-gray-500 text-sm">
+                      Max 120 words allowed.
+                    </p>
+                  </>
                 ) : (
-                  <p>{selectedBuyer.address}</p>
+                  <p className="break-words max-w-full">
+                    {selectedBuyer.address}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
                 <label className="block font-medium">Phone Number</label>
                 {isEditing ? (
-                  <Input
-                    name="phoneNumber"
-                    value={selectedBuyer.phoneNumber}
-                    onChange={handleChange}
-                  />
+                  <>
+                    <Input
+                      name="phoneNumber"
+                      value={selectedBuyer.phoneNumber}
+                      onChange={handleChange}
+                    />
+                    {errors.phoneNumber && (
+                      <p className="text-red-500 text-sm">
+                        {errors.phoneNumber}
+                      </p>
+                    )}
+                  </>
                 ) : (
                   <p>{selectedBuyer.phoneNumber}</p>
                 )}
@@ -178,7 +222,9 @@ export default function BuyersManagement() {
               </TableCell>
               <TableCell>{buyer.phoneNumber}</TableCell>
               <TableCell>{buyer.plot.plotNumber}</TableCell>
-              <TableCell>{buyer.plot.createdAt}</TableCell>
+              <TableCell>
+                {new Date(buyer.plot.createdAt).toLocaleDateString()}
+              </TableCell>
               <TableCell>
                 <Trash2
                   color="#f00505"

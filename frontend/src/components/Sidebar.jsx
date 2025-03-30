@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom"; // Import useNavigate
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import {
   Banknote,
   Home,
@@ -15,6 +16,7 @@ import {
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { auth } = useAuth(); // Access auth from context
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -66,11 +68,13 @@ const Sidebar = () => {
             icon={<MessageCircleQuestion size={20} />}
             label="Enquiries"
           />
-          <NavItem
-            to="/user-management"
-            icon={<UserRoundCog size={20} />}
-            label="Manage Users"
-          />
+          {auth.user?.role === "superadmin" && ( // Check the role from the user object
+            <NavItem
+              to="/user-management"
+              icon={<UserRoundCog size={20} />}
+              label="Manage Users"
+            />
+          )}
         </nav>
       </div>
     </div>

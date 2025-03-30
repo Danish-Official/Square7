@@ -22,6 +22,66 @@ async function createSuperAdmin() {
   console.log("Super Admin created successfully");
 }
 
+// Middleware to check if the user is a superadmin
+const authenticate = require("../middleware/authenticate");
+
+router.post("/create-admin", authenticate("superadmin"), async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Check if the email is already in use
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email is already in use" });
+    }
+
+    // Hash the password and create the admin user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const adminUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    await adminUser.save();
+    res.status(201).json({ message: "Admin user created successfully" });
+  } catch (error) {
+    console.error("Error creating admin user:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Fetch all users
+router.get("/users", authenticate("superadmin"), async (req, res) => {
+  try {
+    console.log("fetch users");
+    const users = await User.find(
+      { role: { $ne: "superadmin" } },
+      { password: 0 }
+    );
+    // Exclude passwords and superadmin users
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Delete user
+router.delete("/users/:id", authenticate("superadmin"), async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 // Login
 router.post("/login", async (req, res) => {
   try {
