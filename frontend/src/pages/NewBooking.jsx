@@ -30,6 +30,7 @@ export default function NewBooking() {
   });
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
+  const [currentSection, setCurrentSection] = useState(1);
 
   useEffect(() => {
     async function fetchPlots() {
@@ -79,17 +80,6 @@ export default function NewBooking() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     validateField(name, value);
 
-    if (name === "plotId") {
-      const selectedPlot = plots.find((plot) => plot._id === value);
-      if (selectedPlot) {
-        setFormData((prev) => ({
-          ...prev,
-          areaSqFt: selectedPlot.areaSqFt,
-          totalCost: selectedPlot.areaSqFt * prev.ratePerSqFt,
-        }));
-      }
-    }
-
     if (name === "ratePerSqFt") {
       setFormData((prev) => ({
         ...prev,
@@ -98,14 +88,24 @@ export default function NewBooking() {
     }
   };
 
+  const handlePlotChange = (value) => {
+    const selectedPlot = plots.find((plot) => plot._id === value);
+    if (selectedPlot) {
+      setFormData((prev) => ({
+        ...prev,
+        plotId: value, // Explicitly set plotId
+        areaSqFt: selectedPlot.areaSqFt,
+        totalCost: selectedPlot.areaSqFt * prev.ratePerSqFt,
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Step 1: Create the booking
       const bookingResponse = await apiClient.post("/bookings", formData);
       const bookingId = bookingResponse.data._id;
 
-      // Step 2: Create the invoice with the first payment
       const invoiceData = {
         booking: bookingId,
         payments: [
@@ -126,178 +126,227 @@ export default function NewBooking() {
     }
   };
 
+  const renderSection = () => {
+    switch (currentSection) {
+      case 1:
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="buyerName">Buyer Name</Label>
+              <Input
+                id="buyerName"
+                name="buyerName"
+                value={formData.buyerName}
+                onChange={handleChange}
+                placeholder="Buyer Name"
+                required
+              />
+              {errors.buyerName && (
+                <p className="text-red-500 text-sm">{errors.buyerName}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Address"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                placeholder="Phone Number"
+                required
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, gender: value }))
+                }
+                value={formData.gender}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={() => setCurrentSection(2)}
+              disabled={!formData.buyerName || !formData.phoneNumber}
+            >
+              Next
+            </Button>
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="plotId">Plot</Label>
+              <Select
+                onValueChange={handlePlotChange} // Use handlePlotChange for plot selection
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Plot" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(plots) &&
+                    plots.map((plot) => (
+                      <SelectItem key={plot._id} value={plot._id}>
+                        Plot {plot.plotNumber} - {plot.areaSqFt} sq ft
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="areaSqFt">Area (sq ft)</Label>
+              <Input
+                id="areaSqFt"
+                value={formData.areaSqFt}
+                readOnly
+                placeholder="Area (sq ft)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ratePerSqFt">Rate per sq ft</Label>
+              <Input
+                id="ratePerSqFt"
+                name="ratePerSqFt"
+                type="number"
+                value={formData.ratePerSqFt}
+                onChange={handleChange}
+                placeholder="Rate per sq ft"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="totalCost">Total Cost</Label>
+              <Input
+                id="totalCost"
+                value={formData.totalCost}
+                readOnly
+                placeholder="Total Cost"
+              />
+            </div>
+            <Button
+              onClick={() => setCurrentSection(3)}
+              disabled={!formData.plotId || !formData.ratePerSqFt}
+            >
+              Next
+            </Button>
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="paymentType">Payment Type</Label>
+              <Select
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, paymentType: value }))
+                }
+                value={formData.paymentType}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Payment Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Cheque">Cheque</SelectItem>
+                  <SelectItem value="Online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brokerReference">
+                Broker Reference (Optional)
+              </Label>
+              <Input
+                id="brokerReference"
+                name="brokerReference"
+                value={formData.brokerReference}
+                onChange={handleChange}
+                placeholder="Broker Reference (Optional)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="firstPayment">First Payment</Label>
+              <Input
+                id="firstPayment"
+                name="firstPayment"
+                type="number"
+                value={formData.firstPayment}
+                onChange={handleChange}
+                placeholder="First Payment"
+                required
+              />
+              {errors.firstPayment && (
+                <p className="text-red-500 text-sm">{errors.firstPayment}</p>
+              )}
+            </div>
+            <Button type="submit" disabled={!isFormValid}>
+              Create Booking
+            </Button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-semibold">New Booking</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="buyerName">Buyer Name</Label>
-          <Input
-            id="buyerName"
-            name="buyerName"
-            value={formData.buyerName}
-            onChange={handleChange}
-            placeholder="Buyer Name"
-            required
-          />
-          {errors.buyerName && (
-            <p className="text-red-500 text-sm">{errors.buyerName}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
-          <Input
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="Address"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phoneNumber">Phone Number</Label>
-          <Input
-            id="phoneNumber"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            placeholder="Phone Number"
-            required
-          />
-          {errors.phoneNumber && (
-            <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="gender">Gender</Label>
-          <Select
-            onValueChange={(value) =>
-              setFormData((prev) => ({ ...prev, gender: value }))
-            }
-            value={formData.gender}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Male">Male</SelectItem>
-              <SelectItem value="Female">Female</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="plotId">Plot</Label>
-          <Select
-            onValueChange={(value) =>
-              handleChange({ target: { name: "plotId", value } })
-            }
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Plot" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.isArray(plots) &&
-                plots.map((plot) => (
-                  <SelectItem key={plot._id} value={plot._id}>
-                    Plot {plot.plotNumber} - {plot.areaSqFt} sq ft
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="areaSqFt">Area (sq ft)</Label>
-          <Input
-            id="areaSqFt"
-            value={formData.areaSqFt}
-            readOnly
-            placeholder="Area (sq ft)"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="ratePerSqFt">Rate per sq ft</Label>
-          <Input
-            id="ratePerSqFt"
-            name="ratePerSqFt"
-            type="number"
-            value={formData.ratePerSqFt}
-            onChange={handleChange}
-            placeholder="Rate per sq ft"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="totalCost">Total Cost</Label>
-          <Input
-            id="totalCost"
-            value={formData.totalCost}
-            readOnly
-            placeholder="Total Cost"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="paymentType">Payment Type</Label>
-          <Select
-            onValueChange={(value) =>
-              setFormData((prev) => ({ ...prev, paymentType: value }))
-            }
-            value={formData.paymentType}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Payment Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Cash">Cash</SelectItem>
-              <SelectItem value="Cheque">Cheque</SelectItem>
-              <SelectItem value="Online">Online</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="brokerReference">Broker Reference (Optional)</Label>
-          <Input
-            id="brokerReference"
-            name="brokerReference"
-            value={formData.brokerReference}
-            onChange={handleChange}
-            placeholder="Broker Reference (Optional)"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="firstPayment">First Payment</Label>
-          <Input
-            id="firstPayment"
-            name="firstPayment"
-            type="number"
-            value={formData.firstPayment}
-            onChange={handleChange}
-            placeholder="First Payment"
-            required
-          />
-          {errors.firstPayment && (
-            <p className="text-red-500 text-sm">{errors.firstPayment}</p>
-          )}
-        </div>
-
-        <Button type="submit" disabled={!isFormValid}>
-          Create Booking
-        </Button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="flex">
+      <div className="w-1/4 p-4 space-y-4 border-r">
+        <button
+          className={`block w-full text-left ${
+            currentSection === 1 ? "font-bold" : ""
+          }`}
+          onClick={() => setCurrentSection(1)}
+        >
+          Personal Details
+        </button>
+        <button
+          className={`block w-full text-left ${
+            currentSection === 2 ? "font-bold" : ""
+          }`}
+          onClick={() => setCurrentSection(2)}
+          disabled={!formData.buyerName || !formData.phoneNumber}
+        >
+          Plot Details
+        </button>
+        <button
+          className={`block w-full text-left ${
+            currentSection === 3 ? "font-bold" : ""
+          }`}
+          onClick={() => setCurrentSection(3)}
+          disabled={!formData.plotId || !formData.ratePerSqFt}
+        >
+          Payment Details
+        </button>
+      </div>
+      <div className="w-3/4 p-6">{renderSection()}</div>
+    </form>
   );
 }

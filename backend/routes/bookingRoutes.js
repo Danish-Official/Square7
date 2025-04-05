@@ -7,6 +7,7 @@ const authenticate = require("../middleware/authenticate");
 // Create Booking
 router.post("/", authenticate(), async (req, res) => {
   try {
+    console.log("Received booking data:", req.body); // Log incoming data for debugging
     const { plotId, ratePerSqFt, areaSqFt, ...rest } = req.body; // Exclude unnecessary fields
 
     // Validate that the plot exists and is available
@@ -23,7 +24,7 @@ router.post("/", authenticate(), async (req, res) => {
 
     res.status(201).json(booking);
   } catch (error) {
-    console.error("Error saving booking:", error); // Log the error for debugging
+    console.error("Error saving booking:", error.message); // Log error details
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
