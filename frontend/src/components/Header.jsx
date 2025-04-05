@@ -8,7 +8,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout(); // Call logout from context
-    navigate("/"); // Redirect to the homepage
+    navigate("/login"); // Redirect to the login page
   };
 
   return (

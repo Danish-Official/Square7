@@ -30,23 +30,63 @@ import Login from "../components/Login";
 import { useAuth } from "@/context/AuthContext";
 import { useBuyers } from "@/context/BuyersContext";
 import "../styles/dashboard.scss"; // Import your CSS file for styling
+import { apiClient } from "@/lib/utils"; // Import API client
 
-export default function Dashboard() {
+export default function Dashboard({ showLoginModal = false }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // Default to false
-  const [manualLogout, setManualLogout] = useState(false); // Track manual logout
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(showLoginModal); // Initialize with prop value
   const { auth } = useAuth(); // Access auth from context
   const { buyers } = useBuyers();
   const recentBuyers = buyers.slice(-5).reverse();
+  const [stats, setStats] = useState({
+    totalPlots: 0,
+    soldPlots: 0,
+    availablePlots: 0,
+  });
+  const [revenueData, setRevenueData] = useState([]);
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
-      if (!manualLogout) {
-        setIsLoginModalOpen(true); // Open login modal if token is invalid, empty, or expired
-      }
+      setIsLoginModalOpen(true); // Open login modal if token is invalid, empty, or expired
     }
-  }, [auth.token, manualLogout]); // Depend on manualLogout
+  }, [auth.token]); // Depend on manualLogout
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await apiClient.get("/plots/stats");
+        setStats(data);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+
+    if (auth.token) {
+      fetchStats(); // Fetch stats when token is available
+    }
+  }, [auth.token]);
+
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      try {
+        const { data } = await apiClient.get("/invoices/revenue");
+        const formattedData = data.map((item) => ({
+          month: new Date(0, item.month - 1).toLocaleString("default", {
+            month: "short",
+          }),
+          revenue: item.totalRevenue,
+        }));
+        setRevenueData(formattedData);
+      } catch (error) {
+        console.error("Error fetching revenue data:", error);
+      }
+    };
+
+    if (auth.token) {
+      fetchRevenueData();
+    }
+  }, [auth.token]);
 
   const isTokenExpired = (token) => {
     try {
@@ -57,27 +97,6 @@ export default function Dashboard() {
       return true; // Treat invalid tokens as expired
     }
   };
-
-  const stats = {
-    totalPlots: 100,
-    soldPlots: 60,
-    availablePlots: 40,
-  };
-
-  const revenueData = [
-    { month: "Jan", revenue: 10000 },
-    { month: "Feb", revenue: 15000 },
-    { month: "Mar", revenue: 50000 },
-    { month: "Apr", revenue: 25000 },
-    { month: "May", revenue: 30000 },
-    { month: "Jun", revenue: 35000 },
-    { month: "Jul", revenue: 20000 },
-    { month: "Aug", revenue: 45000 },
-    { month: "Sep", revenue: 60000 },
-    { month: "Oct", revenue: 55000 },
-    { month: "Nov", revenue: 28000 },
-    { month: "Dec", revenue: 65000 },
-  ];
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -107,13 +126,6 @@ export default function Dashboard() {
     <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* {auth.user?.role === "superadmin" && (
-          <Link to="/user-management">
-            <Button className="text-xl font-semibold capitalize w-full h-full">
-              Manage Users
-            </Button>
-          </Link>
-        )} */}
         <Link to="/new-booking">
           <Button
             className="text-xl font-semibold capitalize w-full h-full cursor-pointer hover:bg-[#5266A4]"
@@ -205,16 +217,14 @@ export default function Dashboard() {
 
       <Dialog open={isLoginModalOpen}>
         <DialogContent className="sm:max-w-[650px]">
-          {!manualLogout && isTokenExpired(auth.token) && (
+          {isTokenExpired(auth.token) && (
             <p className="text-red-500 mb-4 text-center">
               Session expired. Please login again.
             </p>
           )}
-          {/* Show message only if token is expired and not manually logged out */}
           <Login
             onClose={() => {
-              setIsLoginModalOpen(false);
-              setManualLogout(false); // Reset manualLogout flag after login
+              setIsLoginModalOpen(false); // Close the modal after login
             }}
           />
         </DialogContent>

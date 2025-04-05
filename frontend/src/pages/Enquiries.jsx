@@ -17,8 +17,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 export default function Enquiries() {
+  const { auth } = useAuth(); // Access auth from context
   const [enquiries, setEnquiries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,17 +32,19 @@ export default function Enquiries() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    fetchEnquiries();
-  }, []);
+    const fetchEnquiries = async () => {
+      try {
+        const { data } = await apiClient.get("/enquiries");
+        setEnquiries(data);
+      } catch (error) {
+        console.error("Error fetching enquiries:", error);
+      }
+    };
 
-  async function fetchEnquiries() {
-    try {
-      const { data } = await apiClient.get("/enquiries");
-      setEnquiries(data);
-    } catch (error) {
-      console.error("Error fetching enquiries", error);
+    if (auth.token) {
+      fetchEnquiries(); // Fetch enquiries when token is available
     }
-  }
+  }, [auth.token]);
 
   const validateField = (name, value) => {
     let error = "";

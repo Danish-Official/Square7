@@ -17,8 +17,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 export default function UsersManagement() {
+  const { auth } = useAuth(); // Access auth from context
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -28,18 +30,20 @@ export default function UsersManagement() {
     password: "",
   });
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  async function fetchUsers() {
+  const fetchUsers = async () => {
     try {
-      const { data } = await apiClient.get("/auth/users"); // Ensure relative path
+      const { data } = await apiClient.get("/auth/users");
       setUsers(data);
     } catch (error) {
-      console.error("Error fetching users", error);
+      console.error("Error fetching users:", error);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (auth.token) {
+      fetchUsers(); // Fetch users when token is available
+    }
+  }, [auth.token]);
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this user?")) return;

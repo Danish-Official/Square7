@@ -5,8 +5,8 @@ const authenticate = require("../middleware/authenticate");
 
 router.post("/", authenticate(), async (req, res) => {
   try {
-    const { booking } = req.body;
-    const invoice = new Invoice({ booking, subsequentPayments: [] });
+    const { booking, payments } = req.body;
+    const invoice = new Invoice({ booking, payments });
     await invoice.save();
     res.status(201).json(invoice);
   } catch (error) {
@@ -22,7 +22,7 @@ router.post("/:id/add-payment", authenticate(), async (req, res) => {
       return res.status(404).json({ message: "Invoice not found" });
     }
 
-    invoice.subsequentPayments.push({ amount, paymentDate, paymentType });
+    invoice.payments.push({ amount, paymentDate, paymentType });
     await invoice.save();
 
     res.status(200).json(invoice);
@@ -38,6 +38,16 @@ router.get("/", authenticate(), async (req, res) => {
     res.status(200).json(invoices);
   } catch (error) {
     console.error("Error fetching invoices:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+router.get("/revenue", authenticate(), async (req, res) => {
+  try {
+    const revenueData = await Invoice.calculateMonthlyRevenue();
+    res.status(200).json(revenueData);
+  } catch (error) {
+    console.error("Error fetching revenue data:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });

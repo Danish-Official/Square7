@@ -10,12 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/utils";
-import { useBuyers } from "@/context/BuyersContext";
 import { useNavigate } from "react-router-dom";
 
 export default function NewBooking() {
   const [plots, setPlots] = useState(null);
-  useBuyers(); // Call the hook without destructuring unused variables
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     buyerName: "",
@@ -103,11 +101,27 @@ export default function NewBooking() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await apiClient.post("/bookings", formData);
-      alert("Booking created successfully");
+      // Step 1: Create the booking
+      const bookingResponse = await apiClient.post("/bookings", formData);
+      const bookingId = bookingResponse.data._id;
+
+      // Step 2: Create the invoice with the first payment
+      const invoiceData = {
+        booking: bookingId,
+        payments: [
+          {
+            amount: formData.firstPayment,
+            paymentDate: new Date(),
+            paymentType: formData.paymentType,
+          },
+        ],
+      };
+      await apiClient.post("/invoices", invoiceData);
+
+      alert("Booking and invoice created successfully");
       navigate("/contact-list");
     } catch (error) {
-      console.error("Error creating booking:", error);
+      console.error("Error creating booking or invoice:", error);
       alert(error.response?.data?.message || "Failed to create booking");
     }
   };
@@ -164,6 +178,8 @@ export default function NewBooking() {
             onValueChange={(value) =>
               setFormData((prev) => ({ ...prev, gender: value }))
             }
+            value={formData.gender}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Gender" />
@@ -237,6 +253,8 @@ export default function NewBooking() {
             onValueChange={(value) =>
               setFormData((prev) => ({ ...prev, paymentType: value }))
             }
+            value={formData.paymentType}
+            required
           >
             <SelectTrigger>
               <SelectValue placeholder="Payment Type" />

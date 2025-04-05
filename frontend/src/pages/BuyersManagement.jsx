@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -20,16 +20,21 @@ import {
 import jsPDF from "jspdf";
 
 export default function BuyersManagement() {
-  const { buyers, deleteBuyer, updateBuyer, fetchBuyers } = useBuyers();
+  const { buyers, deleteBuyer, updateBuyer, fetchBuyers } = useBuyers(); // Access buyers context
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    fetchBuyers(); // Fetch buyers when the component mounts
+  }, []);
+
   const handleDelete = (id) => {
     if (confirm("Are you sure you want to delete this buyer?")) {
       deleteBuyer(id);
+      fetchBuyers(); // Fetch buyers after deletion
     }
   };
 
@@ -63,7 +68,7 @@ export default function BuyersManagement() {
       await updateBuyer(selectedBuyer); // Trigger backend update
       setIsEditing(false); // Exit edit mode
       alert("Buyer details updated successfully");
-      await fetchBuyers(); // Refresh the table with updated data
+      fetchBuyers(); // Fetch buyers after update
     } catch (error) {
       console.error("Error updating buyer details:", error);
       alert("Failed to update buyer details");

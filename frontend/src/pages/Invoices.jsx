@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect for fetching invoices
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { apiClient } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -24,11 +23,12 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import jsPDF from "jspdf";
+import { apiClient } from "@/lib/utils"; // Import API client
 
 export default function Invoices() {
-  const [buyers, setBuyers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // Add state for search term
-  const [selectedBuyer, setSelectedBuyer] = useState(null);
+  const [invoices, setInvoices] = useState([]); // State for invoices
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState(null); // Updated to handle invoices
   const [subsequentPayment, setSubsequentPayment] = useState({
     amount: "",
     paymentDate: "",
@@ -36,20 +36,20 @@ export default function Invoices() {
   });
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [errors, setErrors] = useState({}); // Add state for errors
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    fetchBuyers();
+    fetchInvoices(); // Fetch invoices on component mount
   }, []);
 
-  async function fetchBuyers() {
+  const fetchInvoices = async () => {
     try {
-      const { data } = await apiClient.get("/bookings");
-      setBuyers(data);
+      const { data } = await apiClient.get("/invoices"); // Fetch invoices from backend
+      setInvoices(data);
     } catch (error) {
-      console.error("Error fetching buyers", error);
+      console.error("Error fetching invoices:", error);
     }
-  }
+  };
 
   const validateField = (name, value) => {
     let error = "";
@@ -66,55 +66,68 @@ export default function Invoices() {
     return error === "";
   };
 
-  const handleAddOrEditPayment = () => {
+  const handleAddOrEditPayment = async () => {
     const isValid = ["amount", "paymentDate"].every((field) =>
       validateField(field, subsequentPayment[field])
     );
     if (!isValid) return;
 
-    const updatedPayments = [...(selectedBuyer.subsequentPayments || [])];
-    if (editingPaymentIndex !== null) {
-      updatedPayments[editingPaymentIndex] = subsequentPayment;
-    } else {
-      updatedPayments.push(subsequentPayment);
-    }
+    try {
+      const updatedPayments = [...(selectedInvoice.payments || [])];
+      if (editingPaymentIndex !== null) {
+        updatedPayments[editingPaymentIndex] = subsequentPayment;
+      } else {
+        updatedPayments.push(subsequentPayment);
+      }
 
-    setSelectedBuyer({
-      ...selectedBuyer,
-      subsequentPayments: updatedPayments,
-    });
-    setSubsequentPayment({ amount: "", paymentDate: "", paymentType: "Cash" });
-    setEditingPaymentIndex(null);
-    alert(
-      editingPaymentIndex !== null
-        ? "Payment updated successfully"
-        : "Payment added successfully"
-    );
+      const updatedInvoice = {
+        ...selectedInvoice,
+        payments: updatedPayments,
+      };
+
+      await apiClient.post(`/invoices/${selectedInvoice._id}/add-payment`, {
+        ...subsequentPayment,
+      }); // Sync with backend
+
+      setSelectedInvoice(updatedInvoice);
+      setSubsequentPayment({
+        amount: "",
+        paymentDate: "",
+        paymentType: "Cash",
+      });
+      setEditingPaymentIndex(null);
+      alert(
+        editingPaymentIndex !== null
+          ? "Payment updated successfully"
+          : "Payment added successfully"
+      );
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      alert("Failed to update payment");
+    }
   };
 
   const handleEditPayment = (index) => {
     setEditingPaymentIndex(index);
-    setSubsequentPayment(selectedBuyer.subsequentPayments[index]);
+    setSubsequentPayment(selectedInvoice.payments[index]);
   };
 
   const handleDownloadInvoice = () => {
     const doc = new jsPDF();
     doc.text("Invoice Details", 10, 10);
-    doc.text(`Buyer Name: ${selectedBuyer.buyerName}`, 10, 20);
-    doc.text(`Address: ${selectedBuyer.address}`, 10, 30);
-    doc.text(`Phone Number: ${selectedBuyer.phoneNumber}`, 10, 40);
-    doc.text(`First Payment: $${selectedBuyer.firstPayment}`, 10, 50);
-    doc.text("Subsequent Payments:", 10, 60);
-    (selectedBuyer.subsequentPayments || []).forEach((payment, index) => {
+    doc.text(`Buyer Name: ${selectedInvoice.booking.buyerName}`, 10, 20);
+    doc.text(`Phone Number: ${selectedInvoice.booking.phoneNumber}`, 10, 30);
+    doc.text("Payments:", 10, 40);
+    selectedInvoice.payments.forEach((payment, index) => {
       doc.text(
-        `${index + 2}. $${payment.amount} on ${new Date(
+        `${index + 1}. $${payment.amount} on ${new Date(
           payment.paymentDate
         ).toLocaleDateString()} (${payment.paymentType})`,
         10,
-        70 + index * 10
+        50 + index * 10
       );
     });
-    doc.save(`Invoice_${selectedBuyer.buyerName}.pdf`);
+    doc.save(`Invoice_${selectedInvoice.booking.buyerName}.pdf`);
   };
 
   const getOrdinalSuffix = (number) => {
@@ -125,9 +138,9 @@ export default function Invoices() {
     );
   };
 
-  const filteredBuyers = buyers.filter((buyer) =>
-    buyer.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
-  ); // Filter buyers based on search term
+  const filteredInvoices = invoices.filter((invoice) =>
+    invoice.booking.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -137,8 +150,7 @@ export default function Invoices() {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="mb-4"
-      />{" "}
-      {/* Add search input */}
+      />
       <Table>
         <TableHeader>
           <TableRow>
@@ -148,17 +160,14 @@ export default function Invoices() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredBuyers.map((buyer) => (
-            <TableRow key={buyer._id}>
-              <TableCell>{buyer.buyerName}</TableCell>
-              <TableCell>{buyer.phoneNumber}</TableCell>
+          {filteredInvoices.map((invoice) => (
+            <TableRow key={invoice._id}>
+              <TableCell>{invoice.booking.buyerName}</TableCell>
+              <TableCell>{invoice.booking.phoneNumber}</TableCell>
               <TableCell>
                 <Button
                   onClick={() => {
-                    setSelectedBuyer({
-                      ...buyer,
-                      subsequentPayments: buyer.subsequentPayments || [],
-                    });
+                    setSelectedInvoice(invoice);
                     setIsDialogOpen(true);
                   }}
                 >
@@ -171,35 +180,23 @@ export default function Invoices() {
       </Table>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
-          {selectedBuyer && (
+          {selectedInvoice && (
             <div className="space-y-4">
               <DialogHeader>
                 <DialogTitle>Invoice Details</DialogTitle>
               </DialogHeader>
               <p>
-                <strong>Buyer Name:</strong> {selectedBuyer.buyerName}
+                <strong>Buyer Name:</strong> {selectedInvoice.booking.buyerName}
               </p>
               <p>
-                <strong>Address:</strong>
-                <ul>
-                  {selectedBuyer.address
-                    .match(/.{1,50}/g)
-                    .map((chunk, index) => (
-                      <li key={index}>{chunk}</li>
-                    ))}
-                </ul>
+                <strong>Phone Number:</strong>{" "}
+                {selectedInvoice.booking.phoneNumber}
               </p>
-              <p>
-                <strong>Phone Number:</strong> {selectedBuyer.phoneNumber}
-              </p>
-              <p>
-                <strong>First Payment:</strong> ${selectedBuyer.firstPayment}
-              </p>
-              <h3 className="text-lg font-semibold">Subsequent Payments</h3>
+              <h3 className="text-lg font-semibold">Payments</h3>
               <ul>
-                {selectedBuyer.subsequentPayments.map((payment, index) => (
+                {selectedInvoice.payments.map((payment, index) => (
                   <li key={index}>
-                    <strong>{`${getOrdinalSuffix(index + 2)} Payment:`}</strong>{" "}
+                    <strong>{`${getOrdinalSuffix(index + 1)} Payment:`}</strong>{" "}
                     ${payment.amount} on{" "}
                     {new Date(payment.paymentDate).toLocaleDateString()} (
                     {payment.paymentType}){" "}

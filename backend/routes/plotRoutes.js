@@ -43,4 +43,18 @@ router.get("/available-plots", authenticate(), async (req, res) => {
   }
 });
 
+// Get plot statistics
+router.get("/stats", authenticate(), async (req, res) => {
+  try {
+    const totalPlots = await Plot.countDocuments();
+    const soldPlots = await Plot.countDocuments({ status: "sold" });
+    const availablePlots = totalPlots - soldPlots;
+
+    res.status(200).json({ totalPlots, soldPlots, availablePlots });
+  } catch (error) {
+    console.error("Error fetching plot stats:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 module.exports = router;

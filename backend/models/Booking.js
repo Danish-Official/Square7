@@ -21,17 +21,6 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
     brokerReference: { type: String },
-    firstPayment: {
-      type: Number,
-      required: true,
-      validate: {
-        validator: function (value) {
-          return value > 0 && value <= this.totalCost;
-        },
-        message:
-          "First payment must be greater than 0 and less than or equal to the total cost.",
-      },
-    },
     totalCost: { type: Number, required: true },
   },
   { timestamps: true }

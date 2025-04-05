@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/utils";
@@ -10,6 +11,7 @@ export default function Login({ onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const { login } = useAuth(); // Access login from context
+  const navigate = useNavigate(); // Initialize navigate
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,7 +24,11 @@ export default function Login({ onClose }) {
       const { data } = await apiClient.post("/auth/login", formData);
       login(data.user, data.token); // Pass the entire user object
       alert("Login successful");
-      onClose(); // Close the modal on successful login
+      if (onClose) {
+        onClose(); // Close the modal on successful login
+      } else {
+        navigate("/"); // Navigate to the dashboard if no onClose is provided
+      }
     } catch (err) {
       console.log(err);
       setError("Invalid email or password");
