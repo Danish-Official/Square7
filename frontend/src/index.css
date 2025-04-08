@@ -1,7 +1,7 @@
 @import "./global.css";
-
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
+@import "react-toastify/dist/ReactToastify.css"; /* Import react-toastify styles */
 
 @custom-variant dark (&:is(.dark *));
 

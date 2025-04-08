@@ -24,6 +24,9 @@ import {
 } from "@/components/ui/select";
 import jsPDF from "jspdf";
 import { apiClient } from "@/lib/utils"; // Import API client
+import { toast } from "react-toastify"; // Import toast
+import Pagination from "@/components/Pagination"; // Import Pagination
+import SearchInput from "@/components/SearchInput";
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]); // State for invoices
@@ -37,6 +40,8 @@ export default function Invoices() {
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [errors, setErrors] = useState({});
+  const [currentPage, setCurrentPage] = useState(1); // State for current page
+  const itemsPerPage = 25; // Items per page
 
   useEffect(() => {
     fetchInvoices(); // Fetch invoices on component mount
@@ -47,7 +52,8 @@ export default function Invoices() {
       const { data } = await apiClient.get("/invoices"); // Fetch invoices from backend
       setInvoices(data);
     } catch (error) {
-      console.error("Error fetching invoices:", error);
+      toast.error("Failed to fetch invoices");
+      setInvoices([]);
     }
   };
 
@@ -68,12 +74,12 @@ export default function Invoices() {
 
   const handleAddOrEditPayment = async () => {
     const isValid = ["amount", "paymentDate"].every((field) =>
-      validateField(field, subsequentPayment[field])
+      validateField(field, subsequentPayment?.[field])
     );
     if (!isValid) return;
 
     try {
-      const updatedPayments = [...(selectedInvoice.payments || [])];
+      const updatedPayments = [...(selectedInvoice?.payments || [])];
       if (editingPaymentIndex !== null) {
         updatedPayments[editingPaymentIndex] = subsequentPayment;
       } else {
@@ -85,7 +91,7 @@ export default function Invoices() {
         payments: updatedPayments,
       };
 
-      await apiClient.post(`/invoices/${selectedInvoice._id}/add-payment`, {
+      await apiClient.post(`/invoices/${selectedInvoice?._id}/add-payment`, {
         ...subsequentPayment,
       }); // Sync with backend
 
@@ -96,38 +102,43 @@ export default function Invoices() {
         paymentType: "Cash",
       });
       setEditingPaymentIndex(null);
-      alert(
+      toast.success(
         editingPaymentIndex !== null
           ? "Payment updated successfully"
           : "Payment added successfully"
-      );
+      ); // Show success toast
     } catch (error) {
-      console.error("Error updating payment:", error);
-      alert("Failed to update payment");
+      toast.error("Failed to update payment"); // Show error toast
     }
   };
 
   const handleEditPayment = (index) => {
     setEditingPaymentIndex(index);
-    setSubsequentPayment(selectedInvoice.payments[index]);
+    setSubsequentPayment(
+      selectedInvoice?.payments?.[index] || {
+        amount: "",
+        paymentDate: "",
+        paymentType: "Cash",
+      }
+    );
   };
 
   const handleDownloadInvoice = () => {
     const doc = new jsPDF();
     doc.text("Invoice Details", 10, 10);
-    doc.text(`Buyer Name: ${selectedInvoice.booking.buyerName}`, 10, 20);
-    doc.text(`Phone Number: ${selectedInvoice.booking.phoneNumber}`, 10, 30);
+    doc.text(`Buyer Name: ${selectedInvoice?.booking?.buyerName}`, 10, 20);
+    doc.text(`Phone Number: ${selectedInvoice?.booking?.phoneNumber}`, 10, 30);
     doc.text("Payments:", 10, 40);
-    selectedInvoice.payments.forEach((payment, index) => {
+    selectedInvoice?.payments?.forEach((payment, index) => {
       doc.text(
-        `${index + 1}. $${payment.amount} on ${new Date(
-          payment.paymentDate
-        ).toLocaleDateString()} (${payment.paymentType})`,
+        `${index + 1}. $${payment?.amount} on ${new Date(
+          payment?.paymentDate
+        )?.toLocaleDateString()} (${payment?.paymentType})`,
         10,
         50 + index * 10
       );
     });
-    doc.save(`Invoice_${selectedInvoice.booking.buyerName}.pdf`);
+    doc.save(`Invoice_${selectedInvoice?.booking?.buyerName}.pdf`);
   };
 
   const getOrdinalSuffix = (number) => {
@@ -138,19 +149,33 @@ export default function Invoices() {
     );
   };
 
-  const filteredInvoices = invoices.filter((invoice) =>
-    invoice.booking.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInvoices = invoices?.filter((invoice) =>
+    invoice?.booking?.buyerName
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil((filteredInvoices?.length || 0) / itemsPerPage);
+  const paginatedInvoices = filteredInvoices?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-semibold">Invoice Management</h1>
-      <Input
+
+      <SearchInput
         placeholder="Search invoices by buyer name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="mb-4"
       />
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -160,10 +185,10 @@ export default function Invoices() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredInvoices.map((invoice) => (
-            <TableRow key={invoice._id}>
-              <TableCell>{invoice.booking.buyerName}</TableCell>
-              <TableCell>{invoice.booking.phoneNumber}</TableCell>
+          {paginatedInvoices?.map((invoice) => (
+            <TableRow key={invoice?._id}>
+              <TableCell>{invoice?.booking?.buyerName}</TableCell>
+              <TableCell>{invoice?.booking?.phoneNumber}</TableCell>
               <TableCell>
                 <Button
                   onClick={() => {
@@ -178,6 +203,11 @@ export default function Invoices() {
           ))}
         </TableBody>
       </Table>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
           {selectedInvoice && (
@@ -186,20 +216,21 @@ export default function Invoices() {
                 <DialogTitle>Invoice Details</DialogTitle>
               </DialogHeader>
               <p>
-                <strong>Buyer Name:</strong> {selectedInvoice.booking.buyerName}
+                <strong>Buyer Name:</strong>{" "}
+                {selectedInvoice?.booking?.buyerName}
               </p>
               <p>
                 <strong>Phone Number:</strong>{" "}
-                {selectedInvoice.booking.phoneNumber}
+                {selectedInvoice?.booking?.phoneNumber}
               </p>
               <h3 className="text-lg font-semibold">Payments</h3>
               <ul>
-                {selectedInvoice.payments.map((payment, index) => (
+                {selectedInvoice?.payments?.map((payment, index) => (
                   <li key={index}>
                     <strong>{`${getOrdinalSuffix(index + 1)} Payment:`}</strong>{" "}
-                    ${payment.amount} on{" "}
-                    {new Date(payment.paymentDate).toLocaleDateString()} (
-                    {payment.paymentType}){" "}
+                    ${payment?.amount} on{" "}
+                    {new Date(payment?.paymentDate)?.toLocaleDateString()} (
+                    {payment?.paymentType}){" "}
                     <Button
                       variant="outline"
                       size="sm"
@@ -214,7 +245,7 @@ export default function Invoices() {
                 <Input
                   placeholder="Amount"
                   type="number"
-                  value={subsequentPayment.amount}
+                  value={subsequentPayment?.amount}
                   onChange={(e) => {
                     const value = e.target.value;
                     setSubsequentPayment((prev) => ({
@@ -224,13 +255,13 @@ export default function Invoices() {
                     validateField("amount", value);
                   }}
                 />
-                {errors.amount && (
-                  <p className="text-red-500 text-sm">{errors.amount}</p>
+                {errors?.amount && (
+                  <p className="text-red-500 text-sm">{errors?.amount}</p>
                 )}
                 <Input
                   placeholder="Payment Date"
                   type="date"
-                  value={subsequentPayment.paymentDate}
+                  value={subsequentPayment?.paymentDate}
                   onChange={(e) => {
                     const value = e.target.value;
                     setSubsequentPayment((prev) => ({
@@ -240,8 +271,8 @@ export default function Invoices() {
                     validateField("paymentDate", value);
                   }}
                 />
-                {errors.paymentDate && (
-                  <p className="text-red-500 text-sm">{errors.paymentDate}</p>
+                {errors?.paymentDate && (
+                  <p className="text-red-500 text-sm">{errors?.paymentDate}</p>
                 )}
                 <Select
                   onValueChange={(value) =>
@@ -250,7 +281,7 @@ export default function Invoices() {
                       paymentType: value,
                     }))
                   }
-                  value={subsequentPayment.paymentType}
+                  value={subsequentPayment?.paymentType}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Payment Type" />

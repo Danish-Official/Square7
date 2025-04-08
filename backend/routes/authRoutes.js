@@ -55,15 +55,12 @@ router.post("/create-admin", authenticate("superadmin"), async (req, res) => {
 // Fetch all users
 router.get("/users", authenticate("superadmin"), async (req, res) => {
   try {
-    console.log("fetch users");
     const users = await User.find(
       { role: { $ne: "superadmin" } },
       { password: 0 }
     );
-    // Exclude passwords and superadmin users
     res.status(200).json(users);
   } catch (error) {
-    console.error("Error fetching users:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -87,7 +84,6 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    console.log(user);
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -102,7 +98,12 @@ router.post("/login", async (req, res) => {
 
     res.status(200).json({
       token,
-      user: { name: user.name, email: user.email, role: user.role }, // Include username
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

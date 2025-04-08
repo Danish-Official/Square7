@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/utils";
 import {
   Dialog,
@@ -18,6 +17,10 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { toast } from "react-toastify"; // Import toast
+import Pagination from "@/components/Pagination";
+import SearchInput from "@/components/SearchInput";
+import { Input } from "@/components/ui/input";
 
 export default function Enquiries() {
   const { auth } = useAuth(); // Access auth from context
@@ -30,6 +33,8 @@ export default function Enquiries() {
     message: "",
   });
   const [errors, setErrors] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
 
   useEffect(() => {
     const fetchEnquiries = async () => {
@@ -37,7 +42,7 @@ export default function Enquiries() {
         const { data } = await apiClient.get("/enquiries");
         setEnquiries(data);
       } catch (error) {
-        console.error("Error fetching enquiries:", error);
+        toast.error("Failed to fetch enquiries");
       }
     };
 
@@ -77,9 +82,9 @@ export default function Enquiries() {
       setIsDialogOpen(false);
       setNewEnquiry({ name: "", phoneNumber: "", message: "" });
       setErrors({});
-      alert("Enquiry created successfully");
+      toast.success("Enquiry created successfully"); // Show success toast
     } catch (error) {
-      console.error("Error creating enquiry", error);
+      toast.error("Failed to create enquiry"); // Show error toast
     }
   };
 
@@ -94,10 +99,9 @@ export default function Enquiries() {
     try {
       await apiClient.delete(`/enquiries/${id}`);
       setEnquiries((prev) => prev.filter((enquiry) => enquiry._id !== id));
-      alert("Enquiry deleted successfully");
+      toast.success("Enquiry deleted successfully"); // Show success toast
     } catch (error) {
-      console.error("Error deleting enquiry", error);
-      alert("Failed to delete enquiry");
+      toast.error("Failed to delete enquiry"); // Show error toast
     }
   };
 
@@ -105,11 +109,21 @@ export default function Enquiries() {
     enquiry.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredEnquiries.length / itemsPerPage);
+  const paginatedEnquiries = filteredEnquiries.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-semibold">Enquiry Management</h1>
 
-      <Input
+      <SearchInput
         placeholder="Search enquiries by name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -173,7 +187,7 @@ export default function Enquiries() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredEnquiries.map((enquiry) => (
+          {paginatedEnquiries.map((enquiry) => (
             <TableRow key={enquiry._id}>
               <TableCell>{enquiry.name}</TableCell>
               <TableCell>{enquiry.phoneNumber}</TableCell>
@@ -195,6 +209,11 @@ export default function Enquiries() {
           ))}
         </TableBody>
       </Table>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

@@ -25,10 +25,8 @@ router.get("/get-plots", authenticate(), async (req, res) => {
       return plot;
     });
 
-    console.log("Fetched plots:", plotsWithBuyerDetails); // Debugging log
     res.status(200).json(plotsWithBuyerDetails);
   } catch (error) {
-    console.error("Error fetching plots:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });

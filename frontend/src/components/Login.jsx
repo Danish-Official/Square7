@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import logo from "@/assets/logo.png"; // Import the logo image
 import { LockKeyholeOpen, Mail } from "lucide-react";
+import { toast } from "react-toastify"; // Import toast
 
 export default function Login({ onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -23,15 +24,15 @@ export default function Login({ onClose }) {
     try {
       const { data } = await apiClient.post("/auth/login", formData);
       login(data.user, data.token); // Pass the entire user object
-      alert("Login successful");
+      toast.success("Login successful"); // Show success toast
       if (onClose) {
         onClose(); // Close the modal on successful login
       } else {
         navigate("/"); // Navigate to the dashboard if no onClose is provided
       }
     } catch (err) {
-      console.log(err);
       setError("Invalid email or password");
+      toast.error("Login failed");
     }
   };
 

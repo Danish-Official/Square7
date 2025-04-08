@@ -33,7 +33,6 @@ app.use("/api/enquiries", enquiryRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
   res.status(500).json({ message: "Internal Server Error" });
 });
 
@@ -43,4 +42,4 @@ app.get("*", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT);

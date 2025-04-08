@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/utils";
 import {
   Dialog,
@@ -18,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { toast } from "react-toastify"; // Import toast
+import SearchInput from "@/components/SearchInput";
 
 export default function UsersManagement() {
   const { auth } = useAuth(); // Access auth from context
@@ -35,7 +36,7 @@ export default function UsersManagement() {
       const { data } = await apiClient.get("/auth/users");
       setUsers(data);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      toast.error("Error fetching users");
     }
   };
 
@@ -49,22 +50,21 @@ export default function UsersManagement() {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
       await apiClient.delete(`/auth/users/${id}`);
-      alert("User deleted successfully");
+      toast.success("User deleted successfully"); // Show success toast
       fetchUsers();
     } catch (error) {
-      console.error("Error deleting user", error);
+      toast.error("Failed to delete user"); // Show error toast
     }
   };
 
   const handleCreateAdmin = async () => {
     try {
       await apiClient.post("/auth/create-admin", newAdmin);
-      alert("Admin user created successfully");
+      toast.success("Admin user created successfully"); // Show success toast
       setIsDialogOpen(false);
       fetchUsers(); // Refresh the user list
     } catch (error) {
-      console.error("Error creating admin user:", error);
-      alert("Failed to create admin user");
+      toast.error("Failed to create admin user"); // Show error toast
     }
   };
 
@@ -78,7 +78,7 @@ export default function UsersManagement() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-semibold">User Management</h1>
 
-      <Input
+      <SearchInput
         placeholder="Search users by name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

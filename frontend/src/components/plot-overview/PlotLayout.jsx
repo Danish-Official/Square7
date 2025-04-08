@@ -24,7 +24,6 @@ const PlotLayout = () => {
         setPlots(data);
       }
     } catch (error) {
-      console.error("Error fetching plots:", error);
       setPlots([]); // Ensure plots is set to an empty array on error
     }
   }

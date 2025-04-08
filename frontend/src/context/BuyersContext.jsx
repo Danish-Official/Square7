@@ -15,7 +15,7 @@ export function BuyersProvider({ children }) {
       const { data } = await apiClient.get("/bookings");
       setBuyers(data);
     } catch (error) {
-      console.error("Error fetching buyers", error);
+      setBuyers([]); // Set empty array on error
     }
   }
 
@@ -24,7 +24,7 @@ export function BuyersProvider({ children }) {
       await apiClient.delete(`/bookings/${id}`);
       setBuyers((prev) => prev.filter((buyer) => buyer._id !== id));
     } catch (error) {
-      console.error("Error deleting buyer", error);
+      // Silent failure, UI component will handle error display
     }
   }
 
@@ -33,13 +33,13 @@ export function BuyersProvider({ children }) {
       const { data } = await apiClient.put(
         `/bookings/${updatedBuyer._id}`,
         updatedBuyer
-      ); // Send PUT request
+      );
       setBuyers((prev) =>
         prev.map((buyer) => (buyer._id === updatedBuyer._id ? data : buyer))
       );
-      await fetchBuyers(); // Refresh the buyers list
+      await fetchBuyers();
     } catch (error) {
-      console.error("Error updating buyer", error);
+      // Silent failure, UI component will handle error display
     }
   }
 

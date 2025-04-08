@@ -58,7 +58,7 @@ export default function Dashboard({ showLoginModal = false }) {
         const { data } = await apiClient.get("/plots/stats");
         setStats(data);
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        // Silent failure, stats will remain at default values
       }
     };
 
@@ -79,7 +79,7 @@ export default function Dashboard({ showLoginModal = false }) {
         }));
         setRevenueData(formattedData);
       } catch (error) {
-        console.error("Error fetching revenue data:", error);
+        // Silent failure, revenue data will remain empty
       }
     };
 
@@ -111,14 +111,14 @@ export default function Dashboard({ showLoginModal = false }) {
   const getBuyerDetailsByDate = (date) => {
     return buyers.find(
       (buyer) =>
-        new Date(buyer.plot.createdAt).toDateString() === date.toDateString()
+        new Date(buyer.bookingDate).toDateString() === date.toDateString()
     );
   };
 
   const isBuyerPresentOnDate = (date) => {
     return buyers.some(
       (buyer) =>
-        new Date(buyer.plot.createdAt).toDateString() === date.toDateString()
+        new Date(buyer.bookingDate).toDateString() === date.toDateString()
     );
   };
 
@@ -206,7 +206,7 @@ export default function Dashboard({ showLoginModal = false }) {
                   <TableCell>{buyer.phoneNumber}</TableCell>
                   <TableCell>{buyer.plot.plotNumber}</TableCell>
                   <TableCell>
-                    {new Date(buyer.plot.createdAt).toLocaleDateString()}
+                    {new Date(buyer.bookingDate).toLocaleDateString()}
                   </TableCell>
                 </TableRow>
               ))}

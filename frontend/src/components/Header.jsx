@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import { LogOut } from "lucide-react"; // Import LogOut icon
 import logo from "@/assets/logo.png"; // Import logo
+import { toast } from "react-toastify"; // Import toast
 
 const Header = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout(); // Call logout from context
+    toast.success("Logged out successfully!"); // Show success toast
     navigate("/login"); // Redirect to the login page
   };
 

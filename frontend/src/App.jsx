@@ -9,6 +9,7 @@ import NewBooking from "./pages/NewBooking";
 import Enquiries from "./pages/Enquiries";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import LoginPage from "./pages/LoginPage";
+import { ToastContainer } from "react-toastify";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -30,67 +31,81 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} /> {/* Add login route */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
+    <>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} /> {/* Add login route */}
         <Route
-          path="plot-management"
+          path="/"
           element={
             <ProtectedRoute>
-              <PlotManagement />
+              <Layout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="contact-list"
-          element={
-            <ProtectedRoute>
-              <BuyersManagement />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="user-management"
-          element={
-            <ProtectedRoute allowedRoles={["superadmin"]}>
-              <UsersManagement />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="invoices"
-          element={
-            <ProtectedRoute>
-              <Invoices />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="enquiries"
-          element={
-            <ProtectedRoute>
-              <Enquiries />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="new-booking"
-          element={
-            <ProtectedRoute>
-              <NewBooking />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-    </Routes>
+        >
+          <Route index element={<Dashboard />} />
+          <Route
+            path="plot-management"
+            element={
+              <ProtectedRoute>
+                <PlotManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="contact-list"
+            element={
+              <ProtectedRoute>
+                <BuyersManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="user-management"
+            element={
+              <ProtectedRoute allowedRoles={["superadmin"]}>
+                <UsersManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="invoices"
+            element={
+              <ProtectedRoute>
+                <Invoices />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="enquiries"
+            element={
+              <ProtectedRoute>
+                <Enquiries />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="new-booking"
+            element={
+              <ProtectedRoute>
+                <NewBooking />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </>
   );
 }
 

@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import { useBuyers } from "@/context/BuyersContext";
 import {
@@ -18,6 +17,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
+import { toast } from "react-toastify"; // Import toast
+import "react-toastify/dist/ReactToastify.css"; // Import styles for toast
+import Pagination from "@/components/Pagination";
+import SearchInput from "@/components/SearchInput";
 
 export default function BuyersManagement() {
   const { buyers, deleteBuyer, updateBuyer, fetchBuyers } = useBuyers(); // Access buyers context
@@ -26,6 +29,8 @@ export default function BuyersManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
 
   useEffect(() => {
     fetchBuyers(); // Fetch buyers when the component mounts
@@ -35,6 +40,7 @@ export default function BuyersManagement() {
     if (confirm("Are you sure you want to delete this buyer?")) {
       deleteBuyer(id);
       fetchBuyers(); // Fetch buyers after deletion
+      toast.success("Buyer deleted successfully"); // Show success toast
     }
   };
 
@@ -60,18 +66,17 @@ export default function BuyersManagement() {
     }
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
-      alert("Please fix the errors before saving.");
+      toast.error("Please fix the errors before saving."); // Show error toast
       return;
     }
 
     try {
       await updateBuyer(selectedBuyer); // Trigger backend update
       setIsEditing(false); // Exit edit mode
-      alert("Buyer details updated successfully");
+      toast.success("Buyer details updated successfully"); // Show success toast
       fetchBuyers(); // Fetch buyers after update
     } catch (error) {
-      console.error("Error updating buyer details:", error);
-      alert("Failed to update buyer details");
+      toast.error("Failed to update buyer details");
     }
   };
 
@@ -95,11 +100,21 @@ export default function BuyersManagement() {
     buyer.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredBuyers.length / itemsPerPage);
+  const paginatedBuyers = filteredBuyers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-semibold">Buyer Management</h1>
 
-      <Input
+      <SearchInput
         placeholder="Search buyers by name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -217,7 +232,7 @@ export default function BuyersManagement() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredBuyers.map((buyer) => (
+          {paginatedBuyers.map((buyer) => (
             <TableRow key={buyer._id}>
               <TableCell
                 className="cursor-pointer text-blue-500"
@@ -242,6 +257,11 @@ export default function BuyersManagement() {
           ))}
         </TableBody>
       </Table>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Keep only toast import
 
 export default function NewBooking() {
   const [plots, setPlots] = useState(null);
@@ -38,7 +39,8 @@ export default function NewBooking() {
         const { data } = await apiClient.get("/plots/available-plots");
         setPlots(data);
       } catch (error) {
-        console.error("Error fetching plots", error);
+        toast.error("Failed to fetch available plots");
+        setPlots([]);
       }
     }
     fetchPlots();
@@ -124,11 +126,10 @@ export default function NewBooking() {
       };
       await apiClient.post("/invoices", invoiceData);
 
-      alert("Booking and invoice created successfully");
+      toast.success("Booking and invoice created successfully"); // Show success toast
       navigate("/contact-list");
     } catch (error) {
-      console.error("Error creating booking or invoice:", error);
-      alert(error.response?.data?.message || "Failed to create booking");
+      toast.error(error.response?.data?.message || "Failed to create booking"); // Show error toast
     }
   };
 
