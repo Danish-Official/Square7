@@ -29,8 +29,8 @@ export default function NewBooking() {
     totalCost: 0,
   });
   const [errors, setErrors] = useState({});
-  const [isFormValid, setIsFormValid] = useState(false);
   const [currentSection, setCurrentSection] = useState(1);
+  const [isSectionComplete, setIsSectionComplete] = useState(false);
 
   useEffect(() => {
     async function fetchPlots() {
@@ -45,14 +45,20 @@ export default function NewBooking() {
   }, []);
 
   useEffect(() => {
-    const hasErrors = Object.values(errors).some((error) => error !== "");
-    setIsFormValid(
-      !hasErrors &&
-        formData.buyerName &&
-        formData.phoneNumber &&
-        formData.firstPayment > 0
-    );
+    Object.values(errors).some((error) => error !== "");
   }, [errors, formData]);
+
+  useEffect(() => {
+    let complete = true;
+    if (currentSection === 1) {
+      complete = formData.buyerName && formData.phoneNumber;
+    } else if (currentSection === 2) {
+      complete = formData.plotId && formData.ratePerSqFt;
+    } else if (currentSection === 3) {
+      complete = formData.firstPayment > 0;
+    }
+    setIsSectionComplete(complete);
+  }, [currentSection, formData]);
 
   const validateField = (name, value) => {
     let error = "";
@@ -101,7 +107,7 @@ export default function NewBooking() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Ensure default form submission is prevented
     try {
       const bookingResponse = await apiClient.post("/bookings", formData);
       const bookingId = bookingResponse.data._id;
@@ -131,6 +137,7 @@ export default function NewBooking() {
       case 1:
         return (
           <div className="space-y-4">
+            <h3>Personal Details</h3>
             <div className="space-y-2">
               <Label htmlFor="buyerName">Buyer Name</Label>
               <Input
@@ -140,6 +147,7 @@ export default function NewBooking() {
                 onChange={handleChange}
                 placeholder="Buyer Name"
                 required
+                className="bg-white text-black"
               />
               {errors.buyerName && (
                 <p className="text-red-500 text-sm">{errors.buyerName}</p>
@@ -147,13 +155,14 @@ export default function NewBooking() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Input
+              <textarea
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Address"
                 required
+                className="bg-white text-black w-full p-2 rounded-md border"
               />
             </div>
             <div className="space-y-2">
@@ -165,6 +174,7 @@ export default function NewBooking() {
                 onChange={handleChange}
                 placeholder="Phone Number"
                 required
+                className="bg-white text-black"
               />
               {errors.phoneNumber && (
                 <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
@@ -172,94 +182,142 @@ export default function NewBooking() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
-              <Select
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, gender: value }))
-                }
-                value={formData.gender}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-4 bg-white p-2 rounded-md text-black justify-between">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Male"
+                    checked={formData.gender === "Male"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
+                    className="form-radio"
+                  />
+                  <span>Male</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Female"
+                    checked={formData.gender === "Female"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
+                    className="form-radio"
+                  />
+                  <span>Female</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Other"
+                    checked={formData.gender === "Other"}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
+                    className="form-radio"
+                  />
+                  <span>Other</span>
+                </label>
+              </div>
             </div>
-            <Button
-              onClick={() => setCurrentSection(2)}
-              disabled={!formData.buyerName || !formData.phoneNumber}
-            >
-              Next
-            </Button>
           </div>
         );
       case 2:
         return (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="plotId">Plot</Label>
-              <Select
-                onValueChange={handlePlotChange} // Use handlePlotChange for plot selection
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Plot" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.isArray(plots) &&
-                    plots.map((plot) => (
-                      <SelectItem key={plot._id} value={plot._id}>
-                        Plot {plot.plotNumber} - {plot.areaSqFt} sq ft
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+            <h3>Plot Details</h3>
+            <div className="flex space-x-4">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="plotId">Plot</Label>
+                <Select
+                  onValueChange={handlePlotChange} // Use handlePlotChange for plot selection
+                  value={formData.plotId} // Bind the selected value to formData.plotId
+                  required
+                >
+                  <SelectTrigger className="bg-white text-black w-full">
+                    {" "}
+                    {/* Added w-full */}
+                    <SelectValue placeholder="Select Plot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(plots) &&
+                      plots.map((plot) => (
+                        <SelectItem key={plot._id} value={plot._id}>
+                          Plot {plot.plotNumber} - {plot.areaSqFt} sq ft
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="areaSqMt">Area (sq mt)</Label>
+                <Input
+                  id="areaSqMt"
+                  value={
+                    formData.areaSqFt
+                      ? (formData.areaSqFt / 10.764).toFixed(2)
+                      : ""
+                  } // Show empty if 0
+                  readOnly
+                  placeholder="Area (sq mt)"
+                  className="bg-white text-black"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="areaSqFt">Area (sq ft)</Label>
-              <Input
-                id="areaSqFt"
-                value={formData.areaSqFt}
-                readOnly
-                placeholder="Area (sq ft)"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ratePerSqFt">Rate per sq ft</Label>
-              <Input
-                id="ratePerSqFt"
-                name="ratePerSqFt"
-                type="number"
-                value={formData.ratePerSqFt}
-                onChange={handleChange}
-                placeholder="Rate per sq ft"
-                required
-              />
+            <div className="flex space-x-4">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="areaSqFt">Area (sq ft)</Label>
+                <Input
+                  id="areaSqFt"
+                  value={formData.areaSqFt || ""} // Show empty if 0
+                  readOnly
+                  placeholder="Area (sq ft)"
+                  className="bg-white text-black"
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="ratePerSqFt">Rate per sq ft</Label>
+                <Input
+                  id="ratePerSqFt"
+                  name="ratePerSqFt"
+                  type="number"
+                  value={formData.ratePerSqFt || ""} // Show empty if 0
+                  onChange={handleChange}
+                  placeholder="Rate per sq ft"
+                  required
+                  className="bg-white text-black"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="totalCost">Total Cost</Label>
               <Input
                 id="totalCost"
-                value={formData.totalCost}
+                value={formData.totalCost || ""} // Show empty if 0
                 readOnly
                 placeholder="Total Cost"
+                className="bg-white text-black"
               />
             </div>
-            <Button
-              onClick={() => setCurrentSection(3)}
-              disabled={!formData.plotId || !formData.ratePerSqFt}
-            >
-              Next
-            </Button>
           </div>
         );
       case 3:
         return (
           <div className="space-y-4">
+            <h3>Payment Details</h3>
             <div className="space-y-2">
               <Label htmlFor="paymentType">Payment Type</Label>
               <Select
@@ -269,7 +327,9 @@ export default function NewBooking() {
                 value={formData.paymentType}
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full bg-white text-black">
+                  {" "}
+                  {/* Added bg-white */}
                   <SelectValue placeholder="Payment Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,6 +349,7 @@ export default function NewBooking() {
                 value={formData.brokerReference}
                 onChange={handleChange}
                 placeholder="Broker Reference (Optional)"
+                className="bg-white text-black"
               />
             </div>
             <div className="space-y-2">
@@ -297,18 +358,16 @@ export default function NewBooking() {
                 id="firstPayment"
                 name="firstPayment"
                 type="number"
-                value={formData.firstPayment}
+                value={formData.firstPayment || ""} // Show empty if 0
                 onChange={handleChange}
                 placeholder="First Payment"
                 required
+                className="bg-white text-black"
               />
               {errors.firstPayment && (
                 <p className="text-red-500 text-sm">{errors.firstPayment}</p>
               )}
             </div>
-            <Button type="submit" disabled={!isFormValid}>
-              Create Booking
-            </Button>
           </div>
         );
       default:
@@ -317,36 +376,75 @@ export default function NewBooking() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex">
-      <div className="w-1/4 p-4 space-y-4 border-r">
-        <button
-          className={`block w-full text-left ${
-            currentSection === 1 ? "font-bold" : ""
-          }`}
-          onClick={() => setCurrentSection(1)}
-        >
-          Personal Details
-        </button>
-        <button
-          className={`block w-full text-left ${
-            currentSection === 2 ? "font-bold" : ""
-          }`}
-          onClick={() => setCurrentSection(2)}
-          disabled={!formData.buyerName || !formData.phoneNumber}
-        >
-          Plot Details
-        </button>
-        <button
-          className={`block w-full text-left ${
-            currentSection === 3 ? "font-bold" : ""
-          }`}
-          onClick={() => setCurrentSection(3)}
-          disabled={!formData.plotId || !formData.ratePerSqFt}
-        >
-          Payment Details
-        </button>
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col space-y-4 mx-8 mt-8 p-6"
+    >
+      <div className="flex space-x-4">
+        <div className="w-1/4 p-4 border-r bg-[#303750] text-white shadow-md rounded-md flex flex-col gap-y-8">
+          <h3 className="text-lg font-bold text-center">Quick Navigation</h3>
+          <button
+            className={`block w-full text-center py-4 bg-white text-black rounded-md ${
+              currentSection === 1 ? "font-bold" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent default behavior
+              setCurrentSection(1);
+            }}
+          >
+            Personal Details
+          </button>
+          <button
+            className={`block w-full text-center py-4 bg-white text-black rounded-md ${
+              currentSection === 2 ? "font-bold" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent default behavior
+              setCurrentSection(2);
+            }}
+            disabled={!formData.buyerName || !formData.phoneNumber}
+          >
+            Plot Details
+          </button>
+          <button
+            className={`block w-full text-center py-4 bg-white text-black rounded-md ${
+              currentSection === 3 ? "font-bold" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent default behavior
+              setCurrentSection(3);
+            }}
+            disabled={!formData.plotId || !formData.ratePerSqFt}
+          >
+            Payment Details
+          </button>
+        </div>
+        <div className="w-3/4 p-6 bg-[#303750] text-white shadow-md rounded-md">
+          {renderSection()}
+        </div>
       </div>
-      <div className="w-3/4 p-6">{renderSection()}</div>
+      <div className="flex justify-end space-x-4">
+        <Button
+          type="button"
+          onClick={() => navigate("/contact-list")} // Navigate to contact list on cancel
+          className="bg-white text-black border border-[#303750] hover:bg-gray-100"
+        >
+          Cancel
+        </Button>
+        <Button
+          type={currentSection < 3 ? "button" : "submit"} // Use "submit" for the last section
+          onClick={(e) => {
+            if (currentSection < 3) {
+              e.preventDefault(); // Prevent default behavior for navigation
+              setCurrentSection(currentSection + 1);
+            }
+          }}
+          className="bg-[#1F263E] text-white border border-[#303750] hover:bg-[#2A324D]"
+          disabled={!isSectionComplete}
+        >
+          Save and Next
+        </Button>
+      </div>
     </form>
   );
 }

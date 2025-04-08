@@ -32,8 +32,13 @@ router.post("/", authenticate(), async (req, res) => {
 // Get all bookings
 router.get("/", authenticate(), async (req, res) => {
   try {
-    const bookings = await Booking.find().populate("plot");
-    res.status(200).json(bookings);
+    const bookings = await Booking.find().populate("plot").lean(); // Fetch bookings with plot details
+    res.status(200).json(
+      bookings.map((booking) => ({
+        ...booking,
+        bookingDate: booking.createdAt, // Include booking creation date
+      }))
+    );
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

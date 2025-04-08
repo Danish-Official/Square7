@@ -228,7 +228,8 @@ export default function BuyersManagement() {
               <TableCell>{buyer.phoneNumber}</TableCell>
               <TableCell>{buyer.plot.plotNumber}</TableCell>
               <TableCell>
-                {new Date(buyer.plot.createdAt).toLocaleDateString()}
+                {new Date(buyer.bookingDate).toLocaleDateString()}{" "}
+                {/* Use bookingDate */}
               </TableCell>
               <TableCell>
                 <Trash2
