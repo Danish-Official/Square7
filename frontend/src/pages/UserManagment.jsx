@@ -19,6 +19,7 @@ import { Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import { toast } from "react-toastify"; // Import toast
 import SearchInput from "@/components/SearchInput";
+import { Input } from "@/components/ui/input";
 
 export default function UsersManagement() {
   const { auth } = useAuth(); // Access auth from context

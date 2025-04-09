@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CircleCheck } from "lucide-react";
+import { toast } from "react-toastify";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // Keep only toast import
 
 export default function NewBooking() {
   const [plots, setPlots] = useState(null);
@@ -32,6 +34,7 @@ export default function NewBooking() {
   const [errors, setErrors] = useState({});
   const [currentSection, setCurrentSection] = useState(1);
   const [isSectionComplete, setIsSectionComplete] = useState(false);
+  const [completedSections, setCompletedSections] = useState([]);
 
   useEffect(() => {
     async function fetchPlots() {
@@ -130,6 +133,19 @@ export default function NewBooking() {
       navigate("/contact-list");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to create booking"); // Show error toast
+    }
+  };
+
+  const isCurrentSectionValid = () => {
+    switch (currentSection) {
+      case 1:
+        return formData.buyerName && formData.phoneNumber;
+      case 2:
+        return formData.plotId && formData.ratePerSqFt;
+      case 3:
+        return formData.firstPayment > 0;
+      default:
+        return false;
     }
   };
 
@@ -385,39 +401,48 @@ export default function NewBooking() {
         <div className="w-1/4 p-4 border-r bg-[#303750] text-white shadow-md rounded-md flex flex-col gap-y-8">
           <h3 className="text-lg font-bold text-center">Quick Navigation</h3>
           <button
-            className={`block w-full text-center py-4 bg-white text-black rounded-md ${
+            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${
               currentSection === 1 ? "font-bold" : ""
             }`}
             onClick={(e) => {
-              e.preventDefault(); // Prevent default behavior
+              e.preventDefault();
               setCurrentSection(1);
             }}
           >
-            Personal Details
+            <span>Personal Details</span>
+            {completedSections.includes(1) && (
+              <CircleCheck color="#1f263e" strokeWidth={1.25} />
+            )}
           </button>
           <button
-            className={`block w-full text-center py-4 bg-white text-black rounded-md ${
+            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${
               currentSection === 2 ? "font-bold" : ""
             }`}
             onClick={(e) => {
-              e.preventDefault(); // Prevent default behavior
+              e.preventDefault();
               setCurrentSection(2);
             }}
             disabled={!formData.buyerName || !formData.phoneNumber}
           >
-            Plot Details
+            <span>Plot Details</span>
+            {completedSections.includes(2) && (
+              <CircleCheck color="#1f263e" strokeWidth={1.25} />
+            )}
           </button>
           <button
-            className={`block w-full text-center py-4 bg-white text-black rounded-md ${
+            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${
               currentSection === 3 ? "font-bold" : ""
             }`}
             onClick={(e) => {
-              e.preventDefault(); // Prevent default behavior
+              e.preventDefault();
               setCurrentSection(3);
             }}
             disabled={!formData.plotId || !formData.ratePerSqFt}
           >
-            Payment Details
+            <span>Payment Details</span>
+            {completedSections.includes(3) && (
+              <CircleCheck color="#1f263e" strokeWidth={1.25} />
+            )}
           </button>
         </div>
         <div className="w-3/4 p-6 bg-[#303750] text-white shadow-md rounded-md">
@@ -437,7 +462,10 @@ export default function NewBooking() {
           onClick={(e) => {
             if (currentSection < 3) {
               e.preventDefault(); // Prevent default behavior for navigation
-              setCurrentSection(currentSection + 1);
+              if (isCurrentSectionValid()) {
+                setCompletedSections((prev) => [...prev, currentSection]);
+                setCurrentSection(currentSection + 1);
+              }
             }
           }}
           className="bg-[#1F263E] text-white border border-[#303750] hover:bg-[#2A324D]"
