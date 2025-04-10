@@ -30,7 +30,7 @@ router.post("/", authenticate(), async (req, res) => {
 // Fetch all enquiries
 router.get("/", authenticate(), async (req, res) => {
   try {
-    const enquiries = await Enquiry.find();
+    const enquiries = await Enquiry.find().sort({ createdAt: -1 });
     res.status(200).json(enquiries);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

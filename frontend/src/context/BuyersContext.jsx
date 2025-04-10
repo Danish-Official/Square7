@@ -45,7 +45,13 @@ export function BuyersProvider({ children }) {
 
   return (
     <BuyersContext.Provider
-      value={{ buyers, fetchBuyers, deleteBuyer, updateBuyer }}
+      value={{
+        buyers,
+        fetchBuyers: fetchBuyers,
+        deleteBuyer,
+        updateBuyer,
+        refetchBuyers: fetchBuyers,
+      }}
     >
       {children}
     </BuyersContext.Provider>

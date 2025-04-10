@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode"; // Import jwt-decode to validate token
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,14 +30,15 @@ import { useAuth } from "@/context/AuthContext";
 import { useBuyers } from "@/context/BuyersContext";
 import "../styles/dashboard.scss"; // Import your CSS file for styling
 import { apiClient } from "@/lib/utils"; // Import API client
+import { toast } from "react-toastify"; // Add this import
 
 export default function Dashboard({ showLoginModal = false }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(showLoginModal); // Initialize with prop value
-  const { auth } = useAuth(); // Access auth from context
-  const { buyers } = useBuyers();
-  const recentBuyers = buyers.slice(-5).reverse();
+  const { auth, isTokenExpired } = useAuth();
+  const { buyers, refetchBuyers } = useBuyers(); // Add refetchBuyers
+  const recentBuyers = buyers.slice(0, 5);
   const [stats, setStats] = useState({
     totalPlots: 0,
     soldPlots: 0,
@@ -48,9 +48,9 @@ export default function Dashboard({ showLoginModal = false }) {
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
-      setIsLoginModalOpen(true); // Open login modal if token is invalid, empty, or expired
+      setIsLoginModalOpen(true);
     }
-  }, [auth.token]); // Depend on manualLogout
+  }, [auth.token, isTokenExpired]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -58,14 +58,15 @@ export default function Dashboard({ showLoginModal = false }) {
         const { data } = await apiClient.get("/plots/stats");
         setStats(data);
       } catch (error) {
-        // Silent failure, stats will remain at default values
+        toast.error("Failed to fetch statistics");
+        console.error("Error fetching stats:", error);
       }
     };
 
-    if (auth.token) {
-      fetchStats(); // Fetch stats when token is available
+    if (auth.token && !isTokenExpired(auth.token)) {
+      fetchStats();
     }
-  }, [auth.token]);
+  }, [auth.token, buyers, isTokenExpired]);
 
   useEffect(() => {
     const fetchRevenueData = async () => {
@@ -79,24 +80,22 @@ export default function Dashboard({ showLoginModal = false }) {
         }));
         setRevenueData(formattedData);
       } catch (error) {
-        // Silent failure, revenue data will remain empty
+        toast.error("Failed to fetch revenue data");
+        console.error("Error fetching revenue:", error);
       }
     };
 
-    if (auth.token) {
+    if (auth.token && !isTokenExpired(auth.token)) {
       fetchRevenueData();
     }
-  }, [auth.token]);
+  }, [auth.token, buyers, isTokenExpired]);
 
-  const isTokenExpired = (token) => {
-    try {
-      const { exp } = jwtDecode(token); // Decode token to get expiration time
-      return Date.now() >= exp * 1000; // Check if token is expired
-      // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      return true; // Treat invalid tokens as expired
+  // Add new useEffect for fetching buyers
+  useEffect(() => {
+    if (auth.token && !isTokenExpired(auth.token)) {
+      refetchBuyers();
     }
-  };
+  }, [auth.token, isTokenExpired, refetchBuyers]);
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -162,7 +161,7 @@ export default function Dashboard({ showLoginModal = false }) {
                 />
                 <YAxis hide={true} />
                 <Tooltip />
-                <Bar dataKey="revenue" fill="#ADD8E6" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="revenue" fill="#8AC0F6" radius={[10, 10, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -224,7 +223,8 @@ export default function Dashboard({ showLoginModal = false }) {
           )}
           <Login
             onClose={() => {
-              setIsLoginModalOpen(false); // Close the modal after login
+              setIsLoginModalOpen(false);
+              refetchBuyers(); // Refetch buyers after login
             }}
           />
         </DialogContent>

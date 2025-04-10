@@ -34,7 +34,9 @@ router.post("/:id/add-payment", authenticate(), async (req, res) => {
 
 router.get("/", authenticate(), async (req, res) => {
   try {
-    const invoices = await Invoice.find().populate("booking");
+    const invoices = await Invoice.find()
+      .populate("booking")
+      .sort({ createdAt: -1 });
     res.status(200).json(invoices);
   } catch (error) {
     console.error("Error fetching invoices:", error);

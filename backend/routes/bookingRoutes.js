@@ -32,7 +32,10 @@ router.post("/", authenticate(), async (req, res) => {
 // Get all bookings
 router.get("/", authenticate(), async (req, res) => {
   try {
-    const bookings = await Booking.find().populate("plot").lean(); // Fetch bookings with plot details
+    const bookings = await Booking.find()
+      .populate("plot")
+      .sort({ createdAt: -1 })
+      .lean(); // Fetch bookings with plot details in descending order
     res.status(200).json(
       bookings.map((booking) => ({
         ...booking,
