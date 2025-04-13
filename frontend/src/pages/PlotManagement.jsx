@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import PlotLayout from "../components/plot-overview/PlotLayout";
+import PlotLayout from "../components/plot-overview/PlotLayout1";
 
 const PlotManagement = () => {
 

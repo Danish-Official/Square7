@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import "./PlotLayout.scss";
+import "./PlotLayout1.scss";
 import { apiClient } from "@/lib/utils";
 
-const PlotLayout = () => {
+const PlotLayout1 = () => {
   const [plots, setPlots] = useState([]);
   const [hoveredPlot, setHoveredPlot] = useState(null); // State for hovered plot
   const [selectedPlot, setSelectedPlot] = useState(null); // State for clicked plot
@@ -162,4 +162,4 @@ const PlotLayout = () => {
   );
 };
 
-export default PlotLayout;
+export default PlotLayout1;
