@@ -15,15 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
-import { toast } from "react-toastify"; // Import toast
+import { Trash2, Edit2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-toastify";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { Input } from "@/components/ui/input";
 
 export default function Enquiries() {
-  const { auth } = useAuth(); // Access auth from context
+  const { auth } = useAuth();
   const [enquiries, setEnquiries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -34,7 +34,9 @@ export default function Enquiries() {
   });
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 25;
+  const itemsPerPage = 10;
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingEnquiry, setEditingEnquiry] = useState(null);
 
   useEffect(() => {
     const fetchEnquiries = async () => {
@@ -47,7 +49,7 @@ export default function Enquiries() {
     };
 
     if (auth.token) {
-      fetchEnquiries(); // Fetch enquiries when token is available
+      fetchEnquiries();
     }
   }, [auth.token]);
 
@@ -82,9 +84,9 @@ export default function Enquiries() {
       setIsDialogOpen(false);
       setNewEnquiry({ name: "", phoneNumber: "", message: "" });
       setErrors({});
-      toast.success("Enquiry created successfully"); // Show success toast
+      toast.success("Enquiry created successfully");
     } catch (error) {
-      toast.error("Failed to create enquiry"); // Show error toast
+      toast.error("Failed to create enquiry");
     }
   };
 
@@ -99,9 +101,37 @@ export default function Enquiries() {
     try {
       await apiClient.delete(`/enquiries/${id}`);
       setEnquiries((prev) => prev.filter((enquiry) => enquiry._id !== id));
-      toast.success("Enquiry deleted successfully"); // Show success toast
+      toast.success("Enquiry deleted successfully");
     } catch (error) {
-      toast.error("Failed to delete enquiry"); // Show error toast
+      toast.error("Failed to delete enquiry");
+    }
+  };
+
+  const handleEdit = (enquiry) => {
+    setEditingEnquiry(enquiry);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateEnquiry = async () => {
+    const isValid = Object.keys(editingEnquiry).every((key) =>
+      validateField(key, editingEnquiry[key])
+    );
+    if (!isValid) return;
+
+    try {
+      const { data } = await apiClient.put(
+        `/enquiries/${editingEnquiry._id}`,
+        editingEnquiry
+      );
+      setEnquiries((prev) =>
+        prev.map((item) => (item._id === data._id ? data : item))
+      );
+      setIsEditDialogOpen(false);
+      setEditingEnquiry(null);
+      setErrors({});
+      toast.success("Enquiry updated successfully");
+    } catch (error) {
+      toast.error("Failed to update enquiry");
     }
   };
 
@@ -133,46 +163,160 @@ export default function Enquiries() {
       <Button onClick={() => setIsDialogOpen(true)}>Add Enquiry</Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add Enquiry</DialogTitle>
+        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+              Add Enquiry
+            </DialogTitle>
+            <p className="text-gray-500 text-sm font-normal">
+              Fill in the details to create a new enquiry
+            </p>
           </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              name="name"
-              placeholder="Name"
-              value={newEnquiry.name}
-              onChange={handleChange}
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name}</p>
-            )}
-            <Input
-              name="phoneNumber"
-              placeholder="Phone Number"
-              value={newEnquiry.phoneNumber}
-              onChange={handleChange}
-            />
-            {errors.phoneNumber && (
-              <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
-            )}
-            <textarea
-              name="message"
-              placeholder="Message"
-              value={newEnquiry.message}
-              onChange={(e) => {
-                if (e.target.value.split(" ").length <= 120) {
-                  handleChange(e);
+          <div className="space-y-6">
+            <div>
+              <Input
+                name="name"
+                placeholder="Name"
+                value={newEnquiry.name}
+                onChange={handleChange}
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+            <div>
+              <Input
+                name="phoneNumber"
+                placeholder="Phone Number"
+                value={newEnquiry.phoneNumber}
+                onChange={handleChange}
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.phoneNumber}
+                </p>
+              )}
+            </div>
+            <div>
+              <textarea
+                name="message"
+                placeholder="Message"
+                value={newEnquiry.message}
+                onChange={(e) => {
+                  if (e.target.value.split(" ").length <= 120) {
+                    handleChange(e);
+                  }
+                }}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                rows="4"
+              />
+              <p className="text-gray-500 text-sm mt-1">
+                Max 120 words allowed.
+              </p>
+              {errors.message && (
+                <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="bg-white hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateEnquiry}
+                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+              >
+                Create
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+              Edit Enquiry
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div>
+              <Input
+                name="name"
+                placeholder="Name"
+                value={editingEnquiry?.name || ""}
+                onChange={(e) =>
+                  setEditingEnquiry((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
                 }
-              }}
-              className="w-full p-2 border rounded-md break-words max-w-full"
-              rows="4"
-            />
-            <p className="text-gray-500 text-sm">Max 120 words allowed.</p>
-            {errors.message && (
-              <p className="text-red-500 text-sm">{errors.message}</p>
-            )}
-            <Button onClick={handleCreateEnquiry}>Create</Button>
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+            <div>
+              <Input
+                name="phoneNumber"
+                placeholder="Phone Number"
+                value={editingEnquiry?.phoneNumber || ""}
+                onChange={(e) =>
+                  setEditingEnquiry((prev) => ({
+                    ...prev,
+                    phoneNumber: e.target.value,
+                  }))
+                }
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.phoneNumber}
+                </p>
+              )}
+            </div>
+            <div>
+              <textarea
+                name="message"
+                placeholder="Message"
+                value={editingEnquiry?.message || ""}
+                onChange={(e) => {
+                  if (e.target.value.split(" ").length <= 120) {
+                    setEditingEnquiry((prev) => ({
+                      ...prev,
+                      message: e.target.value,
+                    }));
+                  }
+                }}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                rows="4"
+              />
+              {errors.message && (
+                <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                className="bg-white hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateEnquiry}
+                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+              >
+                Update
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -199,11 +343,17 @@ export default function Enquiries() {
                 </ul>
               </TableCell>
               <TableCell>
-                <Trash2
-                  color="#f00505"
-                  className="self-center"
-                  onClick={() => handleDelete(enquiry._id)}
-                />
+                <div className="flex gap-2">
+                  <Edit2
+                    className="cursor-pointer"
+                    onClick={() => handleEdit(enquiry)}
+                  />
+                  <Trash2
+                    color="#f00505"
+                    className="cursor-pointer"
+                    onClick={() => handleDelete(enquiry._id)}
+                  />
+                </div>
               </TableCell>
             </TableRow>
           ))}

@@ -15,6 +15,7 @@ const bookingSchema = new mongoose.Schema(
     },
     gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
     plot: { type: mongoose.Schema.Types.ObjectId, ref: "Plot", required: true },
+    layoutId: { type: String, required: true }, // Add layoutId field
     paymentType: {
       type: String,
       enum: ["Cash", "Cheque", "Online"],

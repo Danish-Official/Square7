@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Outlet } from "react-router-dom";
 
-const Layout = () => {
+const AppWrapper = () => {
   return (
     <div className="flex">
       <Sidebar />
@@ -14,4 +14,4 @@ const Layout = () => {
   );
 };
 
-export default Layout;
+export default AppWrapper;

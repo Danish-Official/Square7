@@ -28,23 +28,29 @@ import { FilePlus } from "lucide-react";
 import Login from "../components/Login";
 import { useAuth } from "@/context/AuthContext";
 import { useBuyers } from "@/context/BuyersContext";
-import "../styles/dashboard.scss"; // Import your CSS file for styling
-import { apiClient } from "@/lib/utils"; // Import API client
-import { toast } from "react-toastify"; // Add this import
+import { useLayout } from "@/context/LayoutContext";
+import "../styles/dashboard.scss";
+import { apiClient } from "@/lib/utils";
+import { toast } from "react-toastify";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export default function Dashboard({ showLoginModal = false }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(showLoginModal); // Initialize with prop value
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(showLoginModal);
   const { auth, isTokenExpired } = useAuth();
-  const { buyers, refetchBuyers } = useBuyers(); // Add refetchBuyers
+  const { buyers, refetchBuyers } = useBuyers();
   const recentBuyers = buyers.slice(0, 5);
-  const [stats, setStats] = useState({
-    totalPlots: 0,
-    soldPlots: 0,
-    availablePlots: 0,
-  });
-  const [revenueData, setRevenueData] = useState([]);
+  const [layoutStats, setLayoutStats] = useState({});
+  const [layoutRevenueData, setLayoutRevenueData] = useState({});
+  const [layouts, setLayouts] = useState([]);
+  const { selectedLayout, setSelectedLayout } = useLayout();
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
@@ -53,44 +59,58 @@ export default function Dashboard({ showLoginModal = false }) {
   }, [auth.token, isTokenExpired]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    if (!auth.token || isTokenExpired(auth.token)) return;
+
+    const fetchLayouts = async () => {
       try {
-        const { data } = await apiClient.get("/plots/stats");
-        setStats(data);
+        const response = await apiClient.get("/plots/layouts");
+        setLayouts(response.data);
+        if (response.data.length > 0) {
+          setSelectedLayout(response.data[0]);
+        }
       } catch (error) {
-        toast.error("Failed to fetch statistics");
-        console.error("Error fetching stats:", error);
+        console.error("Error fetching layouts:", error);
       }
     };
 
-    if (auth.token && !isTokenExpired(auth.token)) {
-      fetchStats();
-    }
-  }, [auth.token, buyers, isTokenExpired]);
+    fetchLayouts();
+  }, [auth.token, isTokenExpired]);
 
   useEffect(() => {
-    const fetchRevenueData = async () => {
+    if (!auth.token || isTokenExpired(auth.token) || !selectedLayout) return;
+
+    const fetchData = async () => {
       try {
-        const { data } = await apiClient.get("/invoices/revenue");
-        const formattedData = data.map((item) => ({
+        const [statsResponse, revenueResponse] = await Promise.all([
+          apiClient.get(`/plots/stats/${selectedLayout}`),
+          apiClient.get(`/invoices/revenue/${selectedLayout}`),
+        ]);
+
+        setLayoutStats((prev) => ({
+          ...prev,
+          [selectedLayout]: statsResponse.data,
+        }));
+
+        const formattedData = revenueResponse.data.map((item) => ({
           month: new Date(0, item.month - 1).toLocaleString("default", {
             month: "short",
           }),
-          revenue: item.totalRevenue,
+          revenue: item.totalRevenue || 0,
         }));
-        setRevenueData(formattedData);
+
+        setLayoutRevenueData((prev) => ({
+          ...prev,
+          [selectedLayout]: formattedData,
+        }));
       } catch (error) {
-        toast.error("Failed to fetch revenue data");
-        console.error("Error fetching revenue:", error);
+        console.error("Dashboard data fetch error:", error);
+        toast.error("Failed to fetch dashboard data");
       }
     };
 
-    if (auth.token && !isTokenExpired(auth.token)) {
-      fetchRevenueData();
-    }
-  }, [auth.token, buyers, isTokenExpired]);
+    fetchData();
+  }, [auth.token, isTokenExpired, selectedLayout]);
 
-  // Add new useEffect for fetching buyers
   useEffect(() => {
     if (auth.token && !isTokenExpired(auth.token)) {
       refetchBuyers();
@@ -108,22 +128,56 @@ export default function Dashboard({ showLoginModal = false }) {
   };
 
   const getBuyerDetailsByDate = (date) => {
-    return buyers.find(
-      (buyer) =>
-        new Date(buyer.bookingDate).toDateString() === date.toDateString()
-    );
+    if (!date || !Array.isArray(buyers)) return [];
+
+    return buyers.filter((buyer) => {
+      try {
+        return (
+          new Date(buyer.bookingDate).toDateString() === date.toDateString()
+        );
+      } catch (error) {
+        console.error("Date parsing error:", error);
+        return false;
+      }
+    });
   };
 
   const isBuyerPresentOnDate = (date) => {
-    return buyers.some(
-      (buyer) =>
-        new Date(buyer.bookingDate).toDateString() === date.toDateString()
-    );
+    if (!date || !Array.isArray(buyers)) return false;
+
+    return buyers.some((buyer) => {
+      try {
+        return (
+          new Date(buyer.bookingDate).toDateString() === date.toDateString()
+        );
+      } catch (error) {
+        console.error("Date validation error:", error);
+        return false;
+      }
+    });
+  };
+
+  const handleLayoutChange = (value) => {
+    setSelectedLayout(value);
   };
 
   return (
     <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
       <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="mb-4">
+        <Select value={selectedLayout} onValueChange={handleLayoutChange}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select Layout" />
+          </SelectTrigger>
+          <SelectContent>
+            {layouts.map((layout) => (
+              <SelectItem key={layout} value={layout}>
+                {layout}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/new-booking">
           <Button
@@ -136,23 +190,27 @@ export default function Dashboard({ showLoginModal = false }) {
             <FilePlus size={40} />
           </Button>
         </Link>
-        {Object.entries(stats).map(([key, value]) => (
-          <Card key={key} className="p-4 shadow-md">
-            <CardContent>
-              <h2 className="text-lg capitalize font-light font-oxygen">
-                {key.replace(/([A-Z])/g, " $1")}
-              </h2>
-              <p className="text-xl font-bold font-philosopher">{value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {selectedLayout &&
+          layoutStats[selectedLayout] &&
+          Object.entries(layoutStats[selectedLayout]).map(([key, value]) => (
+            <Card key={key} className="p-4 shadow-md">
+              <CardContent>
+                <h2 className="text-lg capitalize font-light font-oxygen">
+                  {key.replace(/([A-Z])/g, " $1")}
+                </h2>
+                <p className="text-xl font-bold font-philosopher">{value}</p>
+              </CardContent>
+            </Card>
+          ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2 p-4">
           <CardContent>
             <h2 className="text-lg font-semibold mb-4">Sales Analytics</h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData}>
+              <BarChart
+                data={selectedLayout ? layoutRevenueData[selectedLayout] : []}
+              >
                 <XAxis
                   dataKey="month"
                   axisLine={false}
@@ -224,33 +282,76 @@ export default function Dashboard({ showLoginModal = false }) {
           <Login
             onClose={() => {
               setIsLoginModalOpen(false);
-              refetchBuyers(); // Refetch buyers after login
+              refetchBuyers();
             }}
           />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
-        <DialogContent className="flex flex-col items-center justify-center">
-          <DialogHeader>
-            <DialogTitle>Buyer Details</DialogTitle>
+      <Dialog
+        open={dialogIsOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDialog();
+          }
+        }}
+      >
+        <DialogContent className="max-w-[500px] max-h-[80vh] overflow-y-auto p-6 bg-white rounded-xl">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+              Buyer Details
+            </DialogTitle>
+            <p className="text-gray-500 text-sm font-normal">
+              Bookings for {selectedDate?.toLocaleDateString()}
+            </p>
           </DialogHeader>
           {selectedDate &&
             (() => {
-              const buyerDetails = getBuyerDetailsByDate(selectedDate);
-              return buyerDetails ? (
-                <div className="space-y-4">
-                  <p className="text-lg">Name: {buyerDetails.buyerName}</p>
-                  <p className="text-lg">
-                    Contact No.: {buyerDetails.phoneNumber}
-                  </p>
-                  <p className="text-lg">
-                    Plot No.: {buyerDetails.plot.plotNumber}
-                  </p>
+              const buyersForDate = getBuyerDetailsByDate(selectedDate);
+              return buyersForDate.length > 0 ? (
+                <div className="pr-2">
+                  {buyersForDate.map((buyer, index) => (
+                    <div
+                      key={buyer._id}
+                      className={`grid gap-4 ${
+                        index !== buyersForDate.length - 1
+                          ? "mb-6 pb-6 border-b"
+                          : ""
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <label className="text-sm text-gray-500">Name</label>
+                        <p className="font-medium">{buyer.buyerName}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm text-gray-500">
+                          Contact Number
+                        </label>
+                        <p className="font-medium">{buyer.phoneNumber}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm text-gray-500">
+                          Plot Number
+                        </label>
+                        <p className="font-medium">{buyer.plot.plotNumber}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : null;
+              ) : (
+                <p className="text-gray-500">
+                  No bookings found for this date.
+                </p>
+              );
             })()}
-          <Button onClick={closeDialog}>Close</Button>
+          <div className="flex justify-end pt-6">
+            <Button
+              onClick={closeDialog}
+              className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -27,6 +27,8 @@ import { apiClient } from "@/lib/utils"; // Import API client
 import { toast } from "react-toastify"; // Import toast
 import Pagination from "@/components/Pagination"; // Import Pagination
 import SearchInput from "@/components/SearchInput";
+import { Trash2 } from "lucide-react"; // Add this import at the top
+import { setupPDF, addHeader, addField, addDivider } from "@/utils/pdfUtils"; // Import PDF utility functions
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]); // State for invoices
@@ -41,7 +43,7 @@ export default function Invoices() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1); // State for current page
-  const itemsPerPage = 25; // Items per page
+  const itemsPerPage = 10; // Items per page
 
   useEffect(() => {
     fetchInvoices(); // Fetch invoices on component mount
@@ -107,6 +109,7 @@ export default function Invoices() {
           ? "Payment updated successfully"
           : "Payment added successfully"
       ); // Show success toast
+      fetchInvoices(); // Fetch updated invoices
     } catch (error) {
       toast.error("Failed to update payment"); // Show error toast
     }
@@ -123,21 +126,58 @@ export default function Invoices() {
     );
   };
 
-  const handleDownloadInvoice = () => {
-    const doc = new jsPDF();
-    doc.text("Invoice Details", 10, 10);
-    doc.text(`Buyer Name: ${selectedInvoice?.booking?.buyerName}`, 10, 20);
-    doc.text(`Phone Number: ${selectedInvoice?.booking?.phoneNumber}`, 10, 30);
-    doc.text("Payments:", 10, 40);
-    selectedInvoice?.payments?.forEach((payment, index) => {
-      doc.text(
-        `${index + 1}. $${payment?.amount} on ${new Date(
-          payment?.paymentDate
-        )?.toLocaleDateString()} (${payment?.paymentType})`,
-        10,
-        50 + index * 10
+  const handleDeletePayment = async (index) => {
+    if (!confirm("Are you sure you want to delete this payment?")) return;
+
+    try {
+      await apiClient.delete(
+        `/invoices/${selectedInvoice._id}/payments/${index}`
       );
+
+      const updatedPayments = [...selectedInvoice.payments];
+      updatedPayments.splice(index, 1);
+
+      setSelectedInvoice((prev) => ({
+        ...prev,
+        payments: updatedPayments,
+      }));
+
+      toast.success("Payment deleted successfully");
+      fetchInvoices(); // Fetch updated invoices
+    } catch (error) {
+      toast.error("Failed to delete payment");
+    }
+  };
+
+  const handleDownloadInvoice = () => {
+    const doc = setupPDF();
+    addHeader(doc, "Invoice Details");
+
+    let y = 40;
+    addField(doc, "Buyer Name:", selectedInvoice?.booking?.buyerName, y);
+    addField(
+      doc,
+      "Phone Number:",
+      selectedInvoice?.booking?.phoneNumber,
+      (y += 15)
+    );
+
+    addDivider(doc, (y += 10));
+
+    // Payments Section
+    doc.setFontSize(14);
+    doc.setTextColor(31, 38, 62);
+    doc.text("Payment History", 20, (y += 20));
+
+    selectedInvoice?.payments?.forEach((payment, index) => {
+      y += 15;
+      const date = new Date(payment?.paymentDate)?.toLocaleDateString();
+      const paymentText = `${getOrdinalSuffix(index + 1)} Payment:`;
+      const paymentDetails = `Rs. ${payment?.amount} paid on ${date} (${payment?.paymentType})`;
+
+      addField(doc, paymentText, paymentDetails, y);
     });
+
     doc.save(`Invoice_${selectedInvoice?.booking?.buyerName}.pdf`);
   };
 
@@ -195,8 +235,9 @@ export default function Invoices() {
                     setSelectedInvoice(invoice);
                     setIsDialogOpen(true);
                   }}
+                  className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
                 >
-                  View Invoice
+                  View Details
                 </Button>
               </TableCell>
             </TableRow>
@@ -209,102 +250,158 @@ export default function Invoices() {
         onPageChange={handlePageChange}
       />
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl max-h-[80vh] overflow-y-auto">
           {selectedInvoice && (
-            <div className="space-y-4">
-              <DialogHeader>
-                <DialogTitle>Invoice Details</DialogTitle>
+            <div className="space-y-6">
+              <DialogHeader className="space-y-3 mb-6">
+                <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+                  Invoice Details
+                </DialogTitle>
+                <p className="text-gray-500 text-sm font-normal">
+                  View and manage invoice information
+                </p>
               </DialogHeader>
-              <p>
-                <strong>Buyer Name:</strong>{" "}
-                {selectedInvoice?.booking?.buyerName}
-              </p>
-              <p>
-                <strong>Phone Number:</strong>{" "}
-                {selectedInvoice?.booking?.phoneNumber}
-              </p>
-              <h3 className="text-lg font-semibold">Payments</h3>
-              <ul>
-                {selectedInvoice?.payments?.map((payment, index) => (
-                  <li key={index}>
-                    <strong>{`${getOrdinalSuffix(index + 1)} Payment:`}</strong>{" "}
-                    ${payment?.amount} on{" "}
-                    {new Date(payment?.paymentDate)?.toLocaleDateString()} (
-                    {payment?.paymentType}){" "}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditPayment(index)}
+              <div className="grid gap-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-sm text-gray-500">Buyer Name</label>
+                    <p className="font-medium">
+                      {selectedInvoice?.booking?.buyerName}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm text-gray-500">
+                      Phone Number
+                    </label>
+                    <p className="font-medium">
+                      {selectedInvoice?.booking?.phoneNumber}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-[#1F263E]">Payments</h3>
+                  <ul className="space-y-3">
+                    {selectedInvoice?.payments?.map((payment, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                      >
+                        <div>
+                          <span className="font-medium">{`${getOrdinalSuffix(
+                            index + 1
+                          )} Payment:`}</span>{" "}
+                          <span>₹{payment?.amount}</span> on{" "}
+                          <span>
+                            {new Date(
+                              payment?.paymentDate
+                            )?.toLocaleDateString()}
+                          </span>{" "}
+                          <span>({payment?.paymentType})</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditPayment(index)}
+                            className="bg-white hover:bg-gray-50"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeletePayment(index)}
+                            className="bg-white hover:bg-gray-50 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-[#1F263E]">Add Payment</h3>
+                  <div className="grid gap-4">
+                    <Input
+                      placeholder="Amount"
+                      type="number"
+                      value={subsequentPayment?.amount}
+                      onChange={(e) => {
+                        const rawValue = e.target.value;
+                        const value =
+                          rawValue === "" ? "" : Math.ceil(Number(rawValue));
+                        setSubsequentPayment((prev) => ({
+                          ...prev,
+                          amount: value,
+                        }));
+                        validateField("amount", value);
+                      }}
+                      className="bg-white border-gray-200 focus:border-blue-500"
+                    />
+                    {errors?.amount && (
+                      <p className="text-red-500 text-sm">{errors?.amount}</p>
+                    )}
+                    <Input
+                      placeholder="Payment Date"
+                      type="date"
+                      value={subsequentPayment?.paymentDate}
+                      onChange={(e) => {
+                        setSubsequentPayment((prev) => ({
+                          ...prev,
+                          paymentDate: e.target.value,
+                        }));
+                        validateField("paymentDate", e.target.value);
+                      }}
+                      className="bg-white border-gray-200 focus:border-blue-500"
+                    />
+                    {errors?.paymentDate && (
+                      <p className="text-red-500 text-sm">
+                        {errors?.paymentDate}
+                      </p>
+                    )}
+                    <Select
+                      onValueChange={(value) =>
+                        setSubsequentPayment((prev) => ({
+                          ...prev,
+                          paymentType: value,
+                        }))
+                      }
+                      value={subsequentPayment?.paymentType}
                     >
-                      Edit
+                      <SelectTrigger className="bg-white border-gray-200 focus:border-blue-500">
+                        <SelectValue placeholder="Payment Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Cheque">Cheque</SelectItem>
+                        <SelectItem value="Online">Online</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={handleAddOrEditPayment}
+                      className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                    >
+                      {editingPaymentIndex !== null
+                        ? "Update Payment"
+                        : "Add Payment"}
                     </Button>
-                  </li>
-                ))}
-              </ul>
-              <div className="space-y-2">
-                <Input
-                  placeholder="Amount"
-                  type="number"
-                  value={subsequentPayment?.amount}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSubsequentPayment((prev) => ({
-                      ...prev,
-                      amount: value,
-                    }));
-                    validateField("amount", value);
-                  }}
-                />
-                {errors?.amount && (
-                  <p className="text-red-500 text-sm">{errors?.amount}</p>
-                )}
-                <Input
-                  placeholder="Payment Date"
-                  type="date"
-                  value={subsequentPayment?.paymentDate}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSubsequentPayment((prev) => ({
-                      ...prev,
-                      paymentDate: value,
-                    }));
-                    validateField("paymentDate", value);
-                  }}
-                />
-                {errors?.paymentDate && (
-                  <p className="text-red-500 text-sm">{errors?.paymentDate}</p>
-                )}
-                <Select
-                  onValueChange={(value) =>
-                    setSubsequentPayment((prev) => ({
-                      ...prev,
-                      paymentType: value,
-                    }))
-                  }
-                  value={subsequentPayment?.paymentType}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Payment Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Cheque">Cheque</SelectItem>
-                    <SelectItem value="Online">Online</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleAddOrEditPayment}>
-                  {editingPaymentIndex !== null
-                    ? "Update Payment"
-                    : "Add Payment"}
-                </Button>
+                  </div>
+                </div>
               </div>
-              <div className="flex space-x-4">
-                <Button onClick={handleDownloadInvoice}>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  onClick={handleDownloadInvoice}
+                  className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                >
                   Download Invoice
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  className="bg-white hover:bg-gray-50"
                 >
                   Close
                 </Button>

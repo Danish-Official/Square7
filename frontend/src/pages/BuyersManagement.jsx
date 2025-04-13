@@ -16,11 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import jsPDF from "jspdf";
-import { toast } from "react-toastify"; // Import toast
-import "react-toastify/dist/ReactToastify.css"; // Import styles for toast
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
+import { setupPDF, addHeader, addField, addDivider } from "@/utils/pdfUtils";
 
 export default function BuyersManagement() {
   const { buyers, deleteBuyer, updateBuyer, fetchBuyers } = useBuyers(); // Access buyers context
@@ -30,21 +32,37 @@ export default function BuyersManagement() {
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 25;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchBuyers(); // Fetch buyers when the component mounts
-  }, []);
+  }, [fetchBuyers]); // Add fetchBuyers to dependency array
 
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this buyer?")) {
-      deleteBuyer(id);
-      fetchBuyers(); // Fetch buyers after deletion
-      toast.success("Buyer deleted successfully"); // Show success toast
+  const handleDelete = async (id) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this buyer? This will also delete associated invoice."
+      )
+    )
+      return;
+
+    try {
+      await deleteBuyer(id);
+      setIsDialogOpen(false);
+      setSelectedBuyer(null);
+      await fetchBuyers();
+      toast.success("Buyer and associated data deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(error?.response?.data?.message || "Failed to delete buyer");
     }
   };
 
   const handleEdit = (buyer) => {
+    if (!buyer) {
+      toast.error("Invalid buyer data");
+      return;
+    }
     setSelectedBuyer(buyer);
     setIsDialogOpen(true);
     setIsEditing(false); // Start in view mode
@@ -85,14 +103,20 @@ export default function BuyersManagement() {
   };
 
   const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    doc.text(`Buyer Details`, 10, 10);
-    doc.text(`Name: ${selectedBuyer.buyerName}`, 10, 20);
-    doc.text(`Address: ${selectedBuyer.address}`, 10, 30);
-    doc.text(`Phone Number: ${selectedBuyer.phoneNumber}`, 10, 40);
-    doc.text(`Gender: ${selectedBuyer.gender}`, 10, 50);
-    doc.text(`Plot Number: ${selectedBuyer.plot.plotNumber}`, 10, 60);
-    doc.text(`Total Cost: ${selectedBuyer.totalCost}`, 10, 70);
+    const doc = setupPDF();
+    addHeader(doc, "Buyer Details");
+
+    let y = 40;
+    addField(doc, "Name:", selectedBuyer.buyerName, y);
+    addField(doc, "Address:", selectedBuyer.address, (y += 15));
+    addField(doc, "Phone Number:", selectedBuyer.phoneNumber, (y += 15));
+    addField(doc, "Gender:", selectedBuyer.gender, (y += 15));
+
+    addDivider(doc, (y += 10));
+
+    addField(doc, "Plot Number:", selectedBuyer.plot.plotNumber, (y += 20));
+    addField(doc, "Total Cost:", `Rs. ${selectedBuyer.totalCost}`, (y += 15));
+
     doc.save(`${selectedBuyer.buyerName}_details.pdf`);
   };
 
@@ -122,96 +146,129 @@ export default function BuyersManagement() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[650px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl max-h-[80vh] overflow-y-auto">
           {selectedBuyer && (
-            <div className="space-y-4 p-4">
-              <DialogHeader>
-                <DialogTitle>Buyer Details</DialogTitle>
+            <div className="space-y-6">
+              <DialogHeader className="space-y-3 mb-6">
+                <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+                  Buyer Details
+                </DialogTitle>
+                <p className="text-gray-500 text-sm font-normal">
+                  View and manage buyer information
+                </p>
               </DialogHeader>
-              <div className="space-y-2">
-                <label className="block font-medium">Name</label>
-                {isEditing ? (
-                  <>
-                    <Input
-                      name="buyerName"
-                      value={selectedBuyer.buyerName}
-                      onChange={handleChange}
-                    />
-                    {errors.buyerName && (
-                      <p className="text-red-500 text-sm">{errors.buyerName}</p>
-                    )}
-                  </>
-                ) : (
-                  <p>{selectedBuyer.buyerName}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="block font-medium">Address</label>
-                {isEditing ? (
-                  <>
-                    <Input
-                      name="address"
-                      value={selectedBuyer.address}
-                      onChange={(e) => {
-                        if (e.target.value.split(" ").length <= 120) {
-                          handleChange(e);
-                        }
-                      }}
-                      className="break-words max-w-full"
-                    />
-                    <p className="text-gray-500 text-sm">
-                      Max 120 words allowed.
+              <div className="grid gap-6">
+                <div className="space-y-2">
+                  <label className="font-medium text-gray-700">Name</label>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        name="buyerName"
+                        value={selectedBuyer.buyerName}
+                        onChange={handleChange}
+                        className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                      />
+                      {errors.buyerName && (
+                        <p className="text-red-500 text-sm">
+                          {errors.buyerName}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-900">{selectedBuyer.buyerName}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-medium text-gray-700">Address</label>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        name="address"
+                        value={selectedBuyer.address}
+                        onChange={handleChange}
+                        className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                      />
+                    </>
+                  ) : (
+                    <p className="text-gray-900 break-words">
+                      {selectedBuyer.address}
                     </p>
-                  </>
-                ) : (
-                  <p className="break-words max-w-full">
-                    {selectedBuyer.address}
-                  </p>
-                )}
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-medium text-gray-700">
+                    Phone Number
+                  </label>
+                  {isEditing ? (
+                    <>
+                      <Input
+                        name="phoneNumber"
+                        value={selectedBuyer.phoneNumber}
+                        onChange={handleChange}
+                        className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                      />
+                      {errors.phoneNumber && (
+                        <p className="text-red-500 text-sm">
+                          {errors.phoneNumber}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-900">{selectedBuyer.phoneNumber}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="font-medium text-gray-700">Gender</label>
+                    <p className="text-gray-900">{selectedBuyer.gender}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-medium text-gray-700">
+                      Plot Number
+                    </label>
+                    <p className="text-gray-900">
+                      {selectedBuyer.plot.plotNumber}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-medium text-gray-700">
+                    Total Cost
+                  </label>
+                  <p className="text-gray-900">₹{selectedBuyer.totalCost}</p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="block font-medium">Phone Number</label>
+              <div className="flex justify-end gap-3 pt-4">
                 {isEditing ? (
-                  <>
-                    <Input
-                      name="phoneNumber"
-                      value={selectedBuyer.phoneNumber}
-                      onChange={handleChange}
-                    />
-                    {errors.phoneNumber && (
-                      <p className="text-red-500 text-sm">
-                        {errors.phoneNumber}
-                      </p>
-                    )}
-                  </>
+                  <Button
+                    onClick={handleSave}
+                    className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                  >
+                    Save
+                  </Button>
                 ) : (
-                  <p>{selectedBuyer.phoneNumber}</p>
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                  >
+                    Edit
+                  </Button>
                 )}
-              </div>
-              <div className="space-y-2">
-                <label className="block font-medium">Gender</label>
-                <p>{selectedBuyer.gender}</p>
-              </div>
-              <div className="space-y-2">
-                <label className="block font-medium">Plot Number</label>
-                <p>{selectedBuyer.plot.plotNumber}</p>
-              </div>
-              <div className="space-y-2">
-                <label className="block font-medium">Total Cost</label>
-                <p>{selectedBuyer.totalCost}</p>
-              </div>
-              <div className="flex space-x-4">
-                {isEditing ? (
-                  <Button onClick={handleSave}>Save</Button>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                )}
-                <Button variant="outline" onClick={handleDownloadPDF}>
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadPDF}
+                  className="bg-white hover:bg-gray-50"
+                >
                   Download PDF
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  className="bg-white hover:bg-gray-50"
                 >
                   Close
                 </Button>

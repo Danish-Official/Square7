@@ -37,6 +37,38 @@ router.get("/", authenticate(), async (req, res) => {
   }
 });
 
+// Update Enquiry
+router.put("/:id", authenticate(), async (req, res) => {
+  try {
+    const { name, phoneNumber, message } = req.body;
+
+    // Validation
+    if (!name || typeof name !== "string" || !/^[A-Za-z\s]+$/.test(name)) {
+      return res.status(400).json({ message: "Invalid name" });
+    }
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ message: "Invalid message" });
+    }
+
+    const updatedEnquiry = await Enquiry.findByIdAndUpdate(
+      req.params.id,
+      { name, phoneNumber, message },
+      { new: true }
+    );
+
+    if (!updatedEnquiry) {
+      return res.status(404).json({ message: "Enquiry not found" });
+    }
+
+    res.status(200).json(updatedEnquiry);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 // Delete Enquiry
 router.delete("/:id", authenticate(), async (req, res) => {
   try {

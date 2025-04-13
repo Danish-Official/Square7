@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
-import logo from "@/assets/logo.png"; // Import the logo image
-import { LockKeyholeOpen, Mail } from "lucide-react";
-import { toast } from "react-toastify"; // Import toast
+import { useAuth } from "@/context/AuthContext";
+import logo from "@/assets/logo.png";
+import { LockKeyholeOpen, Mail, X } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function Login({ onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const { login } = useAuth(); // Access login from context
-  const navigate = useNavigate(); // Initialize navigate
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,10 +23,10 @@ export default function Login({ onClose }) {
     e.preventDefault();
     try {
       const { data } = await apiClient.post("/auth/login", formData);
-      login(data.user, data.token); // Pass the entire user object
-      toast.success("Login successful"); // Show success toast
+      login(data.user, data.token);
+      toast.success("Login successful");
       if (onClose) {
-        onClose(); // Close the modal on successful login
+        onClose();
       } else {
         navigate("/"); // Navigate to the dashboard if no onClose is provided
       }
@@ -37,7 +37,18 @@ export default function Login({ onClose }) {
   };
 
   return (
-    <div className="flex">
+    <div className="flex relative">
+      {" "}
+      {/* Add relative positioning here */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 p-2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none disabled:pointer-events-none z-50" // Increased z-index
+        >
+          <X className="h-5 w-5 text-gray-500" />
+          <span className="sr-only">Close</span>
+        </button>
+      )}
       <div className="w-1/2 flex items-center justify-center">
         <img src={logo} alt="Logo" className="max-w-[90%] h-auto" />
       </div>
@@ -60,7 +71,7 @@ export default function Login({ onClose }) {
                 onChange={handleChange}
                 placeholder="Email"
                 required
-                className="pl-10 placeholder:text-xs placeholder:text-black" // Add padding to avoid overlapping with the icon
+                className="pl-10 placeholder:text-xs placeholder:text-black"
               />
             </div>
           </div>
@@ -78,9 +89,15 @@ export default function Login({ onClose }) {
                 onChange={handleChange}
                 placeholder="Password"
                 required
-                className="pl-10 placeholder:text-xs placeholder:text-black" // Add padding to avoid overlapping with the icon
+                className="pl-10 placeholder:text-xs placeholder:text-black"
               />
             </div>
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-600 hover:underline mt-1 block"
+            >
+              Forgot Password?
+            </Link>
           </div>
           <Button
             type="submit"

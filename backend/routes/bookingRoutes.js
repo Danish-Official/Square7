@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Booking = require("../models/Booking");
 const Plot = require("../models/Plot"); // Ensure Plot model is imported
+const Invoice = require("../models/Invoice"); // Add Invoice model
 const authenticate = require("../middleware/authenticate");
 
 // Create Booking
@@ -10,14 +11,27 @@ router.post("/", authenticate(), async (req, res) => {
     console.log("Received booking data:", req.body); // Log incoming data for debugging
     const { plotId, ratePerSqFt, areaSqFt, ...rest } = req.body; // Exclude unnecessary fields
 
+    // Check if any existing booking already uses this plot
+    const existingBooking = await Booking.findOne({ plot: plotId });
+    if (existingBooking) {
+      return res.status(400).json({
+        message: "This plot is already booked. Please select a different plot.",
+      });
+    }
+
     // Validate that the plot exists and is available
     const plot = await Plot.findById(plotId);
     if (!plot || plot.status !== "available") {
       return res.status(400).json({ message: "Plot is not available" });
     }
 
-    // Create booking and update plot status
-    const booking = new Booking({ plot: plotId, ...rest });
+    // Create booking with layoutId from plot
+    const booking = new Booking({
+      plot: plotId,
+      layoutId: plot.layoutId, // Add layoutId from plot
+      ...rest,
+    });
+
     await booking.save();
     plot.status = "sold";
     await plot.save();
@@ -40,6 +54,26 @@ router.get("/", authenticate(), async (req, res) => {
       bookings.map((booking) => ({
         ...booking,
         bookingDate: booking.createdAt, // Include booking creation date
+      }))
+    );
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Get all bookings for a specific layout
+router.get("/layout/:layoutId", authenticate(), async (req, res) => {
+  try {
+    const { layoutId } = req.params;
+    const bookings = await Booking.find({ layoutId })
+      .populate("plot")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json(
+      bookings.map((booking) => ({
+        ...booking,
+        bookingDate: booking.createdAt,
       }))
     );
   } catch (error) {
@@ -98,10 +132,16 @@ router.put("/:id", authenticate(), async (req, res) => {
 // Delete Booking
 router.delete("/:id", authenticate(), async (req, res) => {
   try {
-    const booking = await Booking.findByIdAndDelete(req.params.id);
+    const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
+
+    // Delete corresponding invoice
+    await Invoice.deleteOne({ booking: booking._id });
+
+    // Delete the booking
+    await Booking.deleteOne({ _id: booking._id });
 
     // Update plot status to "available"
     const plot = await Plot.findById(booking.plot);
@@ -110,7 +150,9 @@ router.delete("/:id", authenticate(), async (req, res) => {
       await plot.save();
     }
 
-    res.status(200).json({ message: "Booking deleted successfully" });
+    res
+      .status(200)
+      .json({ message: "Booking and related data deleted successfully" });
   } catch (error) {
     console.error("Error deleting booking:", error);
     res.status(500).json({ message: "Server Error", error: error.message });

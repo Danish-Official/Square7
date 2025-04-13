@@ -14,15 +14,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/utils";
+import { useLayout } from "@/context/LayoutContext";
 
 export default function NewBooking() {
   const [plots, setPlots] = useState(null);
+  const [availablePlots, setAvailablePlots] = useState([]);
   const navigate = useNavigate();
+  const { selectedLayout } = useLayout();
   const [formData, setFormData] = useState({
     buyerName: "",
     address: "",
     phoneNumber: "",
     gender: "Male",
+    layoutId: "",
     plotId: "",
     areaSqFt: 0,
     ratePerSqFt: 0,
@@ -48,6 +52,36 @@ export default function NewBooking() {
     }
     fetchPlots();
   }, []);
+
+  useEffect(() => {
+    // Set initial layout from context if available
+    if (selectedLayout) {
+      setFormData((prev) => ({
+        ...prev,
+        layoutId: selectedLayout,
+      }));
+    }
+  }, [selectedLayout]);
+
+  useEffect(() => {
+    // Update plots when layout changes
+    if (formData.layoutId) {
+      const fetchAvailablePlots = async () => {
+        try {
+          const response = await apiClient.get(
+            `/plots/available-plots/${formData.layoutId}`
+          );
+          setAvailablePlots(response.data);
+        } catch (error) {
+          console.error("Failed to fetch plots:", error);
+          setAvailablePlots([]);
+        }
+      };
+      fetchAvailablePlots();
+    } else {
+      setAvailablePlots([]);
+    }
+  }, [formData.layoutId]);
 
   useEffect(() => {
     Object.values(errors).some((error) => error !== "");
@@ -88,19 +122,26 @@ export default function NewBooking() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    validateField(name, value);
+    let roundedValue = value;
+
+    // Round up numeric fields
+    if (name === "ratePerSqFt" || name === "firstPayment") {
+      roundedValue = Math.ceil(Number(value));
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: roundedValue }));
+    validateField(name, roundedValue);
 
     if (name === "ratePerSqFt") {
       setFormData((prev) => ({
         ...prev,
-        totalCost: prev.areaSqFt * value,
+        totalCost: Math.ceil(prev.areaSqFt * roundedValue),
       }));
     }
   };
 
   const handlePlotChange = (value) => {
-    const selectedPlot = plots.find((plot) => plot._id === value);
+    const selectedPlot = availablePlots.find((plot) => plot._id === value);
     if (selectedPlot) {
       setFormData((prev) => ({
         ...prev,
@@ -112,7 +153,7 @@ export default function NewBooking() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Ensure default form submission is prevented
+    e.preventDefault();
     try {
       const bookingResponse = await apiClient.post("/bookings", formData);
       const bookingId = bookingResponse.data._id;
@@ -129,10 +170,22 @@ export default function NewBooking() {
       };
       await apiClient.post("/invoices", invoiceData);
 
-      toast.success("Booking and invoice created successfully"); // Show success toast
-      navigate("/contact-list");
+      toast.success("Booking and invoice created successfully");
+
+      // Get plot details for the preview
+      const selectedPlot = availablePlots.find(
+        (plot) => plot._id === formData.plotId
+      );
+
+      // Navigate to preview with booking data
+      navigate("/booking-preview", {
+        state: {
+          ...formData,
+          plotNumber: selectedPlot.plotNumber,
+        },
+      });
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create booking"); // Show error toast
+      toast.error("Failed to create booking");
     }
   };
 
@@ -258,20 +311,28 @@ export default function NewBooking() {
             <h3>Plot Details</h3>
             <div className="flex space-x-4">
               <div className="flex-1 space-y-2">
+                <Label htmlFor="layoutId">Layout</Label>
+                <Input
+                  id="layoutId"
+                  value={selectedLayout || ""}
+                  readOnly
+                  placeholder="Layout"
+                  className="bg-white text-black w-full"
+                />
+              </div>
+              <div className="flex-1 space-y-2">
                 <Label htmlFor="plotId">Plot</Label>
                 <Select
-                  onValueChange={handlePlotChange} // Use handlePlotChange for plot selection
-                  value={formData.plotId} // Bind the selected value to formData.plotId
+                  onValueChange={handlePlotChange}
+                  value={formData.plotId}
                   required
                 >
                   <SelectTrigger className="bg-white text-black w-full">
-                    {" "}
-                    {/* Added w-full */}
                     <SelectValue placeholder="Select Plot" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.isArray(plots) &&
-                      plots.map((plot) => (
+                    {Array.isArray(availablePlots) &&
+                      availablePlots.map((plot) => (
                         <SelectItem key={plot._id} value={plot._id}>
                           Plot {plot.plotNumber} - {plot.areaSqFt} sq ft
                         </SelectItem>
@@ -279,6 +340,8 @@ export default function NewBooking() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="flex space-x-4">
               <div className="flex-1 space-y-2">
                 <Label htmlFor="areaSqMt">Area (sq mt)</Label>
                 <Input
@@ -287,47 +350,47 @@ export default function NewBooking() {
                     formData.areaSqFt
                       ? (formData.areaSqFt / 10.764).toFixed(2)
                       : ""
-                  } // Show empty if 0
+                  }
                   readOnly
                   placeholder="Area (sq mt)"
+                  className="bg-white text-black"
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="areaSqFt">Area (sq ft)</Label>
+                <Input
+                  id="areaSqFt"
+                  value={formData.areaSqFt || ""}
+                  readOnly
+                  placeholder="Area (sq ft)"
                   className="bg-white text-black"
                 />
               </div>
             </div>
             <div className="flex space-x-4">
               <div className="flex-1 space-y-2">
-                <Label htmlFor="areaSqFt">Area (sq ft)</Label>
-                <Input
-                  id="areaSqFt"
-                  value={formData.areaSqFt || ""} // Show empty if 0
-                  readOnly
-                  placeholder="Area (sq ft)"
-                  className="bg-white text-black"
-                />
-              </div>
-              <div className="flex-1 space-y-2">
                 <Label htmlFor="ratePerSqFt">Rate per sq ft</Label>
                 <Input
                   id="ratePerSqFt"
                   name="ratePerSqFt"
                   type="number"
-                  value={formData.ratePerSqFt || ""} // Show empty if 0
+                  value={formData.ratePerSqFt || ""}
                   onChange={handleChange}
                   placeholder="Rate per sq ft"
                   required
                   className="bg-white text-black"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="totalCost">Total Cost</Label>
-              <Input
-                id="totalCost"
-                value={formData.totalCost || ""} // Show empty if 0
-                readOnly
-                placeholder="Total Cost"
-                className="bg-white text-black"
-              />
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="totalCost">Total Cost</Label>
+                <Input
+                  id="totalCost"
+                  value={formData.totalCost || ""}
+                  readOnly
+                  placeholder="Total Cost"
+                  className="bg-white text-black"
+                />
+              </div>
             </div>
           </div>
         );
@@ -345,8 +408,6 @@ export default function NewBooking() {
                 required
               >
                 <SelectTrigger className="w-full bg-white text-black">
-                  {" "}
-                  {/* Added bg-white */}
                   <SelectValue placeholder="Payment Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -375,7 +436,7 @@ export default function NewBooking() {
                 id="firstPayment"
                 name="firstPayment"
                 type="number"
-                value={formData.firstPayment || ""} // Show empty if 0
+                value={formData.firstPayment || ""}
                 onChange={handleChange}
                 placeholder="First Payment"
                 required
@@ -452,16 +513,16 @@ export default function NewBooking() {
       <div className="flex justify-end space-x-4">
         <Button
           type="button"
-          onClick={() => navigate("/contact-list")} // Navigate to contact list on cancel
+          onClick={() => navigate("/contact-list")}
           className="bg-white text-black border border-[#303750] hover:bg-gray-100"
         >
           Cancel
         </Button>
         <Button
-          type={currentSection < 3 ? "button" : "submit"} // Use "submit" for the last section
+          type={currentSection < 3 ? "button" : "submit"}
           onClick={(e) => {
             if (currentSection < 3) {
-              e.preventDefault(); // Prevent default behavior for navigation
+              e.preventDefault();
               if (isCurrentSectionValid()) {
                 setCompletedSections((prev) => [...prev, currentSection]);
                 setCurrentSection(currentSection + 1);

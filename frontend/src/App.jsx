@@ -1,5 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./pages/Layout";
+import { Routes, Route, Navigate } from "react-router-dom"; // Remove BrowserRouter
 import Dashboard from "./pages/Dashboard";
 import PlotManagement from "./pages/PlotManagement";
 import BuyersManagement from "./pages/BuyersManagement";
@@ -10,6 +9,10 @@ import Enquiries from "./pages/Enquiries";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import LoginPage from "./pages/LoginPage";
 import { ToastContainer } from "react-toastify";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
+import BookingPreview from "@/pages/BookingPreview";
+import AppWrapper from "./pages/AppWrapper";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -34,11 +37,13 @@ function App() {
     <>
       <Routes>
         <Route path="/login" element={<LoginPage />} /> {/* Add login route */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
           path="/"
           element={
             <ProtectedRoute>
-              <Layout />
+              <AppWrapper />
             </ProtectedRoute>
           }
         >
@@ -88,6 +93,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <NewBooking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="booking-preview"
+            element={
+              <ProtectedRoute>
+                <BookingPreview />
               </ProtectedRoute>
             }
           />

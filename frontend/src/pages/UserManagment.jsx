@@ -89,34 +89,62 @@ export default function UsersManagement() {
       <Button onClick={() => setIsDialogOpen(true)}>Create Admin</Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Admin</DialogTitle>
+        <DialogContent className="max-w-[500px] p-6 bg-white rounded-xl">
+          <DialogHeader className="space-y-3 mb-6">
+            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+              Create Admin
+            </DialogTitle>
+            <p className="text-gray-500 text-sm font-normal">
+              Add a new administrator to the system
+            </p>
           </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Name"
-              value={newAdmin.name}
-              onChange={(e) =>
-                setNewAdmin((prev) => ({ ...prev, name: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="Email"
-              value={newAdmin.email}
-              onChange={(e) =>
-                setNewAdmin((prev) => ({ ...prev, email: e.target.value }))
-              }
-            />
-            <Input
-              placeholder="Password"
-              type="password"
-              value={newAdmin.password}
-              onChange={(e) =>
-                setNewAdmin((prev) => ({ ...prev, password: e.target.value }))
-              }
-            />
-            <Button onClick={handleCreateAdmin}>Create</Button>
+          <div className="space-y-6">
+            <div>
+              <Input
+                placeholder="Name"
+                value={newAdmin.name}
+                onChange={(e) =>
+                  setNewAdmin((prev) => ({ ...prev, name: e.target.value }))
+                }
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <Input
+                placeholder="Email"
+                value={newAdmin.email}
+                onChange={(e) =>
+                  setNewAdmin((prev) => ({ ...prev, email: e.target.value }))
+                }
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <Input
+                placeholder="Password"
+                type="password"
+                value={newAdmin.password}
+                onChange={(e) =>
+                  setNewAdmin((prev) => ({ ...prev, password: e.target.value }))
+                }
+                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="bg-white hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateAdmin}
+                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+              >
+                Create
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

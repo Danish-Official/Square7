@@ -54,17 +54,92 @@ router.get("/revenue", authenticate(), async (req, res) => {
   }
 });
 
+router.get("/revenue/:layoutId", authenticate(), async (req, res) => {
+  try {
+    const { layoutId } = req.params;
+    const revenueData = await Invoice.aggregate([
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "booking",
+          foreignField: "_id",
+          as: "booking",
+        },
+      },
+      { $unwind: "$booking" },
+      {
+        $lookup: {
+          from: "plots",
+          localField: "booking.plot",
+          foreignField: "_id",
+          as: "plot",
+        },
+      },
+      { $unwind: "$plot" },
+      { $match: { "plot.layoutId": layoutId } },
+      { $unwind: "$payments" },
+      {
+        $group: {
+          _id: { $month: "$payments.paymentDate" },
+          totalRevenue: { $sum: "$payments.amount" },
+        },
+      },
+      {
+        $project: {
+          month: "$_id",
+          totalRevenue: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { month: 1 } },
+    ]);
+
+    res.status(200).json(revenueData);
+  } catch (error) {
+    console.error("Error fetching revenue data:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 router.delete("/:id", authenticate(), async (req, res) => {
   try {
-    const invoice = await Invoice.findByIdAndDelete(req.params.id);
+    const invoice = await Invoice.findById(req.params.id);
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
+
+    await Invoice.deleteOne({ _id: invoice._id });
     res.status(200).json({ message: "Invoice deleted successfully" });
   } catch (error) {
     console.error("Error deleting invoice:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+router.delete(
+  "/:id/payments/:paymentIndex",
+  authenticate(),
+  async (req, res) => {
+    try {
+      const invoice = await Invoice.findById(req.params.id);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      const paymentIndex = parseInt(req.params.paymentIndex);
+      if (paymentIndex < 0 || paymentIndex >= invoice.payments.length) {
+        return res.status(400).json({ message: "Invalid payment index" });
+      }
+
+      invoice.payments.splice(paymentIndex, 1);
+      await invoice.save();
+
+      res.status(200).json(invoice);
+    } catch (error) {
+      console.error("Error deleting payment:", error);
+      res.status(500).json({ message: "Server Error" });
+    }
+  }
+);
 
 module.exports = router;
