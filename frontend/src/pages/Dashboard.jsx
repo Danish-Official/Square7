@@ -65,9 +65,6 @@ export default function Dashboard({ showLoginModal = false }) {
       try {
         const response = await apiClient.get("/plots/layouts");
         setLayouts(response.data);
-        if (response.data.length > 0) {
-          setSelectedLayout(response.data[0]);
-        }
       } catch (error) {
         console.error("Error fetching layouts:", error);
       }

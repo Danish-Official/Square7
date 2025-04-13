@@ -64,100 +64,102 @@ const PlotLayout1 = () => {
     });
 
   return (
-    <div className="plotLayout">
-      <div className="layout-wrapper">
-        <div className="upperLayout">
-          <div className="leftPlots">
-            {Array.isArray(plots) &&
-              plots.length > 0 &&
-              createPlots([25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35])}
-          </div>
-          <div className="road leftRoad">
-            <div className="roadText">09.00 M WIDE ROAD</div>
-            <div className="h-full absolute">
-              <div className="road-strips w-1 h-full" />
-            </div>
-          </div>
-          <div className="middleSection">
-            <div className="openSpace">Open Space</div>
-            <div className="middlePlots">
+    <div className="plotLayout1Wrapper">
+      <div className="plotLayout">
+        <div className="layout-wrapper">
+          <div className="upperLayout">
+            <div className="leftPlots">
               {Array.isArray(plots) &&
                 plots.length > 0 &&
-                createPlots([24, 13, 23, 14, 22, 15, 21, 16, 20, 17, 19, 18])}
+                createPlots([25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35])}
+            </div>
+            <div className="road leftRoad">
+              <div className="roadText">09.00 M WIDE ROAD</div>
+              <div className="h-full absolute">
+                <div className="road-strips w-1 h-full" />
+              </div>
+            </div>
+            <div className="middleSection">
+              <div className="openSpace">Open Space</div>
+              <div className="middlePlots">
+                {Array.isArray(plots) &&
+                  plots.length > 0 &&
+                  createPlots([24, 13, 23, 14, 22, 15, 21, 16, 20, 17, 19, 18])}
+              </div>
+            </div>
+            <div className="road middleRoad">
+              <div className="roadText">09.00 M WIDE ROAD</div>
+              <div className="h-full absolute">
+                <div className="road-strips w-1 h-full" />
+              </div>
+            </div>
+            <div className="rightPlots">
+              {Array.isArray(plots) &&
+                plots.length > 0 &&
+                createPlots([9, 8, 10, 7, 11, 6, 12, 5])}
+              <div className="plots amenity">Amenity Space</div>
+              {createPlots([4, 3, 2, 1])}
+            </div>
+            <div className="road rightRoad">
+              <div className="roadText">15.00 M WIDE ROAD</div>
+              <div className="h-full absolute">
+                <div className="road-strips w-1 h-full" />
+              </div>
             </div>
           </div>
-          <div className="road middleRoad">
-            <div className="roadText">09.00 M WIDE ROAD</div>
-            <div className="h-full absolute">
-              <div className="road-strips w-1 h-full" />
+          <div className="lowerLayout">
+            <div className="road bottomRoad">
+              <div className="roadText">12.00 M WIDE ROAD</div>
+              <div className="w-full absolute">
+                <div className="road-strips-bottom w-full h-1" />
+              </div>
             </div>
-          </div>
-          <div className="rightPlots">
-            {Array.isArray(plots) &&
-              plots.length > 0 &&
-              createPlots([9, 8, 10, 7, 11, 6, 12, 5])}
-            <div className="plots amenity">Amenity Space</div>
-            {createPlots([4, 3, 2, 1])}
-          </div>
-          <div className="road rightRoad">
-            <div className="roadText">15.00 M WIDE ROAD</div>
-            <div className="h-full absolute">
-              <div className="road-strips w-1 h-full" />
+            <div className="bottomPlots">
+              {plots.length > 0 &&
+                createPlots([48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36])}
             </div>
           </div>
         </div>
-        <div className="lowerLayout">
-          <div className="road bottomRoad">
-            <div className="roadText">12.00 M WIDE ROAD</div>
-            <div className="w-full absolute">
-              <div className="road-strips-bottom w-full h-1" />
-            </div>
-          </div>
-          <div className="bottomPlots">
-            {plots.length > 0 &&
-              createPlots([48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36])}
-          </div>
-        </div>
-      </div>
 
-      {/* Color Code Annotations */}
-      <div className="legend">
-        <div className="legend-item">
-          <span className="color-box available"></span> Available
-        </div>
-        <div className="legend-item">
-          <span className="color-box sold"></span> Sold
-        </div>
-      </div>
-
-      {/* Plot Details Modal */}
-      {selectedPlot && (
-        <div className="plot-details-modal">
-          <div className="modal-content">
-            <h2>Plot Details</h2>
-            <p>
-              <strong>Plot Number:</strong> {selectedPlot.plotNumber}
-            </p>
-            <p>
-              <strong>Area (sq ft):</strong> {selectedPlot.areaSqFt}
-            </p>
-            <p>
-              <strong>Status:</strong> {selectedPlot.status}
-            </p>
-            {selectedPlot.buyer && (
-              <>
-                <p>
-                  <strong>Buyer:</strong> {selectedPlot.buyer}
-                </p>
-                <p>
-                  <strong>Contact:</strong> {selectedPlot.contact}
-                </p>
-              </>
-            )}
-            <button onClick={() => setSelectedPlot(null)}>Close</button>
+        {/* Color Code Annotations */}
+        <div className="legend">
+          <div className="legend-item">
+            <span className="color-box available"></span> Available
+          </div>
+          <div className="legend-item">
+            <span className="color-box sold"></span> Sold
           </div>
         </div>
-      )}
+
+        {/* Plot Details Modal */}
+        {selectedPlot && (
+          <div className="plot-details-modal">
+            <div className="modal-content">
+              <h2>Plot Details</h2>
+              <p>
+                <strong>Plot Number:</strong> {selectedPlot.plotNumber}
+              </p>
+              <p>
+                <strong>Area (sq ft):</strong> {selectedPlot.areaSqFt}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedPlot.status}
+              </p>
+              {selectedPlot.buyer && (
+                <>
+                  <p>
+                    <strong>Buyer:</strong> {selectedPlot.buyer}
+                  </p>
+                  <p>
+                    <strong>Contact:</strong> {selectedPlot.contact}
+                  </p>
+                </>
+              )}
+              <button onClick={() => setSelectedPlot(null)}>Close</button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

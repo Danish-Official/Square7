@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendResetPasswordEmail = async (email, resetToken) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`; // Ensure FRONTEND_URL is correctly set in .env
 
   const mailOptions = {
     from: `"Square7 Admin" <${process.env.EMAIL_USER}>`,

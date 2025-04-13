@@ -17,16 +17,13 @@ import { apiClient } from "@/lib/utils";
 import { useLayout } from "@/context/LayoutContext";
 
 export default function NewBooking() {
-  const [plots, setPlots] = useState(null);
-  const [availablePlots, setAvailablePlots] = useState([]);
-  const navigate = useNavigate();
   const { selectedLayout } = useLayout();
   const [formData, setFormData] = useState({
     buyerName: "",
     address: "",
     phoneNumber: "",
     gender: "Male",
-    layoutId: "",
+    layoutId: selectedLayout || "",
     plotId: "",
     areaSqFt: 0,
     ratePerSqFt: 0,
@@ -35,6 +32,9 @@ export default function NewBooking() {
     firstPayment: 0,
     totalCost: 0,
   });
+  const [plots, setPlots] = useState(null);
+  const [availablePlots, setAvailablePlots] = useState([]);
+  const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [currentSection, setCurrentSection] = useState(1);
   const [isSectionComplete, setIsSectionComplete] = useState(false);
@@ -54,7 +54,6 @@ export default function NewBooking() {
   }, []);
 
   useEffect(() => {
-    // Set initial layout from context if available
     if (selectedLayout) {
       setFormData((prev) => ({
         ...prev,

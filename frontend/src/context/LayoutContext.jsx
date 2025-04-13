@@ -1,9 +1,17 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const LayoutContext = createContext();
 
 export function LayoutProvider({ children }) {
-  const [selectedLayout, setSelectedLayout] = useState(null);
+  const [selectedLayout, setSelectedLayout] = useState(() => {
+    return localStorage.getItem("selectedLayout") || null;
+  });
+
+  useEffect(() => {
+    if (selectedLayout) {
+      localStorage.setItem("selectedLayout", selectedLayout);
+    }
+  }, [selectedLayout]);
 
   return (
     <LayoutContext.Provider value={{ selectedLayout, setSelectedLayout }}>

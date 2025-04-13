@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom"; // Import useNavigate
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { useLayout } from "@/context/LayoutContext"; // Import useLayout
 import {
   Banknote,
   Home,
@@ -17,6 +18,7 @@ import {
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { auth } = useAuth(); // Access auth from context
+  const { selectedLayout } = useLayout(); // Access selectedLayout from context
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -51,7 +53,7 @@ const Sidebar = () => {
           <NavItem
             to="/plot-management"
             icon={<LayoutDashboard size={20} />}
-            label="Plot Management"
+            label={`Plot Management (${selectedLayout || "None"})`}
           />
           <NavItem
             to="/contact-list"

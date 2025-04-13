@@ -3,7 +3,7 @@ import "./PlotLayout2.scss";
 
 const PlotLayout2 = () => {
   return (
-    <div>
+    <div className="plotLayout2Wrapper">
       <div className="highway">45.00 M wide state Highway</div>
       <div className="actualLayout">
         <div className="upperLayout">
@@ -44,7 +44,7 @@ const PlotLayout2 = () => {
               <div className="plot plot11">11</div>
               <div className="plot plot12">12</div>
             </div>
-            <div className="plot1&2&amenitySpace">
+            <div className="plot1-2-amenitySpace">
               <div className="plot plot1">1</div>
               <div className="plot plot2">2</div>
               <div className="amenitySpace">Amenity Space</div>
