@@ -1,70 +1,137 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./PlotLayout2.scss";
+import { apiClient } from "@/lib/utils";
+import { useLayout } from "@/context/LayoutContext";
 
 const PlotLayout2 = () => {
+  const { selectedLayout } = useLayout();
+  const [plots, setPlots] = useState([]);
+  const [hoveredPlot, setHoveredPlot] = useState(null);
+  const [selectedPlot, setSelectedPlot] = useState(null);
+
+  useEffect(() => {
+    if (selectedLayout) {
+      fetchPlots();
+    }
+  }, [selectedLayout]);
+
+  async function fetchPlots() {
+    try {
+      const response = await apiClient.get(`/plots/get-plots/${selectedLayout}`);
+      if (response.status === 304) return;
+      const { data } = response;
+      if (!data || !Array.isArray(data)) {
+        setPlots([]);
+      } else {
+        setPlots(data);
+      }
+    } catch (error) {
+      setPlots([]);
+    }
+  }
+
+  const getPlotClass = (status) => {
+    switch (status) {
+      case "sold":
+        return "sold";
+      default:
+        return "available";
+    }
+  };
+
+  const createPlot = (num) => {
+    const plot = plots.find((p) => p.plotNumber === num);
+    const plotClass = plot ? getPlotClass(plot.status) : "available";
+
+    return (
+      <div
+        key={num}
+        className={`plot plot${num} ${plotClass}`}
+        onMouseEnter={() => plot && setHoveredPlot(plot)}
+        onMouseLeave={() => setHoveredPlot(null)}
+        onClick={() => plot && setSelectedPlot(plot)}
+      >
+        {num}
+        {plot?.status === "sold" && plot?.buyer && hoveredPlot?.plotNumber === num && (
+          <div className="popup-hover">
+            <strong>Buyer:</strong> {plot.buyer}
+            <br />
+            <strong>Contact:</strong> {plot.contact}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="plotLayout2Wrapper">
-      <div className="highway road">45.00 M wide state Highway</div>
-      <div className="my-20">
+      <div className="flex gap-0.5">
+      <div className="highway verticalRoads road">
+        <div className="roadTextVertical">45.00 M WIDE ROAD</div>
+        <div className="h-full absolute">
+          <div className="road-strips-vertical w-1 h-full" />
+        </div>
+      </div>
+      <div className="my-10">
         <div className="actualLayout">
           <div className="upperLayout">
-            <div className="horizontalRoads road">
-              <div className="roadText">12.00 M WIDE ROAD</div>
-              <div className="h-full absolute">
-                <div className="road-strips w-1 h-full" />
+            <div className="horizontalRoads road max-w-[83%]">
+              <div className="roadTextHorizontal">12.00 M WIDE ROAD</div>
+              <div className="w-full absolute">
+                <div className="road-strips-horizontal w-full h-1" />
               </div>
             </div>
             <div className="belowRoadSection">
               <div className="verticalRoads road">
-                <div className="roadText">09.00 M WIDE ROAD</div>
+                <div className="roadTextVertical">09.00 M WIDE ROAD</div>
                 <div className="h-full absolute">
-                  <div className="road-strips w-1 h-full" />
+                  <div className="road-strips-vertical w-1 h-full" />
                 </div>
               </div>
               <div className="leftPlots">
                 <div className="plot23to27">
-                  <div className="plot plot23">23</div>
-                  <div className="plot plot24">24</div>
-                  <div className="plot plot25">25</div>
-                  <div className="plot plot26">26</div>
-                  <div className="plot plot27">27</div>
+                  {createPlot(23)}
+                  {createPlot(24)}
+                  {createPlot(25)}
+                  {createPlot(26)}
+                  {createPlot(27)}
                 </div>
                 <div className="plot13to22">
-                  <div className="plot plot13">13</div>
-                  <div className="plot plot14">14</div>
-                  <div className="plot plot15">15</div>
-                  <div className="plot plot16">16</div>
-                  <div className="plot plot17">17</div>
-                  <div className="plot plot18">18</div>
-                  <div className="plot plot19">19</div>
-                  <div className="plot plot20">20</div>
-                  <div className="plot plot21">21</div>
-                  <div className="plot plot22">22</div>
+                  {createPlot(13)}
+                  {createPlot(14)}
+                  {createPlot(15)}
+                  {createPlot(16)}
+                  {createPlot(17)}
+                  {createPlot(18)}
+                  {createPlot(19)}
+                  {createPlot(20)}
+                  {createPlot(21)}
+                  {createPlot(22)}
                 </div>
               </div>
               <div className="verticalRoads road">
-                <div className="roadText">09.00 M WIDE ROAD</div>
+                <div className="roadTextVertical">09.00 M WIDE ROAD</div>
                 <div className="h-full absolute">
-                  <div className="road-strips w-1 h-full" />
+                  <div className="road-strips-vertical w-1 h-full" />
                 </div>
               </div>
               <div className="rightPlots">
                 <div className="plot3to12">
-                  <div className="plot plot3">3</div>
-                  <div className="plot plot4">4</div>
-                  <div className="plot plot5">5</div>
-                  <div className="plot plot6">6</div>
-                  <div className="plot plot7">7</div>
-                  <div className="plot plot8">8</div>
-                  <div className="plot plot9">9</div>
-                  <div className="plot plot10">10</div>
-                  <div className="plot plot11">11</div>
-                  <div className="plot plot12">12</div>
+                  {createPlot(3)}
+                  {createPlot(4)}
+                  {createPlot(5)}
+                  {createPlot(6)}
+                  {createPlot(7)}
+                  {createPlot(8)}
+                  {createPlot(9)}
+                  {createPlot(10)}
+                  {createPlot(11)}
+                  {createPlot(12)}
                 </div>
                 <div className="plot1-2-amenitySpace">
                   <div className="plot1-2">
-                    <div className="plot plot1">1</div>
-                    <div className="plot plot2">2</div>
+                    {createPlot(1)}
+                    {createPlot(2)}
                   </div>
                   <div className="amenitySpace">Amenity Space</div>
                 </div>
@@ -72,71 +139,115 @@ const PlotLayout2 = () => {
             </div>
           </div>
           <div className="lowerLayout">
-            <div className="horizontalRoads road">12.00 M wide road</div>
-            <div className="verticalRoads road">
-              <div className="roadText">09.00 M WIDE ROAD</div>
-              <div className="h-full absolute">
-                <div className="road-strips w-1 h-full" />
+            <div className="horizontalRoads road">
+              <div className="roadTextHorizontal">12.00 M WIDE ROAD</div>
+              <div className="w-full absolute">
+                <div className="road-strips-horizontal w-full h-1" />
               </div>
             </div>
-            <div className="leftPlots">
-              <div className="plot28to31">
-                <div className="plot plot28">28</div>
-                <div className="plot plot29">29</div>
-                <div className="plot plot30">30</div>
-                <div className="plot plot31">31</div>
+            <div className="belowRoadSection">
+              <div className="verticalRoads road">
+                <div className="roadTextVertical">09.00 M WIDE ROAD</div>
+                <div className="h-full absolute">
+                  <div className="road-strips-vertical w-1 h-full" />
+                </div>
               </div>
-              <div className="plot31to40">
-                <div className="plot plot32">31</div>
-                <div className="plot plot32">32</div>
-                <div className="plot plot33">33</div>
-                <div className="plot plot34">34</div>
-                <div className="plot plot35">35</div>
-                <div className="plot plot36">36</div>
-                <div className="plot plot37">37</div>
-                <div className="plot plot38">38</div>
-                <div className="plot plot39">39</div>
-                <div className="plot plot40">40</div>
+              <div className="leftPlots">
+                <div className="plot28to31">
+                  {createPlot(28)}
+                  {createPlot(29)}
+                  {createPlot(30)}
+                  {createPlot(31)}
+                </div>
+                <div className="plot32to40">
+                  {createPlot(32)}
+                  {createPlot(33)}
+                  {createPlot(34)}
+                  {createPlot(35)}
+                  {createPlot(36)}
+                  {createPlot(37)}
+                  {createPlot(38)}
+                  {createPlot(39)}
+                  {createPlot(40)}
+                </div>
               </div>
+              <div className="verticalRoads road">
+                <div className="roadTextVertical">09.00 M WIDE ROAD</div>
+                <div className="h-full absolute">
+                  <div className="road-strips-vertical w-1 h-full" />
+                </div>
+              </div>
+              <div className="rightPlots">
+                <div className="plot41to48">
+                  {createPlot(41)}
+                  {createPlot(42)}
+                  {createPlot(43)}
+                  {createPlot(44)}
+                  {createPlot(45)}
+                  {createPlot(46)}
+                  {createPlot(47)}
+                  {createPlot(48)}
+                </div>
+                <div className="plot49to56">
+                  {createPlot(49)}
+                  {createPlot(50)}
+                  {createPlot(51)}
+                  {createPlot(52)}
+                  {createPlot(53)}
+                  {createPlot(54)}
+                  {createPlot(55)}
+                  {createPlot(56)}
+                </div>
+              </div>
+              <div className="verticalRoads road">
+                <div className="roadTextVertical">09.00 M WIDE ROAD</div>
+                <div className="h-full absolute">
+                  <div className="road-strips-vertical w-1 h-full" />
+                </div>
+              </div>
+              <div className="openSpace">Open Space</div>
             </div>
-            <div className="verticalRoads">
-              <div className="roadText">09.00 M WIDE ROAD</div>
-              <div className="h-full absolute">
-                <div className="road-strips w-1 h-full" />
-              </div>
-            </div>
-            <div className="rightPlots">
-              <div className="plot41to48">
-                <div className="plot plot41">41</div>
-                <div className="plot plot42">42</div>
-                <div className="plot plot43">43</div>
-                <div className="plot plot44">44</div>
-                <div className="plot plot45">45</div>
-                <div className="plot plot46">46</div>
-                <div className="plot plot47">47</div>
-                <div className="plot plot48">48</div>
-              </div>
-              <div className="plot49to56">
-                <div className="plot plot49">49</div>
-                <div className="plot plot50">50</div>
-                <div className="plot plot51">51</div>
-                <div className="plot plot52">52</div>
-                <div className="plot plot53">53</div>
-                <div className="plot plot54">54</div>
-                <div className="plot plot55">55</div>
-                <div className="plot plot56">56</div>
-              </div>
-            </div>
-            <div className="verticalRoads">
-              <div className="roadText">09.00 M WIDE ROAD</div>
-              <div className="h-full absolute">
-                <div className="road-strips w-1 h-full" />
-              </div>
-            </div>
-            <div className="openSpace">Open Space</div>
           </div>
         </div>
       </div>
+      </div>
+      
+      <div className="legend">
+        <div className="legend-item">
+          <span className="color-box available"></span> Available
+        </div>
+        <div className="legend-item">
+          <span className="color-box sold"></span> Sold
+        </div>
+      </div>
+
+      {selectedPlot && (
+        <div className="plot-details-modal">
+          <div className="modal-content">
+            <h2>Plot Details</h2>
+            <p>
+              <strong>Plot Number:</strong> {selectedPlot.plotNumber}
+            </p>
+            <p>
+              <strong>Area (sq ft):</strong> {selectedPlot.areaSqFt}
+            </p>
+            <p>
+              <strong>Status:</strong> {selectedPlot.status}
+            </p>
+            {selectedPlot.buyer && (
+              <>
+                <p>
+                  <strong>Buyer:</strong> {selectedPlot.buyer}
+                </p>
+                <p>
+                  <strong>Contact:</strong> {selectedPlot.contact}
+                </p>
+              </>
+            )}
+            <button onClick={() => setSelectedPlot(null)}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

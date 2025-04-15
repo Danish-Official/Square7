@@ -36,7 +36,7 @@ router.get("/get-plots/:layoutId", authenticate(), async (req, res) => {
   try {
     const { layoutId } = req.params;
     const plots = await Plot.find({ layoutId }).lean();
-    const bookings = await Booking.find({ layoutId }).populate("plot").lean();
+    const bookings = await Booking.find().populate("plot").lean();
 
     const plotsWithBuyerDetails = plots.map((plot) => {
       const booking = bookings.find(
@@ -45,11 +45,15 @@ router.get("/get-plots/:layoutId", authenticate(), async (req, res) => {
       if (booking) {
         return {
           ...plot,
+          status: "sold", // Set status to sold if there's a booking
           buyer: booking.buyerName,
           contact: booking.phoneNumber,
         };
       }
-      return plot;
+      return {
+        ...plot,
+        status: plot.status || "available" // Ensure status is set
+      };
     });
 
     res.status(200).json(plotsWithBuyerDetails);
