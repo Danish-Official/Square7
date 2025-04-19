@@ -31,6 +31,7 @@ export default function NewBooking() {
     brokerReference: "",
     firstPayment: 0,
     totalCost: 0,
+    bookingDate: new Date().toISOString().split('T')[0], // Add default date
   });
   const [plots, setPlots] = useState(null);
   const [availablePlots, setAvailablePlots] = useState([]);
@@ -154,7 +155,10 @@ export default function NewBooking() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const bookingResponse = await apiClient.post("/bookings", formData);
+      const bookingResponse = await apiClient.post("/bookings", {
+        ...formData,
+        bookingDate: new Date(formData.bookingDate) // Ensure date is passed correctly
+      });
       const bookingId = bookingResponse.data._id;
 
       const invoiceData = {
@@ -162,7 +166,7 @@ export default function NewBooking() {
         payments: [
           {
             amount: formData.firstPayment,
-            paymentDate: new Date(),
+            paymentDate: new Date(formData.bookingDate), // Use booking date for first payment
             paymentType: formData.paymentType,
           },
         ],
@@ -176,7 +180,6 @@ export default function NewBooking() {
         (plot) => plot._id === formData.plotId
       );
 
-      // Navigate to preview with booking data
       navigate("/booking-preview", {
         state: {
           ...formData,
@@ -207,6 +210,18 @@ export default function NewBooking() {
         return (
           <div className="space-y-4">
             <h3>Personal Details</h3>
+            <div className="space-y-2">
+              <Label htmlFor="bookingDate">Booking Date</Label>
+              <Input
+                id="bookingDate"
+                name="bookingDate"
+                type="date"
+                value={formData.bookingDate}
+                onChange={handleChange}
+                required
+                className="bg-white text-black"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="buyerName">Buyer Name</Label>
               <Input

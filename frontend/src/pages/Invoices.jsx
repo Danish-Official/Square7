@@ -216,10 +216,7 @@ export default function Invoices() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-semibold">Invoice Management</h1>
-        <p className="text-gray-500">Layout: {selectedLayout || "None selected"}</p>
-      </div>
+      <h1 className="text-3xl font-semibold">Invoice Management</h1>
 
       {selectedLayout ? (
         <>

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useLayout } from "@/context/LayoutContext";
 import logo from "@/assets/logo.png";
 import { LockKeyholeOpen, Mail, X } from "lucide-react";
 import { toast } from "react-toastify";
@@ -12,6 +13,7 @@ export default function Login({ onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const { login } = useAuth();
+  const { setShowLayoutModal } = useLayout();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -28,7 +30,8 @@ export default function Login({ onClose }) {
       if (onClose) {
         onClose();
       } else {
-        navigate("/"); // Navigate to the dashboard if no onClose is provided
+        navigate("/");
+        setShowLayoutModal(true);
       }
     } catch (err) {
       setError("Invalid email or password");
@@ -38,12 +41,10 @@ export default function Login({ onClose }) {
 
   return (
     <div className="flex relative">
-      {" "}
-      {/* Add relative positioning here */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none disabled:pointer-events-none z-50" // Increased z-index
+          className="absolute right-4 top-4 p-2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none disabled:pointer-events-none z-50"
         >
           <X className="h-5 w-5 text-gray-500" />
           <span className="sr-only">Close</span>

@@ -6,6 +6,7 @@ export function LayoutProvider({ children }) {
   const [selectedLayout, setSelectedLayout] = useState(() => {
     return localStorage.getItem("selectedLayout") || null;
   });
+  const [showLayoutModal, setShowLayoutModal] = useState(false);
 
   useEffect(() => {
     if (selectedLayout) {
@@ -14,7 +15,12 @@ export function LayoutProvider({ children }) {
   }, [selectedLayout]);
 
   return (
-    <LayoutContext.Provider value={{ selectedLayout, setSelectedLayout }}>
+    <LayoutContext.Provider value={{ 
+      selectedLayout, 
+      setSelectedLayout, 
+      showLayoutModal, 
+      setShowLayoutModal 
+    }}>
       {children}
     </LayoutContext.Provider>
   );

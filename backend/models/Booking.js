@@ -23,6 +23,7 @@ const bookingSchema = new mongoose.Schema(
     },
     brokerReference: { type: String },
     totalCost: { type: Number, required: true },
+    bookingDate: { type: Date, required: true },
   },
   { timestamps: true }
 );
