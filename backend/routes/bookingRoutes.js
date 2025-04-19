@@ -50,12 +50,7 @@ router.get("/", authenticate(), async (req, res) => {
       .populate("plot")
       .sort({ createdAt: -1 })
       .lean(); // Fetch bookings with plot details in descending order
-    res.status(200).json(
-      bookings.map((booking) => ({
-        ...booking,
-        bookingDate: booking.createdAt, // Include booking creation date
-      }))
-    );
+    res.status(200).json(bookings);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
