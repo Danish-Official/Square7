@@ -32,13 +32,6 @@ import { useLayout } from "@/context/LayoutContext";
 import "../styles/dashboard.scss";
 import { apiClient } from "@/lib/utils";
 import { toast } from "react-toastify";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 
 export default function Dashboard({ showLoginModal = false }) {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -50,7 +43,7 @@ export default function Dashboard({ showLoginModal = false }) {
   const [layoutStats, setLayoutStats] = useState({});
   const [layoutRevenueData, setLayoutRevenueData] = useState({});
   const [layouts, setLayouts] = useState([]);
-  const { selectedLayout, setSelectedLayout } = useLayout();
+  const { selectedLayout } = useLayout();
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
@@ -154,27 +147,9 @@ export default function Dashboard({ showLoginModal = false }) {
     });
   };
 
-  const handleLayoutChange = (value) => {
-    setSelectedLayout(value);
-  };
-
   return (
     <div className={`p-6 space-y-6 ${isLoginModalOpen ? "blur-sm" : ""}`}>
       <h1 className="text-2xl font-bold">Dashboard</h1>
-      <div className="mb-4">
-        <Select value={selectedLayout} onValueChange={handleLayoutChange}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select Layout" />
-          </SelectTrigger>
-          <SelectContent>
-            {layouts.map((layout) => (
-              <SelectItem key={layout} value={layout}>
-                {layout}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/new-booking">
           <Button

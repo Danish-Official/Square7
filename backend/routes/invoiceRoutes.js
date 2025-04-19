@@ -44,6 +44,27 @@ router.get("/", authenticate(), async (req, res) => {
   }
 });
 
+// Get invoices by layout
+router.get("/layout/:layoutId", authenticate(), async (req, res) => {
+  try {
+    const { layoutId } = req.params;
+    const invoices = await Invoice.find()
+      .populate({
+        path: 'booking',
+        match: { layoutId: layoutId },
+        populate: 'plot'
+      })
+      .sort({ createdAt: -1 });
+
+    // Filter out null bookings (those that didn't match layoutId)
+    const filteredInvoices = invoices.filter(invoice => invoice.booking);
+    res.status(200).json(filteredInvoices);
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 router.get("/revenue", authenticate(), async (req, res) => {
   try {
     const revenueData = await Invoice.calculateMonthlyRevenue();

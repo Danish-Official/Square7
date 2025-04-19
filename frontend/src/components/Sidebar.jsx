@@ -14,6 +14,8 @@ import {
   LayoutDashboard,
   MessageCircleQuestion,
 } from "lucide-react"; // Icons
+import Layout1 from "@/assets/layouts/Layout 1.png"; // Import layout images
+import Layout2 from "@/assets/layouts/Layout 2.png"; // Import layout images
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,17 +29,15 @@ const Sidebar = () => {
   return (
     <div>
       <button
-        className={`md:hidden p-2 text-white bg-gray-800 ${
-          isOpen ? "panel-left-close" : "panel-right-close"
-        }`}
+        className={`md:hidden p-2 text-white bg-gray-800 ${isOpen ? "panel-left-close" : "panel-right-close"
+          }`}
         onClick={toggleSidebar}
       >
         {isOpen ? <PanelLeftClose size={20} /> : <PanelRightClose size={20} />}
       </button>
       <div
-        className={`fixed inset-0 w-64 bg-gray-900 text-white p-4 transition-transform transform z-50 h-full ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:relative md:translate-x-0 md:block`}
+        className={`fixed inset-0 w-64 bg-gray-900 text-white p-4 transition-transform transform z-50 h-full ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } md:relative md:translate-x-0 md:block`}
       >
         {isOpen && (
           <button
@@ -47,13 +47,19 @@ const Sidebar = () => {
             <PanelLeftClose size={20} />
           </button>
         )}
-        <h2 className="text-xl font-bold mb-6">Dashboard</h2>
         <nav className="flex flex-col space-y-2">
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src={selectedLayout === "layout1" ? Layout1 : Layout2}
+              alt="Layout"
+              className="h-15 w-auto"
+            />
+          </div>
           <NavItem to="/" icon={<Home size={20} />} label="Dashboard" />
           <NavItem
             to="/plot-management"
             icon={<LayoutDashboard size={20} />}
-            label={`Plot Management (${selectedLayout || "None"})`}
+            label="Plot Management"
           />
           <NavItem
             to="/contact-list"
@@ -87,8 +93,7 @@ const NavItem = ({ to, icon, label }) => (
   <NavLink
     to={to}
     className={({ isActive }) =>
-      `flex items-center px-4 py-2 rounded-lg transition ${
-        isActive ? "bg-blue-500 text-white" : "hover:bg-gray-700"
+      `flex items-center px-4 py-2 rounded-lg transition ${isActive ? "bg-blue-500 text-white" : "hover:bg-gray-700"
       }`
     }
   >

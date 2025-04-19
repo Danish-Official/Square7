@@ -23,9 +23,11 @@ import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { setupPDF, addHeader, addField, addDivider } from "@/utils/pdfUtils";
+import { useLayout } from "@/context/LayoutContext";
 
 export default function BuyersManagement() {
-  const { buyers, deleteBuyer, updateBuyer, fetchBuyers } = useBuyers(); // Access buyers context
+  const { buyers, deleteBuyer, updateBuyer, setCurrentLayout } = useBuyers();
+  const { selectedLayout } = useLayout();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -35,8 +37,10 @@ export default function BuyersManagement() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    fetchBuyers(); // Fetch buyers when the component mounts
-  }, [fetchBuyers]); // Add fetchBuyers to dependency array
+    if (selectedLayout) {
+      setCurrentLayout(selectedLayout);
+    }
+  }, [selectedLayout, setCurrentLayout]);
 
   const handleDelete = async (id) => {
     if (
@@ -50,7 +54,6 @@ export default function BuyersManagement() {
       await deleteBuyer(id);
       setIsDialogOpen(false);
       setSelectedBuyer(null);
-      await fetchBuyers();
       toast.success("Buyer and associated data deleted successfully");
     } catch (error) {
       console.error("Delete error:", error);
@@ -92,7 +95,6 @@ export default function BuyersManagement() {
       await updateBuyer(selectedBuyer); // Trigger backend update
       setIsEditing(false); // Exit edit mode
       toast.success("Buyer details updated successfully"); // Show success toast
-      fetchBuyers(); // Fetch buyers after update
     } catch (error) {
       toast.error("Failed to update buyer details");
     }

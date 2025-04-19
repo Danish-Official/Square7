@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2, Edit2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLayout } from "@/context/LayoutContext";
 import { toast } from "react-toastify";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
@@ -24,6 +25,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Enquiries() {
   const { auth } = useAuth();
+  const { selectedLayout } = useLayout();
   const [enquiries, setEnquiries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -41,17 +43,17 @@ export default function Enquiries() {
   useEffect(() => {
     const fetchEnquiries = async () => {
       try {
-        const { data } = await apiClient.get("/enquiries");
+        const { data } = await apiClient.get(`/enquiries/layout/${selectedLayout}`);
         setEnquiries(data);
       } catch (error) {
         toast.error("Failed to fetch enquiries");
       }
     };
 
-    if (auth.token) {
+    if (auth.token && selectedLayout) {
       fetchEnquiries();
     }
-  }, [auth.token]);
+  }, [auth.token, selectedLayout]);
 
   const validateField = (name, value) => {
     let error = "";
@@ -79,7 +81,10 @@ export default function Enquiries() {
     if (!isValid) return;
 
     try {
-      const { data } = await apiClient.post("/enquiries", newEnquiry);
+      const { data } = await apiClient.post("/enquiries", {
+        ...newEnquiry,
+        layoutId: selectedLayout,
+      });
       setEnquiries((prev) => [...prev, data]);
       setIsDialogOpen(false);
       setNewEnquiry({ name: "", phoneNumber: "", message: "" });

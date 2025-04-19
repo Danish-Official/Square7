@@ -6,7 +6,7 @@ const authenticate = require("../middleware/authenticate");
 // Create Enquiry
 router.post("/", authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, message } = req.body;
+    const { name, phoneNumber, message, layoutId } = req.body;
 
     // Validation
     if (!name || typeof name !== "string" || !/^[A-Za-z\s]+$/.test(name)) {
@@ -19,7 +19,7 @@ router.post("/", authenticate(), async (req, res) => {
       return res.status(400).json({ message: "Invalid message" });
     }
 
-    const enquiry = new Enquiry({ name, phoneNumber, message });
+    const enquiry = new Enquiry({ name, phoneNumber, message, layoutId });
     await enquiry.save();
     res.status(201).json(enquiry);
   } catch (error) {
@@ -31,6 +31,17 @@ router.post("/", authenticate(), async (req, res) => {
 router.get("/", authenticate(), async (req, res) => {
   try {
     const enquiries = await Enquiry.find().sort({ createdAt: -1 });
+    res.status(200).json(enquiries);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Fetch all enquiries for a layout
+router.get("/layout/:layoutId", authenticate(), async (req, res) => {
+  try {
+    const { layoutId } = req.params;
+    const enquiries = await Enquiry.find({ layoutId }).sort({ createdAt: -1 });
     res.status(200).json(enquiries);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

@@ -5,14 +5,19 @@ const BuyersContext = createContext();
 
 export function BuyersProvider({ children }) {
   const [buyers, setBuyers] = useState([]);
+  const [currentLayout, setCurrentLayout] = useState(null);
 
   useEffect(() => {
-    fetchBuyers();
-  }, []);
+    if (currentLayout) {
+      fetchBuyers();
+    }
+  }, [currentLayout]);
 
   async function fetchBuyers() {
     try {
-      const { data } = await apiClient.get("/bookings");
+      const { data } = await apiClient.get(
+        currentLayout ? `/bookings/layout/${currentLayout}` : "/bookings"
+      );
       setBuyers(data);
     } catch (error) {
       setBuyers([]); // Set empty array on error
@@ -47,10 +52,12 @@ export function BuyersProvider({ children }) {
     <BuyersContext.Provider
       value={{
         buyers,
-        fetchBuyers: fetchBuyers,
+        fetchBuyers,
         deleteBuyer,
         updateBuyer,
         refetchBuyers: fetchBuyers,
+        setCurrentLayout,
+        currentLayout,
       }}
     >
       {children}
