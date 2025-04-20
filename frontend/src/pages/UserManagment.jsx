@@ -71,22 +71,30 @@ export default function UsersManagement() {
 
   const filteredUsers = Array.isArray(users)
     ? users.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : [];
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-semibold">User Management</h1>
-
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-3xl font-semibold">User Management</h1>
+        <Button
+          className="text-lg font-semibold capitalize cursor-pointer hover:bg-[#5266A4]"
+          style={{
+            background: "linear-gradient(to bottom, #1F263E, #5266A4)",
+          }}
+          onClick={() => setIsDialogOpen(true)}
+        >
+          Create Admin
+        </Button>
+      </div>
       <SearchInput
         placeholder="Search users by name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="mb-4"
       />
-
-      <Button onClick={() => setIsDialogOpen(true)}>Create Admin</Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-[500px] p-6 bg-white rounded-xl">
