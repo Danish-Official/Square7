@@ -66,16 +66,15 @@ const PlotLayout2 = () => {
   return (
     <div className="plotLayout2Wrapper">
       <div className="flex gap-0.5">
-      <div className="highway verticalRoads road">
-        <div className="roadTextVertical">45.00 M WIDE ROAD</div>
-        <div className="h-full absolute">
-          <div className="road-strips-vertical w-1 h-full" />
+        <div className="highway verticalRoads road">
+          <div className="roadTextVertical">45.00 M WIDE ROAD</div>
+          <div className="h-full absolute">
+            <div className="road-strips-vertical w-1 h-full" />
+          </div>
         </div>
-      </div>
-      <div className="my-10">
         <div className="actualLayout">
           <div className="upperLayout">
-            <div className="horizontalRoads road max-w-[83%]">
+            <div className="horizontalRoads road max-w-[74%] above12m">
               <div className="roadTextHorizontal">12.00 M WIDE ROAD</div>
               <div className="w-full absolute">
                 <div className="road-strips-horizontal w-full h-1" />
@@ -130,8 +129,8 @@ const PlotLayout2 = () => {
                 </div>
                 <div className="plot1-2-amenitySpace">
                   <div className="plot1-2">
-                    {createPlot(1)}
                     {createPlot(2)}
+                    {createPlot(1)}
                   </div>
                   <div className="amenitySpace">Amenity Space</div>
                 </div>
@@ -139,7 +138,7 @@ const PlotLayout2 = () => {
             </div>
           </div>
           <div className="lowerLayout">
-            <div className="horizontalRoads road">
+            <div className="horizontalRoads road below12m">
               <div className="roadTextHorizontal">12.00 M WIDE ROAD</div>
               <div className="w-full absolute">
                 <div className="road-strips-horizontal w-full h-1" />
@@ -210,8 +209,7 @@ const PlotLayout2 = () => {
           </div>
         </div>
       </div>
-      </div>
-      
+
       <div className="legend">
         <div className="legend-item">
           <span className="color-box available"></span> Available
