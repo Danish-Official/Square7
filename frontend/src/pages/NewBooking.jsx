@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CircleCheck } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -18,6 +18,7 @@ import { useLayout } from "@/context/LayoutContext";
 
 export default function NewBooking() {
   const { selectedLayout } = useLayout();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     buyerName: "",
     address: "",
@@ -98,6 +99,18 @@ export default function NewBooking() {
     }
     setIsSectionComplete(complete);
   }, [currentSection, formData]);
+
+  useEffect(() => {
+    // Auto-select plot if coming from plot layout
+    if (location.state?.selectedPlotId && availablePlots.length > 0) {
+      const selectedPlot = availablePlots.find(
+        (plot) => plot._id === location.state.selectedPlotId
+      );
+      if (selectedPlot) {
+        handlePlotChange(selectedPlot._id);
+      }
+    }
+  }, [location.state, availablePlots]);
 
   const validateField = (name, value) => {
     let error = "";

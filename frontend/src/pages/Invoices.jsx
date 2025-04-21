@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Added useEffect for fetching invoices
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,20 +22,20 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import jsPDF from "jspdf";
-import { apiClient } from "@/lib/utils"; // Import API client
-import { toast } from "react-toastify"; // Import toast
-import Pagination from "@/components/Pagination"; // Import Pagination
+import { pdf } from "@react-pdf/renderer";
+import InvoicePDF from "@/components/InvoicePDF";
+import { apiClient } from "@/lib/utils";
+import { toast } from "react-toastify";
+import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
-import { Trash2 } from "lucide-react"; // Add this import at the top
-import { setupPDF, addHeader, addField, addDivider } from "@/utils/pdfUtils"; // Import PDF utility functions
-import { useLayout } from "@/context/LayoutContext"; // Import useLayout hook
+import { Trash2 } from "lucide-react";
+import { useLayout } from "@/context/LayoutContext";
 
 export default function Invoices() {
   const { selectedLayout } = useLayout();
-  const [invoices, setInvoices] = useState([]); // State for invoices
+  const [invoices, setInvoices] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedInvoice, setSelectedInvoice] = useState(null); // Updated to handle invoices
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [subsequentPayment, setSubsequentPayment] = useState({
     amount: "",
     paymentDate: "",
@@ -44,8 +44,8 @@ export default function Invoices() {
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [errors, setErrors] = useState({});
-  const [currentPage, setCurrentPage] = useState(1); // State for current page
-  const itemsPerPage = 10; // Items per page
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (!selectedLayout) {
@@ -60,7 +60,15 @@ export default function Invoices() {
     try {
       if (!selectedLayout) return;
       const { data } = await apiClient.get(`/invoices/layout/${selectedLayout}`);
-      setInvoices(data);
+      // Ensure bookings are populated with plot details
+      const populatedInvoices = data.map(invoice => ({
+        ...invoice,
+        booking: {
+          ...invoice.booking,
+          plot: invoice.booking.plot || {}
+        }
+      }));
+      setInvoices(populatedInvoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       toast.error("Failed to fetch invoices");
@@ -104,7 +112,7 @@ export default function Invoices() {
 
       await apiClient.post(`/invoices/${selectedInvoice?._id}/add-payment`, {
         ...subsequentPayment,
-      }); // Sync with backend
+      });
 
       setSelectedInvoice(updatedInvoice);
       setSubsequentPayment({
@@ -117,10 +125,10 @@ export default function Invoices() {
         editingPaymentIndex !== null
           ? "Payment updated successfully"
           : "Payment added successfully"
-      ); // Show success toast
-      fetchInvoices(); // Fetch updated invoices
+      );
+      fetchInvoices();
     } catch (error) {
-      toast.error("Failed to update payment"); // Show error toast
+      toast.error("Failed to update payment");
     }
   };
 
@@ -152,42 +160,20 @@ export default function Invoices() {
       }));
 
       toast.success("Payment deleted successfully");
-      fetchInvoices(); // Fetch updated invoices
+      fetchInvoices();
     } catch (error) {
       toast.error("Failed to delete payment");
     }
   };
 
-  const handleDownloadInvoice = () => {
-    const doc = setupPDF();
-    addHeader(doc, "Invoice Details");
-
-    let y = 40;
-    addField(doc, "Buyer Name:", selectedInvoice?.booking?.buyerName, y);
-    addField(
-      doc,
-      "Phone Number:",
-      selectedInvoice?.booking?.phoneNumber,
-      (y += 15)
-    );
-
-    addDivider(doc, (y += 10));
-
-    // Payments Section
-    doc.setFontSize(14);
-    doc.setTextColor(31, 38, 62);
-    doc.text("Payment History", 20, (y += 20));
-
-    selectedInvoice?.payments?.forEach((payment, index) => {
-      y += 15;
-      const date = new Date(payment?.paymentDate)?.toLocaleDateString();
-      const paymentText = `${getOrdinalSuffix(index + 1)} Payment:`;
-      const paymentDetails = `Rs. ${payment?.amount} paid on ${date} (${payment?.paymentType})`;
-
-      addField(doc, paymentText, paymentDetails, y);
-    });
-
-    doc.save(`Invoice_${selectedInvoice?.booking?.buyerName}.pdf`);
+  const handleDownloadInvoice = async () => {
+    const blob = await pdf(<InvoicePDF data={selectedInvoice} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Invoice_${selectedInvoice?.booking?.buyerName}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const getOrdinalSuffix = (number) => {

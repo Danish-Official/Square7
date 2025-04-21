@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import "./PlotLayout2.scss";
 import { apiClient } from "@/lib/utils";
 import { useLayout } from "@/context/LayoutContext";
+import { useNavigate } from "react-router-dom";
 
 const PlotLayout2 = () => {
   const { selectedLayout } = useLayout();
+  const navigate = useNavigate();
   const [plots, setPlots] = useState([]);
   const [hoveredPlot, setHoveredPlot] = useState(null);
   const [selectedPlot, setSelectedPlot] = useState(null);
@@ -63,6 +65,12 @@ const PlotLayout2 = () => {
     );
   };
 
+  const handleBooking = (plot) => {
+    navigate("/new-booking", {
+      state: { selectedPlotId: plot._id }
+    });
+  };
+
   return (
     <div className="plotLayout2Wrapper">
       <div className="flex gap-0.5">
@@ -74,7 +82,7 @@ const PlotLayout2 = () => {
         </div>
         <div className="actualLayout">
           <div className="upperLayout">
-            <div className="horizontalRoads road max-w-[74%] above12m">
+            <div className="horizontalRoads road max-w-[80%] above12m">
               <div className="roadTextHorizontal">12.00 M WIDE ROAD</div>
               <div className="w-full absolute">
                 <div className="road-strips-horizontal w-full h-1" />
@@ -222,27 +230,44 @@ const PlotLayout2 = () => {
       {selectedPlot && (
         <div className="plot-details-modal">
           <div className="modal-content">
-            <h2>Plot Details</h2>
-            <p>
-              <strong>Plot Number:</strong> {selectedPlot.plotNumber}
-            </p>
-            <p>
-              <strong>Area (sq ft):</strong> {selectedPlot.areaSqFt}
-            </p>
-            <p>
-              <strong>Status:</strong> {selectedPlot.status}
-            </p>
-            {selectedPlot.buyer && (
-              <>
-                <p>
-                  <strong>Buyer:</strong> {selectedPlot.buyer}
-                </p>
-                <p>
-                  <strong>Contact:</strong> {selectedPlot.contact}
-                </p>
-              </>
-            )}
-            <button onClick={() => setSelectedPlot(null)}>Close</button>
+            <h2 className="text-xl font-semibold mb-4">Plot Details</h2>
+            <div className="space-y-3 mb-6">
+              <p className="grid grid-cols-2 gap-2">
+                <strong>Plot Number:</strong> {selectedPlot.plotNumber}
+              </p>
+              <p className="grid grid-cols-2 gap-2">
+                <strong>Area (sq ft):</strong> {selectedPlot.areaSqFt}
+              </p>
+              <p className="grid grid-cols-2 gap-2">
+                <strong>Status:</strong> {selectedPlot.status}
+              </p>
+              {selectedPlot.buyer && (
+                <>
+                  <p className="grid grid-cols-2 gap-2">
+                    <strong>Buyer:</strong> {selectedPlot.buyer}
+                  </p>
+                  <p className="grid grid-cols-2 gap-2">
+                    <strong>Contact:</strong> {selectedPlot.contact}
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="flex justify-end gap-3">
+              {selectedPlot.status !== "sold" && (
+                <button
+                  onClick={() => handleBooking(selectedPlot)}
+                  className="bg-[#1F263E] text-white px-4 py-2 rounded-md hover:bg-[#2A324D]"
+                >
+                  Book Plot
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedPlot(null)}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

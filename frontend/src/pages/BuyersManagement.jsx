@@ -17,12 +17,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import jsPDF from "jspdf";
+import { pdf } from "@react-pdf/renderer";
+import InvoicePDF from "@/components/InvoicePDF";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
-import { setupPDF, addHeader, addField, addDivider } from "@/utils/pdfUtils";
 import { useLayout } from "@/context/LayoutContext";
 
 export default function BuyersManagement() {
@@ -104,22 +104,27 @@ export default function BuyersManagement() {
     setSelectedBuyer({ ...selectedBuyer, [e.target.name]: e.target.value });
   };
 
-  const handleDownloadPDF = () => {
-    const doc = setupPDF();
-    addHeader(doc, "Buyer Details");
+  const handleDownloadPDF = async () => {
+    const pdfData = {
+      title: "Buyer Details",
+      booking: {
+        buyerName: selectedBuyer.buyerName,
+        phoneNumber: selectedBuyer.phoneNumber,
+        address: selectedBuyer.address,
+      },
+      plotDetails: {
+        plotNumber: selectedBuyer.plot.plotNumber,
+        totalCost: selectedBuyer.totalCost,
+      },
+    };
 
-    let y = 40;
-    addField(doc, "Name:", selectedBuyer.buyerName, y);
-    addField(doc, "Address:", selectedBuyer.address, (y += 15));
-    addField(doc, "Phone Number:", selectedBuyer.phoneNumber, (y += 15));
-    addField(doc, "Gender:", selectedBuyer.gender, (y += 15));
-
-    addDivider(doc, (y += 10));
-
-    addField(doc, "Plot Number:", selectedBuyer.plot.plotNumber, (y += 20));
-    addField(doc, "Total Cost:", `Rs. ${selectedBuyer.totalCost}`, (y += 15));
-
-    doc.save(`${selectedBuyer.buyerName}_details.pdf`);
+    const blob = await pdf(<InvoicePDF data={pdfData} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${selectedBuyer.buyerName}_details.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const filteredBuyers = buyers.filter((buyer) =>

@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { setupPDF, addHeader, addField, addDivider } from "@/utils/pdfUtils";
-import jsPDF from "jspdf";
+import { pdf } from '@react-pdf/renderer';
+import InvoicePDF from '@/components/InvoicePDF';
 
 export default function BookingPreview() {
   const location = useLocation();
@@ -13,38 +13,34 @@ export default function BookingPreview() {
     return null;
   }
 
-  const handleDownloadPDF = () => {
-    const doc = setupPDF();
-    addHeader(doc, "Booking Details");
+  const handleDownloadPDF = async () => {
+    const pdfData = {
+      title: 'Booking Details',
+      booking: {
+        buyerName: bookingData.buyerName,
+        phoneNumber: bookingData.phoneNumber,
+        address: bookingData.address
+      },
+      plotDetails: {
+        plotNumber: bookingData.plotNumber,
+        areaSqFt: bookingData.areaSqFt,
+        ratePerSqFt: bookingData.ratePerSqFt,
+        totalCost: bookingData.totalCost
+      },
+      payments: [{
+        amount: bookingData.firstPayment,
+        paymentDate: bookingData.bookingDate,
+        paymentType: bookingData.paymentType
+      }]
+    };
 
-    let y = 40;
-    addField(doc, "Buyer Name:", bookingData.buyerName, y);
-    addField(doc, "Address:", bookingData.address, (y += 15));
-    addField(doc, "Phone Number:", bookingData.phoneNumber, (y += 15));
-    addField(doc, "Gender:", bookingData.gender, (y += 15));
-
-    addDivider(doc, (y += 10));
-
-    addField(doc, "Plot Number:", bookingData.plotNumber, (y += 20));
-    addField(doc, "Area (sq ft):", bookingData.areaSqFt, (y += 15));
-    addField(doc, "Rate per sq ft:", `${bookingData.ratePerSqFt}`, (y += 15));
-    addField(doc, "Total Cost:", `Rs. ${bookingData.totalCost}`, (y += 15));
-
-    addDivider(doc, (y += 10));
-
-    addField(doc, "First Payment:", `Rs. ${bookingData.firstPayment}`, (y += 20));
-    addField(doc, "Payment Type:", bookingData.paymentType, (y += 15));
-
-    if (bookingData.brokerReference) {
-      addField(
-        doc,
-        "Broker Reference:",
-        bookingData.brokerReference,
-        (y += 15)
-      );
-    }
-
-    doc.save(`booking_${bookingData.buyerName}.pdf`);
+    const blob = await pdf(<InvoicePDF data={pdfData} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `booking_${bookingData.buyerName}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
