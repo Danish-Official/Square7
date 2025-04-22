@@ -59,7 +59,7 @@ const Sidebar = () => {
           <NavItem
             to="/plot-management"
             icon={<LayoutDashboard size={20} />}
-            label="Plot Management"
+            label="Layout Management"
           />
           <NavItem
             to="/contact-list"

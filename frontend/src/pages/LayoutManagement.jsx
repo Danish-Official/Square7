@@ -8,14 +8,16 @@ const PlotManagement = () => {
   const { selectedLayout } = useLayout();
 
   return (
-    <div className="w-fit m-auto my-4">
-      <Card className="p-4">
-        <CardContent>
-          <h2 className="text-lg font-semibold mb-4">Plot Layout</h2>
-          {selectedLayout === "layout1" && <PlotLayout1 />}
-          {selectedLayout === "layout2" && <PlotLayout2 />}
-        </CardContent>
-      </Card>
+    <div className="p-6">
+      <h1 className="text-3xl font-semibold mb-4">Layout Management</h1>
+      <div className="w-fit m-auto my-4">
+        <Card className="p-4">
+          <CardContent>
+            {selectedLayout === "layout1" && <PlotLayout1 />}
+            {selectedLayout === "layout2" && <PlotLayout2 />}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

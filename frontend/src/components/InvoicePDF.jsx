@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import logoPath from "@/assets/logo.png";
-import Layout from "@/assets/Layout.png"; // Import layout images
+import Layout from "@/assets/Layout.png";
 
 const styles = StyleSheet.create({
   page: {
@@ -23,19 +23,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: 'right',
     width: '30%',
-    // marginTop: 30,
   },
   billInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
     marginBottom: 20,
-  },
-  billTo: {
-    width: '50%',
-  },
-  invoiceInfo: {
-    width: '40%',
   },
   table: {
     marginTop: 20,
@@ -66,26 +59,44 @@ const styles = StyleSheet.create({
   total: {
     marginTop: 20,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
   },
   totalLabel: {
     fontSize: 12,
-    fontWeight: 'bold',
-    paddingRight: 20,
+    fontWeight: 'bold'
   },
   totalValue: {
     fontSize: 12,
     fontWeight: 'bold',
     width: 100,
   },
+  plotDetails: {
+    marginTop: 20,
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+  },
+  paymentsSection: {
+    marginTop: 20,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
 });
 
 const InvoicePDF = ({ data }) => (
   <Document>
-    <Page size="A5" style={styles.page}>
+    <Page size="A4" style={styles.page}>
       {/* Header */}
       <View style={styles.header}>
-        <Image src= {logoPath} style={styles.logo} />
+        <Image src={logoPath} style={styles.logo} />
         <Image src={Layout} style={styles.layoutLogo} />
         <View style={styles.address}>
           <Text>HINGNA NAGPUR 441110</Text>
@@ -104,37 +115,67 @@ const InvoicePDF = ({ data }) => (
           <Text style={styles.value}>{data._id}</Text>
           <Text style={styles.label}>Date:</Text>
           <Text style={styles.value}>
-            {new Date(data.createdAt).toLocaleDateString()}
+            {new Date().toLocaleDateString()}
           </Text>
         </View>
       </View>
 
-      {/* Payments Table */}
-      <View style={styles.table}>
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={styles.tableCell}>Sr. No.</Text>
-          <Text style={styles.tableCell}>Plot No.</Text>
-          <Text style={styles.tableCell}>Area (sq ft)</Text>
-          <Text style={styles.tableCell}>Rate (₹/sq ft)</Text>
-          <Text style={styles.tableCell}>Amount Paid (₹)</Text>
+      {/* Plot Details */}
+      <View style={styles.plotDetails}>
+        <Text style={styles.sectionTitle}>Plot Details</Text>
+        <View style={styles.summaryRow}>
+          <Text style={styles.label}>Plot Number:</Text>
+          <Text style={styles.value}>{data.booking.plot.plotNumber}</Text>
         </View>
-        {data.payments.map((payment, index) => (
-          <View key={index} style={styles.tableRow}>
-            <Text style={styles.tableCell}>{index + 1}</Text>
-            <Text style={styles.tableCell}>{data.booking.plot.plotNumber}</Text>
-            <Text style={styles.tableCell}>{data.booking.plot.areaSqFt}</Text>
-            <Text style={styles.tableCell}>{data.booking.totalCost / data.booking.plot.areaSqFt}</Text>
-            <Text style={styles.tableCell}>{payment.amount}</Text>
-          </View>
-        ))}
+        <View style={styles.summaryRow}>
+          <Text style={styles.label}>Area:</Text>
+          <Text style={styles.value}>{data.booking.plot.areaSqFt} sq ft</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.label}>Rate per sq ft:</Text>
+          <Text style={styles.value}>Rs. {(data.booking.totalCost / data.booking.plot.areaSqFt).toFixed(2)}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.label}>Total Plot Cost:</Text>
+          <Text style={styles.value}>Rs. {data.booking.totalCost}</Text>
+        </View>
       </View>
 
-      {/* Total Section */}
+      {/* Payments Section */}
+      <View style={styles.paymentsSection}>
+        <Text style={styles.sectionTitle}>Payment History</Text>
+        <View style={styles.table}>
+          <View style={[styles.tableRow, styles.tableHeader]}>
+            <Text style={styles.tableCell}>Sr. No.</Text>
+            <Text style={styles.tableCell}>Date</Text>
+            <Text style={styles.tableCell}>Payment Type</Text>
+            <Text style={styles.tableCell}>Amount (Rs.)</Text>
+          </View>
+          {data.payments.map((payment, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={styles.tableCell}>{index + 1}</Text>
+              <Text style={styles.tableCell}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
+              <Text style={styles.tableCell}>{payment.paymentType}</Text>
+              <Text style={styles.tableCell}>{payment.amount}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Summary Section */}
       <View style={styles.total}>
-        <Text style={styles.totalLabel}>Total Amount Paid:</Text>
-        <Text style={styles.totalValue}>
-          ₹{data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
-        </Text>
+        <View style={styles.summaryRow}>
+          <Text style={styles.totalLabel}>Total Amount Paid:{" "}</Text>
+          <Text style={styles.totalValue}>
+            Rs. {data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
+          </Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.totalLabel}>Balance Amount:{" "}</Text>
+          <Text style={styles.totalValue}>
+            Rs. {data.booking.totalCost - data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
+          </Text>
+        </View>
       </View>
     </Page>
   </Document>
