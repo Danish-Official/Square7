@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { pdf } from "@react-pdf/renderer";
-import InvoicePDF from "@/components/InvoicePDF";
+import BuyerDetailsPDF from "@/components/BuyerDetailsPDF";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
@@ -105,20 +105,7 @@ export default function BuyersManagement() {
   };
 
   const handleDownloadPDF = async () => {
-    const pdfData = {
-      title: "Buyer Details",
-      booking: {
-        buyerName: selectedBuyer.buyerName,
-        phoneNumber: selectedBuyer.phoneNumber,
-        address: selectedBuyer.address,
-      },
-      plotDetails: {
-        plotNumber: selectedBuyer.plot.plotNumber,
-        totalCost: selectedBuyer.totalCost,
-      },
-    };
-
-    const blob = await pdf(<InvoicePDF data={pdfData} />).toBlob();
+    const blob = await pdf(<BuyerDetailsPDF data={selectedBuyer} />).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

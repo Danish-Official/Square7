@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { pdf } from '@react-pdf/renderer';
-import InvoicePDF from '@/components/InvoicePDF';
+import BookingPreviewPDF from '@/components/BookingPreviewPDF';
 
 export default function BookingPreview() {
   const location = useLocation();
@@ -15,11 +15,11 @@ export default function BookingPreview() {
 
   const handleDownloadPDF = async () => {
     const pdfData = {
-      title: 'Booking Details',
       booking: {
         buyerName: bookingData.buyerName,
         phoneNumber: bookingData.phoneNumber,
-        address: bookingData.address
+        address: bookingData.address,
+        gender: bookingData.gender
       },
       plotDetails: {
         plotNumber: bookingData.plotNumber,
@@ -31,10 +31,11 @@ export default function BookingPreview() {
         amount: bookingData.firstPayment,
         paymentDate: bookingData.bookingDate,
         paymentType: bookingData.paymentType
-      }]
+      }],
+      brokerReference: bookingData.brokerReference
     };
 
-    const blob = await pdf(<InvoicePDF data={pdfData} />).toBlob();
+    const blob = await pdf(<BookingPreviewPDF data={pdfData} />).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

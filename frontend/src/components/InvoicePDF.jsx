@@ -4,12 +4,15 @@ import Layout from "@/assets/Layout.png";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
+    padding: 20,
+    backgroundColor: '#ffffff',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 15,
+    borderBottom: '2 solid #1F263E',
+    paddingBottom: 10,
   },
   logo: {
     width: 70,
@@ -23,100 +26,133 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: 'right',
     width: '30%',
+    color: '#666666',
   },
   billInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 5,
+    marginBottom: 10,
+    backgroundColor: '#f8f9fa',
+    padding: 10,
+    borderRadius: 4,
+  },
+  dateGroup: {
+    marginTop: 8,
   },
   table: {
-    marginTop: 20,
+    marginVertical: 5,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#000',
-    paddingVertical: 5,
+    borderBottomColor: '#dee2e6',
+    paddingVertical: 4,
   },
   tableHeader: {
-    fontWeight: 'bold',
+    backgroundColor: '#1F263E',
   },
   tableCell: {
     flex: 1,
-    padding: 5,
+    padding: 4,
     fontSize: 10,
+    color: '#2d3748',
+  },
+  headerCell: {
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
   label: {
     fontSize: 10,
-    color: '#666',
-    marginBottom: 4,
-    marginTop: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginBottom: 2,
   },
   value: {
     fontSize: 11,
-  },
-  total: {
-    marginTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  totalLabel: {
-    fontSize: 12,
-    fontWeight: 'bold'
-  },
-  totalValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    width: 100,
+    color: '#2d3748',
   },
   plotDetails: {
-    marginTop: 20,
-    marginBottom: 10,
+    marginVertical: 10,
+    backgroundColor: '#f8f9fa',
     padding: 10,
-    backgroundColor: '#f5f5f5',
+    borderRadius: 4,
   },
   paymentsSection: {
-    marginTop: 20,
+    marginTop: 10,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 16,
+    color: '#1F263E',
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
+    borderBottom: '1 solid #dee2e6',
+    paddingBottom: 4,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 5,
+    marginTop: 2,
+    paddingVertical: 2,
   },
+  total: {
+    marginTop: 10,
+    borderTop: '2 solid #1F263E',
+    paddingTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  totalLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1F263E',
+  },
+  totalValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1F263E',
+    textAlign: 'right',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 30,
+    right: 30,
+    textAlign: 'center',
+    color: '#666666',
+    fontSize: 10,
+    borderTop: '1 solid #dee2e6',
+    paddingTop: 5,
+  }
 });
 
 const InvoicePDF = ({ data }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* Header */}
       <View style={styles.header}>
         <Image src={logoPath} style={styles.logo} />
         <Image src={Layout} style={styles.layoutLogo} />
         <View style={styles.address}>
           <Text>HINGNA NAGPUR 441110</Text>
+          <Text>Contact: +91 XXXXXXXXXX</Text>
+          <Text>Email: info@square7.com</Text>
         </View>
       </View>
 
       {/* Billing Information */}
       <View style={styles.billInfo}>
-        <View style={styles.billTo}>
+        <View>
           <Text style={styles.label}>Billed To:</Text>
           <Text style={styles.value}>{data.booking.buyerName}</Text>
           <Text style={styles.value}>{data.booking.address}</Text>
         </View>
-        <View style={styles.invoiceInfo}>
+        <View>
           <Text style={styles.label}>Invoice No:</Text>
           <Text style={styles.value}>{data._id}</Text>
-          <Text style={styles.label}>Date:</Text>
-          <Text style={styles.value}>
-            {new Date().toLocaleDateString()}
-          </Text>
+          <View style={styles.dateGroup}>
+            <Text style={styles.label}>Date:</Text>
+            <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
+          </View>
         </View>
       </View>
 
@@ -146,10 +182,10 @@ const InvoicePDF = ({ data }) => (
         <Text style={styles.sectionTitle}>Payment History</Text>
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={styles.tableCell}>Sr. No.</Text>
-            <Text style={styles.tableCell}>Date</Text>
-            <Text style={styles.tableCell}>Payment Type</Text>
-            <Text style={styles.tableCell}>Amount (Rs.)</Text>
+            <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text>
+            <Text style={[styles.tableCell, styles.headerCell]}>Date</Text>
+            <Text style={[styles.tableCell, styles.headerCell]}>Payment Type</Text>
+            <Text style={[styles.tableCell, styles.headerCell]}>Amount (Rs.)</Text>
           </View>
           {data.payments.map((payment, index) => (
             <View key={index} style={styles.tableRow}>
@@ -162,7 +198,6 @@ const InvoicePDF = ({ data }) => (
         </View>
       </View>
 
-      {/* Summary Section */}
       <View style={styles.total}>
         <View style={styles.summaryRow}>
           <Text style={styles.totalLabel}>Total Amount Paid:{" "}</Text>
@@ -176,6 +211,11 @@ const InvoicePDF = ({ data }) => (
             Rs. {data.booking.totalCost - data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
           </Text>
         </View>
+      </View>
+
+      <View style={styles.footer}>
+        <Text>Generated on {new Date().toLocaleDateString()}</Text>
+        <Text>Square7 Real Estate Solutions</Text>
       </View>
     </Page>
   </Document>
