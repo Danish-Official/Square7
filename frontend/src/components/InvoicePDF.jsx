@@ -95,13 +95,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     paddingVertical: 2,
   },
-  total: {
-    marginTop: 10,
-    borderTop: '2 solid #1F263E',
-    paddingTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
   totalLabel: {
     fontSize: 12,
     fontWeight: 'bold',
@@ -112,6 +105,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F263E',
     textAlign: 'right',
+  },
+  total: {
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 4,
   },
   footer: {
     position: 'absolute',
@@ -199,18 +200,10 @@ const InvoicePDF = ({ data }) => (
       </View>
 
       <View style={styles.total}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.totalLabel}>Total Amount Paid:{" "}</Text>
-          <Text style={styles.totalValue}>
-            Rs. {data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
-          </Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.totalLabel}>Balance Amount:{" "}</Text>
-          <Text style={styles.totalValue}>
-            Rs. {data.booking.totalCost - data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
-          </Text>
-        </View>
+        <Text style={styles.totalLabel}>Total Amount Paid:{" "}</Text>
+        <Text style={styles.totalValue}>
+          Rs. {data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
+        </Text>
       </View>
 
       <View style={styles.footer}>

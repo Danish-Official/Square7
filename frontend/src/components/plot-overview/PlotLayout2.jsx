@@ -216,6 +216,7 @@ const PlotLayout2 = () => {
             </div>
           </div>
         </div>
+        <div className="w-[10px] h-[875px] rigthBorder" />
       </div>
 
       <div className="legend">
