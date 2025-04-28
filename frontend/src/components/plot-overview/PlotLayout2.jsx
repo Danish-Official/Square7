@@ -212,8 +212,9 @@ const PlotLayout2 = () => {
                   <div className="road-strips-vertical w-1 h-full" />
                 </div>
               </div>
-              <div className="openSpace">Open Space</div>
+              <div className="openSpace text-left">Open Space</div>
             </div>
+            <div className="w-full h-2 bottomBorder" />
           </div>
         </div>
         <div className="w-[10px] h-[875px] rigthBorder" />

@@ -1,12 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const connectDB = require("./db"); // Import the reusable DB connection
+const connectDB = require("./db");
 const { router: authRoutes, createSuperAdmin } = require("./routes/authRoutes");
 const plotRoutes = require("./routes/plotRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
 const enquiryRoutes = require("./routes/enquiryRoutes");
+const layoutResourceRoutes = require("./routes/layoutResourceRoutes");
 const path = require("path");
 
 dotenv.config();
@@ -30,12 +31,17 @@ app.use("/api/plots", plotRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/enquiries", enquiryRoutes);
+app.use("/api/layout-resources", layoutResourceRoutes);
+
+// Serve uploaded files statically - move this BEFORE the catch-all route
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
+// This should come last
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));

@@ -13,6 +13,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import BookingPreview from "@/pages/BookingPreview";
 import AppWrapper from "./pages/AppWrapper";
+import LayoutResources from "./pages/LayoutResources";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -85,6 +86,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Enquiries />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="layout-resources"
+            element={
+              <ProtectedRoute>
+                <LayoutResources />
               </ProtectedRoute>
             }
           />

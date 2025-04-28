@@ -13,6 +13,7 @@ import {
   ReceiptIndianRupee,
   LayoutDashboard,
   MessageCircleQuestion,
+  Image,
 } from "lucide-react"; // Icons
 import Layout1 from "@/assets/layouts/Layout 1.png"; // Import layout images
 import Layout2 from "@/assets/layouts/Layout 2.png"; // Import layout images
@@ -76,13 +77,20 @@ const Sidebar = () => {
             icon={<MessageCircleQuestion size={20} />}
             label="Enquiries"
           />
-          {auth.user?.role === "superadmin" && ( // Check the role from the user object
-            <NavItem
-              to="/user-management"
-              icon={<UserRoundCog size={20} />}
-              label="Manage Users"
-            />
-          )}
+          {auth.user?.role === "superadmin" &&
+            <>
+              <NavItem
+                to="/layout-resources"
+                icon={<Image size={20} />}
+                label="Layout Resources"
+              />
+              <NavItem
+                to="/user-management"
+                icon={<UserRoundCog size={20} />}
+                label="Manage Users"
+              />
+            </>
+          }
         </nav>
       </div>
     </div>

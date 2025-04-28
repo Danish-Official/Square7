@@ -62,7 +62,7 @@ const Header = () => {
           <SelectContent>
             {layouts.map((layout) => (
               <SelectItem key={layout} value={layout.toLowerCase()}>
-                Layout {layout.replace("layout", "")}
+                Krishnam Nagar 1
               </SelectItem>
             ))}
           </SelectContent>

@@ -32,6 +32,8 @@ export default function ResetPassword() {
   };
 
   return (
+    <div className="flex h-screen bg-[#27304f] items-center justify-center">
+      <div className="h-[300px] w-[500px] bg-white rounded-[20px] shadow-lg flex justify-center items-center">
     <div className="w-full max-w-md p-6">
       <h2 className="text-2xl font-bold mb-4">Reset Password</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,6 +67,8 @@ export default function ResetPassword() {
           {isSubmitting ? "Resetting..." : "Reset Password"}
         </Button>
       </form>
+    </div>
+    </div>
     </div>
   );
 }
