@@ -16,18 +16,24 @@ router.post("/", authenticate(), async (req, res) => {
 
 router.post("/:id/add-payment", authenticate(), async (req, res) => {
   try {
-    const { amount, paymentDate, paymentType } = req.body;
+    const { amount, paymentDate, paymentType, paymentIndex } = req.body;
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
 
-    invoice.payments.push({ amount, paymentDate, paymentType });
+    if (paymentIndex !== undefined && paymentIndex >= 0 && paymentIndex < invoice.payments.length) {
+      // Update existing payment
+      invoice.payments[paymentIndex] = { amount, paymentDate, paymentType };
+    } else {
+      // Add new payment
+      invoice.payments.push({ amount, paymentDate, paymentType });
+    }
+    
     await invoice.save();
-
     res.status(200).json(invoice);
   } catch (error) {
-    console.error("Error adding payment:", error);
+    console.error("Error managing payment:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });

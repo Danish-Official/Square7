@@ -24,11 +24,12 @@ import {
 } from "@/components/ui/select";
 import { pdf } from "@react-pdf/renderer";
 import InvoicePDF from "@/components/InvoicePDF";
+import SinglePaymentPDF from "@/components/SinglePaymentPDF";
 import { apiClient } from "@/lib/utils";
 import { toast } from "react-toastify";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 import { useLayout } from "@/context/LayoutContext";
 
 export default function Invoices() {
@@ -98,6 +99,11 @@ export default function Invoices() {
     if (!isValid) return;
 
     try {
+      await apiClient.post(`/invoices/${selectedInvoice?._id}/add-payment`, {
+        ...subsequentPayment,
+        paymentIndex: editingPaymentIndex,  // Add this line to include payment index
+      });
+
       const updatedPayments = [...(selectedInvoice?.payments || [])];
       if (editingPaymentIndex !== null) {
         updatedPayments[editingPaymentIndex] = subsequentPayment;
@@ -105,16 +111,11 @@ export default function Invoices() {
         updatedPayments.push(subsequentPayment);
       }
 
-      const updatedInvoice = {
-        ...selectedInvoice,
+      setSelectedInvoice((prev) => ({
+        ...prev,
         payments: updatedPayments,
-      };
+      }));
 
-      await apiClient.post(`/invoices/${selectedInvoice?._id}/add-payment`, {
-        ...subsequentPayment,
-      });
-
-      setSelectedInvoice(updatedInvoice);
       setSubsequentPayment({
         amount: "",
         paymentDate: "",
@@ -166,12 +167,31 @@ export default function Invoices() {
     }
   };
 
-  const handleDownloadInvoice = async () => {
-    const blob = await pdf(<InvoicePDF data={selectedInvoice} />).toBlob();
+  const handleDownloadInvoice = async (invoice) => {
+    const blob = await pdf(<InvoicePDF data={invoice} />).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Invoice_${selectedInvoice?.booking?.buyerName}.pdf`;
+    link.download = `Invoice_${invoice?.booking?.buyerName}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPayment = async (payment, index) => {
+    const blob = await pdf(
+      <SinglePaymentPDF 
+        data={{
+          payment,
+          paymentIndex: index,
+          buyerName: selectedInvoice?.booking?.buyerName,
+          plotNumber: selectedInvoice?.booking?.plot?.plotNumber
+        }}
+      />
+    ).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Payment_${index + 1}_${selectedInvoice?.booking?.buyerName}.pdf`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -218,7 +238,7 @@ export default function Invoices() {
               <TableRow>
                 <TableHead>Buyer Name</TableHead>
                 <TableHead>Phone Number</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className={"ps-20"}>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,15 +247,23 @@ export default function Invoices() {
                   <TableCell>{invoice?.booking?.buyerName}</TableCell>
                   <TableCell>{invoice?.booking?.phoneNumber}</TableCell>
                   <TableCell>
-                    <Button
-                      onClick={() => {
-                        setSelectedInvoice(invoice);
-                        setIsDialogOpen(true);
-                      }}
-                      className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setSelectedInvoice(invoice);
+                          setIsDialogOpen(true);
+                        }}
+                        className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                      >
+                        View Details
+                      </Button>
+                      <Button
+                        onClick={() => handleDownloadInvoice(invoice)}
+                        className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                      >
+                        Download
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -247,7 +275,7 @@ export default function Invoices() {
             onPageChange={handlePageChange}
           />
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl max-h-[100vh] overflow-y-auto">
+            <DialogContent className="p-6 bg-white rounded-xl max-h-[100vh] overflow-y-auto">
               {selectedInvoice && (
                 <div className="space-y-6">
                   <DialogHeader className="space-y-3 mb-6">
@@ -275,7 +303,6 @@ export default function Invoices() {
                         </p>
                       </div>
                     </div>
-
                     <div className="space-y-4">
                       <h3 className="font-semibold text-[#1F263E]">Payments</h3>
                       <ul className="space-y-3">
@@ -308,6 +335,14 @@ export default function Invoices() {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => handleDownloadPayment(payment, index)}
+                                className="bg-white hover:bg-gray-50"
+                              >
+                                <Download size={16} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => handleDeletePayment(index)}
                                 className="bg-white hover:bg-gray-50 text-red-500 hover:text-red-700"
                               >
@@ -318,7 +353,6 @@ export default function Invoices() {
                         ))}
                       </ul>
                     </div>
-
                     <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-[#1F263E]">Add Payment</h3>
                       <div className="grid gap-4">
@@ -377,24 +411,10 @@ export default function Invoices() {
                             <SelectItem value="Online">Online</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Button
-                          onClick={handleAddOrEditPayment}
-                          className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                        >
-                          {editingPaymentIndex !== null
-                            ? "Update Payment"
-                            : "Add Payment"}
-                        </Button>
                       </div>
                     </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                      onClick={handleDownloadInvoice}
-                      className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                    >
-                      Download Invoice
-                    </Button>
                     <Button
                       variant="outline"
                       onClick={() => setIsDialogOpen(false)}

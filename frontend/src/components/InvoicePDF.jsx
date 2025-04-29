@@ -37,6 +37,16 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 4,
   },
+  label: {
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  value: {
+    fontSize: 11,
+    color: '#2d3748',
+  },
   dateGroup: {
     marginTop: 8,
   },
@@ -62,21 +72,30 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
   },
-  label: {
-    fontSize: 10,
-    color: '#4a5568',
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  value: {
-    fontSize: 11,
-    color: '#2d3748',
-  },
   plotDetails: {
     marginVertical: 10,
     backgroundColor: '#f8f9fa',
     padding: 10,
     borderRadius: 4,
+    width: '200px',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+    alignItems: 'center',
+  },
+  plotLabel: {
+    width: '40%',
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+  },
+  plotValue: {
+    width: '60%',
+    fontSize: 11,
+    color: '#2d3748',
+    paddingLeft: 10,
   },
   paymentsSection: {
     marginTop: 10,
@@ -89,12 +108,6 @@ const styles = StyleSheet.create({
     borderBottom: '1 solid #dee2e6',
     paddingBottom: 4,
   },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 2,
-    paddingVertical: 2,
-  },
   totalLabel: {
     fontSize: 12,
     fontWeight: 'bold',
@@ -104,7 +117,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#1F263E',
-    textAlign: 'right',
   },
   total: {
     flexDirection: 'row',
@@ -161,20 +173,20 @@ const InvoicePDF = ({ data }) => (
       <View style={styles.plotDetails}>
         <Text style={styles.sectionTitle}>Plot Details</Text>
         <View style={styles.summaryRow}>
-          <Text style={styles.label}>Plot Number:</Text>
-          <Text style={styles.value}>{data.booking.plot.plotNumber}</Text>
+          <Text style={styles.plotLabel}>Plot Number:</Text>
+          <Text style={styles.plotValue}>{data.booking.plot.plotNumber}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.label}>Area:</Text>
-          <Text style={styles.value}>{data.booking.plot.areaSqFt} sq ft</Text>
+          <Text style={styles.plotLabel}>Area:</Text>
+          <Text style={styles.plotValue}>{data.booking.plot.areaSqFt} sq ft</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.label}>Rate per sq ft:</Text>
-          <Text style={styles.value}>Rs. {(data.booking.totalCost / data.booking.plot.areaSqFt).toFixed(2)}</Text>
+          <Text style={styles.plotLabel}>Rate per sq ft:</Text>
+          <Text style={styles.plotValue}>Rs. {(data.booking.totalCost / data.booking.plot.areaSqFt).toFixed(2)}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.label}>Total Plot Cost:</Text>
-          <Text style={styles.value}>Rs. {data.booking.totalCost}</Text>
+          <Text style={styles.plotLabel}>Total Plot Cost:</Text>
+          <Text style={styles.plotValue}>Rs. {data.booking.totalCost}</Text>
         </View>
       </View>
 
