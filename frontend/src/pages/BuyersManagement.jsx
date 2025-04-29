@@ -140,7 +140,7 @@ export default function BuyersManagement() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl max-h-[100vh] overflow-y-auto">
           {selectedBuyer && (
             <div className="space-y-6">
               <DialogHeader className="space-y-3 mb-6">

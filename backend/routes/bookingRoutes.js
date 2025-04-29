@@ -68,7 +68,7 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
     res.status(200).json(
       bookings.map((booking) => ({
         ...booking,
-        bookingDate: booking.createdAt,
+        bookingDate: booking.bookingDate,
       }))
     );
   } catch (error) {

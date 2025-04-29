@@ -214,7 +214,7 @@ const PlotLayout2 = () => {
               </div>
               <div className="openSpace text-left">Open Space</div>
             </div>
-            <div className="w-full h-2 bottomBorder" />
+            <div className="h-2 bottomBorder" />
           </div>
         </div>
         <div className="w-[10px] h-[875px] rigthBorder" />

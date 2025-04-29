@@ -5,7 +5,8 @@
   .bottomBorder {
     border-top: 1.5px solid #585858;
     background-color: white;
-    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -2px 0 0 rgba(0, 0, 0, 0.3);
+    width: 99%;
   }
   .rigthBorder {
     transform: rotate(-13deg) translateX(-101px) translateY(-36px);

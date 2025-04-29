@@ -45,14 +45,16 @@ router.get("/get-plots/:layoutId", authenticate(), async (req, res) => {
       if (booking) {
         return {
           ...plot,
-          status: "sold", // Set status to sold if there's a booking
+          status: "sold",
           buyer: booking.buyerName,
           contact: booking.phoneNumber,
+          address: booking.address,
+          bookingDate: booking.bookingDate
         };
       }
       return {
         ...plot,
-        status: plot.status || "available" // Ensure status is set
+        status: plot.status || "available"
       };
     });
 
