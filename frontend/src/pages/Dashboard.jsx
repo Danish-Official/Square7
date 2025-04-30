@@ -172,16 +172,12 @@ export default function Dashboard({ showLoginModal = false }) {
       <div className={`p-6 space-y-6 ${isLoginModalOpen || showLayoutModal ? "blur-sm" : ""}`}>
         <h1 className="text-3xl font-semibold">Dashboard</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link to="/new-booking">
-            <Button
-              className="text-xl font-semibold capitalize w-full h-full cursor-pointer hover:bg-[#5266A4]"
-              style={{
-                background: "linear-gradient(to bottom, #1F263E, #5266A4)",
-              }}
-            >
-              new booking
-              <FilePlus size={40} />
-            </Button>
+          <Link 
+            to="/new-booking" 
+            className="w-full h-full rounded-xl text-white font-semibold text-2xl cursor-pointer flex justify-center items-center gap-2 bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+          >
+            New Booking
+            <FilePlus size={30}/>
           </Link>
           {selectedLayout &&
             layoutStats[selectedLayout] &&
@@ -266,8 +262,8 @@ export default function Dashboard({ showLoginModal = false }) {
         </Card>
       </div>
 
-      <LayoutSelectionModal 
-        open={showLayoutModal} 
+      <LayoutSelectionModal
+        open={showLayoutModal}
         onClose={() => setShowLayoutModal(false)}
       />
 
@@ -313,8 +309,8 @@ export default function Dashboard({ showLoginModal = false }) {
                     <div
                       key={buyer._id}
                       className={`grid gap-4 ${index !== buyersForDate.length - 1
-                          ? "mb-6 pb-6 border-b"
-                          : ""
+                        ? "mb-6 pb-6 border-b"
+                        : ""
                         }`}
                     >
                       <div className="space-y-1">

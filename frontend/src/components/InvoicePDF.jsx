@@ -77,13 +77,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     padding: 10,
     borderRadius: 4,
-    width: '200px',
+    width: '300px',
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 4,
     alignItems: 'center',
+    gap: 2
   },
   plotLabel: {
     width: '40%',

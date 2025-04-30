@@ -87,13 +87,13 @@ const styles = StyleSheet.create({
     color: '#2d3748',
   },
   plotLabel: {
-    width: '40%',
+    width: '60%',
     fontSize: 10,
     color: '#4a5568',
     fontWeight: 'bold',
   },
   plotValue: {
-    width: '60%',
+    width: '40%',
     fontSize: 11,
     color: '#2d3748',
     paddingLeft: 10,
