@@ -22,18 +22,18 @@ export default function LayoutSelectionModal({ open, onClose }) {
             className="cursor-pointer rounded-lg bg-gray-800 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
             {/* <img src={Layout1} alt="Layout 1" className="w-full mb-2" /> */}
-            <div className="flex flex-col items-center justify-center font-bold p-6">
-              <p className="text-white text-6xl">Krishnam</p>
-              <p className="text-amber-400 text-4xl ms-10 p-1.5">Nagar 1</p>
+            <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
+              <p className="text-6xl">KRISHNAM</p>
+              <p className="ms-10 p-1.5">Nagar 1</p>
             </div>
           </div>
           <div
             onClick={() => handleLayoutSelect("layout2")}
             className="cursor-pointer rounded-lg bg-gray-800 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
-            <div className="flex flex-col items-center justify-center font-bold p-6">
-              <p className="text-white text-6xl">Krishnam</p>
-              <p className="text-amber-400 text-4xl ms-10 p-1.5">Nagar 2</p>
+            <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
+              <p className="text-6xl">KRISHNAM</p>
+              <p className="ms-10 p-1.5">Nagar 2</p>
             </div>
           </div>
         </div>
