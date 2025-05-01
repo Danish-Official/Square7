@@ -56,13 +56,13 @@ const Header = () => {
         <Select value={selectedLayout} onValueChange={handleLayoutChange}>
           <SelectTrigger className="w-[200px] bg-white">
             <SelectValue placeholder="Select Layout">
-              {selectedLayout ? `Krishnam Nagar ${selectedLayout.replace("layout", "")}` : "Select Layout"}
+              {selectedLayout ? `KRISHNAM Nagar ${selectedLayout.replace("layout", "")}` : "Select Layout"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {layouts.map((layout) => (
               <SelectItem key={layout} value={layout.toLowerCase()}>
-                {`Krishnam Nagar ${layout.replace("layout", "")}`}
+                {`KRISHNAM Nagar ${layout.replace("layout", "")}`}
               </SelectItem>
             ))}
           </SelectContent>
