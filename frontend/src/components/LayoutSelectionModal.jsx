@@ -23,8 +23,8 @@ export default function LayoutSelectionModal({ open, onClose }) {
           >
             {/* <img src={Layout1} alt="Layout 1" className="w-full mb-2" /> */}
             <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
-              <p className="text-6xl">KRISHNAM</p>
-              <p className="ms-10 p-1.5">Nagar 1</p>
+              <p className="text-5xl">KRISHNAM</p>
+              <p className="ms-10 p-1.5 text-2xl">Nagar 1</p>
             </div>
           </div>
           <div
@@ -32,8 +32,8 @@ export default function LayoutSelectionModal({ open, onClose }) {
             className="cursor-pointer rounded-lg bg-gray-800 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
             <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
-              <p className="text-6xl">KRISHNAM</p>
-              <p className="ms-10 p-1.5">Nagar 2</p>
+              <p className="text-5xl">KRISHNAM</p>
+              <p className="ms-10 p-1.5 text-2xl">Nagar 2</p>
             </div>
           </div>
         </div>
