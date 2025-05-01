@@ -56,6 +56,8 @@ const Sidebar = () => {
               className="h-15 w-auto"
             />
           </div>
+          <p className="text-center">A Project By</p>
+          <p className="font-bold text-center mb-2">SQUARE SEVEN INFRA</p>
           <NavItem to="/" icon={<Home size={20} />} label="Dashboard" />
           <NavItem
             to="/plot-management"
