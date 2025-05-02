@@ -1,32 +1,44 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Add import
+import { useNavigate } from "react-router-dom";
 import "./PlotLayout1.scss";
 import { apiClient } from "@/lib/utils";
+import { toast } from "react-toastify";
+import { useLayout } from "@/context/LayoutContext";
+import InvoiceDetailsModal from "@/components/InvoiceDetailsModal";
 
 const PlotLayout1 = () => {
   const [plots, setPlots] = useState([]);
-  const [hoveredPlot, setHoveredPlot] = useState(null); // State for hovered plot
-  const [selectedPlot, setSelectedPlot] = useState(null); // State for clicked plot
-  const navigate = useNavigate(); // Add navigate
+  const [hoveredPlot, setHoveredPlot] = useState(null);
+  const [selectedPlot, setSelectedPlot] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { selectedLayout } = useLayout();
 
   useEffect(() => {
-    fetchPlots();
-  }, []);
+    if (selectedLayout) {
+      fetchPlots();
+    }
+  }, [selectedLayout]);
 
   async function fetchPlots() {
     try {
-      const response = await apiClient.get("/plots/get-plots");
+      const response = await apiClient.get(`/plots/get-plots/${selectedLayout}`);
       if (response.status === 304) {
-        return; // Do nothing if data is not modified
+        return;
       }
       const { data } = response;
       if (!data || !Array.isArray(data)) {
         setPlots([]);
+        toast.error("No plots found");
       } else {
         setPlots(data);
       }
     } catch (error) {
-      setPlots([]); // Ensure plots is set to an empty array on error
+      console.error("Error fetching plots:", error);
+      toast.error("Failed to fetch plots");
+      setPlots([]);
     }
   }
 
@@ -39,6 +51,44 @@ const PlotLayout1 = () => {
     }
   };
 
+  const handleBooking = (plot) => {
+    navigate("/new-booking", {
+      state: { selectedPlotId: plot._id }
+    });
+  };
+
+  const handlePlotClick = async (plot) => {
+    if (plot.status === "sold") {
+      setIsLoading(true);
+      setIsDialogOpen(true);
+      try {
+        const { data } = await apiClient.get(`/invoices/plot/${plot._id}`);
+        if (data && data.booking) {
+          setSelectedInvoice(data);
+        } else {
+          toast.error("No invoice found for this plot");
+          setIsDialogOpen(false);
+        }
+      } catch (error) {
+        console.error("Error fetching invoice:", error);
+        const errorMessage = error.response?.data?.message || "Failed to fetch invoice details";
+        toast.error(errorMessage);
+        setIsDialogOpen(false);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Only show plot details modal for unsold plots
+      setSelectedPlot(plot);
+    }
+  };
+
+  const getOrdinalSuffix = (number) => {
+    const suffixes = ["th", "st", "nd", "rd"];
+    const value = number % 100;
+    return number + (suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]);
+  };
+
   const createPlots = (numbers) =>
     numbers.map((num) => {
       const plot = plots.find((p) => p.plotNumber === num);
@@ -47,14 +97,14 @@ const PlotLayout1 = () => {
         <div
           key={num}
           className={`plots ${getPlotClass(plot?.status)}`}
-          onMouseEnter={() => plot && setHoveredPlot(plot)} // Set hovered plot on hover
-          onMouseLeave={() => setHoveredPlot(null)} // Clear hovered plot on mouse leave
-          onClick={() => plot && setSelectedPlot(plot)} // Set selected plot on click
+          onMouseEnter={() => plot && setHoveredPlot(plot)}
+          onMouseLeave={() => setHoveredPlot(null)}
+          onClick={() => plot && handlePlotClick(plot)}
         >
           {num}
           {plot?.status === "sold" &&
             plot?.buyer &&
-            hoveredPlot?.plotNumber === num && ( // Show popup only for the hovered plot
+            hoveredPlot?.plotNumber === num && (
               <div className="popup-hover">
                 <strong>Buyer:</strong> {plot.buyer}
                 <br />
@@ -64,12 +114,6 @@ const PlotLayout1 = () => {
         </div>
       );
     });
-
-  const handleBooking = (plot) => {
-    navigate("/new-booking", {
-      state: { selectedPlotId: plot._id }
-    });
-  };
 
   return (
     <div className="plotLayout1Wrapper">
@@ -108,10 +152,12 @@ const PlotLayout1 = () => {
               <div className="plots amenity">Amenity Space</div>
               {createPlots([4, 3, 2, 1])}
             </div>
-            <div className="road rightRoad">
-              <div className="roadText">15.00 M WIDE ROAD</div>
-              <div className="h-full absolute">
-                <div className="road-strips w-1 h-full" />
+            <div className="relative">
+              <div className="road rightRoad absolute h-[142%]">
+                <div className="roadText">15.00 M WIDE ROAD</div>
+                <div className="h-full absolute">
+                  <div className="road-strips w-1 h-full" />
+                </div>
               </div>
             </div>
           </div>
@@ -126,16 +172,6 @@ const PlotLayout1 = () => {
               {plots.length > 0 &&
                 createPlots([48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36])}
             </div>
-          </div>
-        </div>
-
-        {/* Color Code Annotations */}
-        <div className="legend">
-          <div className="legend-item">
-            <span className="color-box available"></span> Available
-          </div>
-          <div className="legend-item">
-            <span className="color-box sold"></span> Sold
           </div>
         </div>
 
@@ -184,6 +220,14 @@ const PlotLayout1 = () => {
             </div>
           </div>
         )}
+
+        {/* Invoice Modal */}
+        <InvoiceDetailsModal 
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          invoice={selectedInvoice}
+          onInvoiceUpdated={() => fetchPlots()}
+        />
       </div>
     </div>
   );

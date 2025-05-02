@@ -3,6 +3,8 @@ import "./PlotLayout2.scss";
 import { apiClient } from "@/lib/utils";
 import { useLayout } from "@/context/LayoutContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import InvoiceDetailsModal from "@/components/InvoiceDetailsModal";
 
 const PlotLayout2 = () => {
   const { selectedLayout } = useLayout();
@@ -10,6 +12,9 @@ const PlotLayout2 = () => {
   const [plots, setPlots] = useState([]);
   const [hoveredPlot, setHoveredPlot] = useState(null);
   const [selectedPlot, setSelectedPlot] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (selectedLayout) {
@@ -41,6 +46,32 @@ const PlotLayout2 = () => {
     }
   };
 
+  const handlePlotClick = async (plot) => {
+    if (plot.status === "sold") {
+      setIsLoading(true);
+      setIsDialogOpen(true);
+      try {
+        const { data } = await apiClient.get(`/invoices/plot/${plot._id}`);
+        if (data && data.booking) {
+          setSelectedInvoice(data);
+        } else {
+          toast.error("No invoice found for this plot");
+          setIsDialogOpen(false);
+        }
+      } catch (error) {
+        console.error("Error fetching invoice:", error);
+        const errorMessage = error.response?.data?.message || "Failed to fetch invoice details";
+        toast.error(errorMessage);
+        setIsDialogOpen(false);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Only show plot details modal for unsold plots
+      setSelectedPlot(plot);
+    }
+  };
+
   const createPlot = (num) => {
     const plot = plots.find((p) => p.plotNumber === num);
     const plotClass = plot ? getPlotClass(plot.status) : "available";
@@ -51,7 +82,7 @@ const PlotLayout2 = () => {
         className={`plot plot${num} ${plotClass}`}
         onMouseEnter={() => plot && setHoveredPlot(plot)}
         onMouseLeave={() => setHoveredPlot(null)}
-        onClick={() => plot && setSelectedPlot(plot)}
+        onClick={() => plot && handlePlotClick(plot)}
       >
         {num}
         {plot?.status === "sold" && plot?.buyer && hoveredPlot?.plotNumber === num && (
@@ -273,6 +304,14 @@ const PlotLayout2 = () => {
           </div>
         </div>
       )}
+
+      {/* Invoice Modal */}
+      <InvoiceDetailsModal 
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        invoice={selectedInvoice}
+        onInvoiceUpdated={() => fetchPlots()}
+      />
     </div>
   );
 };

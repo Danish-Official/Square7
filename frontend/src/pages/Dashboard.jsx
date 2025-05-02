@@ -23,16 +23,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
 import { FilePlus } from "lucide-react";
 import Login from "../components/Login";
 import { useAuth } from "@/context/AuthContext";
 import { useBuyers } from "@/context/BuyersContext";
 import { useLayout } from "@/context/LayoutContext";
-import "../styles/dashboard.scss";
 import { apiClient } from "@/lib/utils";
 import { toast } from "react-toastify";
 import LayoutSelectionModal from "@/components/LayoutSelectionModal";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import "../styles/dashboard.scss";
 
 export default function Dashboard({ showLoginModal = false }) {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -118,8 +120,10 @@ export default function Dashboard({ showLoginModal = false }) {
   }, [selectedLayout, setShowLayoutModal]);
 
   const handleDateClick = (date) => {
-    setSelectedDate(date);
-    setDialogIsOpen(true);
+    if (date && isBuyerPresentOnDate(date)) {
+      setSelectedDate(date);
+      setDialogIsOpen(true);
+    }
   };
 
   const closeDialog = () => {
@@ -172,12 +176,12 @@ export default function Dashboard({ showLoginModal = false }) {
       <div className={`p-6 space-y-6 ${isLoginModalOpen || showLayoutModal ? "blur-sm" : ""}`}>
         <h1 className="text-3xl font-semibold">Dashboard</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link 
-            to="/new-booking" 
+          <Link
+            to="/new-booking"
             className="w-full h-full rounded-xl text-white font-semibold text-2xl cursor-pointer flex justify-center items-center gap-2 bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
           >
             New Booking
-            <FilePlus size={30}/>
+            <FilePlus size={30} />
           </Link>
           {selectedLayout &&
             layoutStats[selectedLayout] &&
@@ -214,22 +218,26 @@ export default function Dashboard({ showLoginModal = false }) {
             </CardContent>
           </Card>
           <Card>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                if (isBuyerPresentOnDate(date)) {
-                  handleDateClick(date);
-                }
-              }}
-              modifiers={{
-                hasBuyer: (date) => isBuyerPresentOnDate(date),
-              }}
-              modifiersClassNames={{
-                hasBuyer: "bg-green-500 rounded-full",
-              }}
-              className="flex justify-center"
-            />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateCalendar 
+                shouldDisableDate={(date) => !isBuyerPresentOnDate(date.toDate())}
+                sx={{
+                  '.MuiPickersDay-root': {
+                    '&:not(.Mui-disabled)': {
+                      backgroundColor: '#e6f3ff',
+                      '&:hover': {
+                        backgroundColor: '#cce7ff'
+                      }
+                    }
+                  }
+                }}
+                onChange={(newDate) => {
+                  if (newDate) {
+                    handleDateClick(newDate.toDate());
+                  }
+                }}
+              />
+            </LocalizationProvider>
           </Card>
         </div>
 

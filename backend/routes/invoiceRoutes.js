@@ -17,24 +17,54 @@ router.post("/", authenticate(), async (req, res) => {
 router.post("/:id/add-payment", authenticate(), async (req, res) => {
   try {
     const { amount, paymentDate, paymentType, paymentIndex } = req.body;
+    
+    if (!amount || !paymentDate || !paymentType) {
+      return res.status(400).json({ message: "Missing required payment information" });
+    }
+
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
 
-    if (paymentIndex !== undefined && paymentIndex >= 0 && paymentIndex < invoice.payments.length) {
+    // Convert amount to number and validate
+    const paymentAmount = Number(amount);
+    if (isNaN(paymentAmount) || paymentAmount <= 0) {
+      return res.status(400).json({ message: "Invalid payment amount" });
+    }
+
+    // Create and validate payment date
+    const paymentDateObj = new Date(paymentDate);
+    if (isNaN(paymentDateObj.getTime())) {
+      return res.status(400).json({ message: "Invalid payment date" });
+    }
+
+    const paymentObj = {
+      amount: paymentAmount,
+      paymentDate: paymentDateObj,
+      paymentType
+    };
+
+    if (typeof paymentIndex === 'number' && paymentIndex >= 0 && paymentIndex < invoice.payments.length) {
       // Update existing payment
-      invoice.payments[paymentIndex] = { amount, paymentDate, paymentType };
+      invoice.payments[paymentIndex] = paymentObj;
     } else {
       // Add new payment
-      invoice.payments.push({ amount, paymentDate, paymentType });
+      invoice.payments.push(paymentObj);
     }
-    
+
     await invoice.save();
-    res.status(200).json(invoice);
+    
+    const updatedInvoice = await Invoice.findById(invoice._id)
+      .populate({
+        path: 'booking',
+        populate: 'plot'
+      });
+
+    res.status(200).json(updatedInvoice);
   } catch (error) {
     console.error("Error managing payment:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: error.message || "Server Error" });
   }
 });
 
@@ -67,6 +97,40 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
     res.status(200).json(filteredInvoices);
   } catch (error) {
     console.error("Error fetching invoices:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Get invoice by plot ID
+router.get("/plot/:plotId", authenticate(), async (req, res) => {
+  try {
+    const { plotId } = req.params;
+    const invoice = await Invoice.findOne()
+      .populate({
+        path: 'booking',
+        populate: {
+          path: 'plot'
+        }
+      });
+
+    // Find the invoice where booking.plot matches plotId
+    const matchedInvoice = await Invoice.findOne()
+      .populate({
+        path: 'booking',
+        match: { plot: plotId },
+        populate: {
+          path: 'plot'
+        }
+      })
+      .exec();
+
+    if (!matchedInvoice || !matchedInvoice.booking) {
+      return res.status(404).json({ message: "Invoice not found for this plot" });
+    }
+
+    res.status(200).json(matchedInvoice);
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });

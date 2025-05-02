@@ -341,7 +341,7 @@ export default function NewBooking() {
                 <Label htmlFor="layoutId">Layout</Label>
                 <Input
                   id="layoutId"
-                  value={selectedLayout || ""}
+                  value={selectedLayout === "layout1" ? "KRISHNAM Nagar 1" : "KRISHNAM Nagar 2"}
                   readOnly
                   placeholder="Layout"
                   className="bg-white text-black w-full"
@@ -361,7 +361,7 @@ export default function NewBooking() {
                     {Array.isArray(availablePlots) &&
                       availablePlots.map((plot) => (
                         <SelectItem key={plot._id} value={plot._id}>
-                          Plot {plot.plotNumber} - {plot.areaSqFt} sq ft
+                          Plot {plot.plotNumber}
                         </SelectItem>
                       ))}
                   </SelectContent>
