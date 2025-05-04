@@ -24,7 +24,7 @@ export default function LayoutSelectionModal({ open, onClose }) {
             {/* <img src={Layout1} alt="Layout 1" className="w-full mb-2" /> */}
             <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
               <p className="text-5xl">KRISHNAM</p>
-              <p className="ms-10 p-1.5 text-2xl">Nagar 1</p>
+              <p className="ms-10 p-1.5 text-2xl">NAGAR 1</p>
             </div>
           </div>
           <div
@@ -33,7 +33,7 @@ export default function LayoutSelectionModal({ open, onClose }) {
           >
             <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
               <p className="text-5xl">KRISHNAM</p>
-              <p className="ms-10 p-1.5 text-2xl">Nagar 2</p>
+              <p className="ms-10 p-1.5 text-2xl">NAGAR 2</p>
             </div>
           </div>
         </div>

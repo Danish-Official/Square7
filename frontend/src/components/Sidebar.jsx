@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   MessageCircleQuestion,
   Image,
+  Handshake,
 } from "lucide-react"; // Icons
 import Layout1 from "@/assets/layouts/Layout 1.png"; // Import layout images
 import Layout2 from "@/assets/layouts/Layout 2.png"; // Import layout images
@@ -48,16 +49,16 @@ const Sidebar = () => {
             <PanelLeftClose size={20} />
           </button>
         )}
+        <p className="text-center text-sm">A Project By</p>
+        <p className="font-bold text-center mb-2 text-lg">SQUARE SEVEN INFRA</p>
+        <div className="flex items-center justify-center mb-2">
+          <img
+            src={selectedLayout === "layout1" ? Layout1 : Layout2}
+            alt="Layout"
+            className="h-15 w-auto"
+          />
+        </div>
         <nav className="flex flex-col space-y-2">
-          <div className="flex items-center justify-center mb-2">
-            <img
-              src={selectedLayout === "layout1" ? Layout1 : Layout2}
-              alt="Layout"
-              className="h-15 w-auto"
-            />
-          </div>
-          <p className="text-center text-sm">A Project By</p>
-          <p className="font-bold text-center mb-2 text-lg">SQUARE SEVEN INFRA</p>
           <NavItem to="/" icon={<Home size={20} />} label="Dashboard" />
           <NavItem
             to="/plot-management"
@@ -78,6 +79,11 @@ const Sidebar = () => {
             to="/enquiries"
             icon={<MessageCircleQuestion size={20} />}
             label="Enquiries"
+          />
+          <NavItem
+            to="/brokers"
+            icon={<Handshake size={20} />}
+            label="Brokers"
           />
           {auth.user?.role === "superadmin" &&
             <>

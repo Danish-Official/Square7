@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,7 @@ import LayoutSelectionModal from "@/components/LayoutSelectionModal";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import dayjs from 'dayjs';
 import "../styles/dashboard.scss";
 
 export default function Dashboard({ showLoginModal = false }) {
@@ -50,6 +51,10 @@ export default function Dashboard({ showLoginModal = false }) {
   const [layoutStats, setLayoutStats] = useState({});
   const [layoutRevenueData, setLayoutRevenueData] = useState({});
   const [layouts, setLayouts] = useState([]);
+  const [visibleDate, setVisibleDate] = useState(() => dayjs());
+  const [selectedYear, setSelectedYear] = useState(() => dayjs().year());
+  const [selectedMonth, setSelectedMonth] = useState(() => dayjs().month());
+  const [calendarView, setCalendarView] = useState('day');
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
@@ -151,24 +156,41 @@ export default function Dashboard({ showLoginModal = false }) {
     });
   };
 
-  const isBuyerPresentOnDate = (date) => {
-    if (!date || !Array.isArray(buyers)) return false;
+  // Optimize buyerDatesSet to only include dates for the visible month
+  const buyerDatesSet = useMemo(() => {
+    if (!Array.isArray(buyers)) return new Set();
+    return new Set(
+      buyers
+        .filter(buyer => {
+          const buyerDate = dayjs(buyer.bookingDate);
+          return buyer.plot.layoutId === selectedLayout && 
+                 buyerDate.isSame(visibleDate, 'month');
+        })
+        .map(buyer => dayjs(buyer.bookingDate).format('YYYY-MM-DD'))
+    );
+  }, [buyers, selectedLayout, visibleDate]);
 
-    return buyers.some((buyer) => {
-      try {
-        const buyerDate = new Date(buyer.bookingDate);
-        // Normalize dates to compare only year, month, and day
-        return (
-          buyer.plot.layoutId === selectedLayout &&
-          buyerDate.getFullYear() === date.getFullYear() &&
-          buyerDate.getMonth() === date.getMonth() &&
-          buyerDate.getDate() === date.getDate()
-        );
-      } catch (error) {
-        console.error("Date validation error:", error);
-        return false;
-      }
-    });
+  const [count, setCount] = useState(0);
+  const isBuyerPresentOnDate = (date) => {
+    if (!date) return false;
+    try {
+      // Early return if date is not in current month view
+      if (!dayjs(date).isSame(visibleDate, 'month')) return false;
+      return buyerDatesSet.has(dayjs(date).format('YYYY-MM-DD'));
+    } catch (error) {
+      console.error("Date validation error:", error);
+      return false;
+    }
+  };
+
+  const handleYearChange = (date) => {
+    setSelectedYear(date.year());
+    setVisibleDate(date);
+  };
+
+  const handleMonthChange = (date) => {
+    setSelectedMonth(date.month());
+    setVisibleDate(date);
   };
 
   return (
@@ -220,19 +242,18 @@ export default function Dashboard({ showLoginModal = false }) {
           <Card>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateCalendar 
-                shouldDisableDate={(date) => !isBuyerPresentOnDate(date.toDate())}
-                sx={{
-                  '.MuiPickersDay-root': {
-                    '&:not(.Mui-disabled)': {
-                      backgroundColor: '#e6f3ff',
-                      '&:hover': {
-                        backgroundColor: '#cce7ff'
-                      }
-                    }
-                  }
-                }}
-                onChange={(newDate) => {
-                  if (newDate) {
+                shouldDisableDate={(date) => !isBuyerPresentOnDate(date)}
+                minDate={dayjs('2010-01-01')}
+                maxDate={dayjs('2040-12-31')}
+                onMonthChange={handleMonthChange}
+                onYearChange={handleYearChange}
+                views={['year', 'month', 'day']}
+                view={calendarView}
+                defaultView="day"
+                value={visibleDate}
+                onViewChange={(view) => setCalendarView(view)}
+                onChange={(newDate, selectionState) => {
+                  if (newDate && selectionState === "finish" && calendarView === 'day') {
                     handleDateClick(newDate.toDate());
                   }
                 }}

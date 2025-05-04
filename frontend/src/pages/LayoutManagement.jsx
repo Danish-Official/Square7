@@ -23,7 +23,27 @@ const PlotManagement = () => {
   const fetchSoldPlots = async () => {
     try {
       const { data } = await apiClient.get(`/plots/get-plots/${selectedLayout}`);
-      setSoldPlots(data.filter(plot => plot.status === "sold"));
+      // Get sold plots
+      const soldPlotsData = data.filter(plot => plot.status === "sold");
+      
+      // Fetch invoice data for each sold plot
+      const plotsWithPayments = await Promise.all(
+        soldPlotsData.map(async (plot) => {
+          try {
+            const invoiceResponse = await apiClient.get(`/invoices/plot/${plot._id}`);
+            const totalPaid = invoiceResponse.data?.payments?.reduce(
+              (sum, payment) => sum + payment.amount, 
+              0
+            ) || 0;
+            return { ...plot, totalPaid };
+          } catch (error) {
+            console.error(`Error fetching invoice for plot ${plot.plotNumber}:`, error);
+            return { ...plot, totalPaid: 0 };
+          }
+        })
+      );
+      
+      setSoldPlots(plotsWithPayments);
     } catch (error) {
       console.error("Error fetching sold plots:", error);
       toast.error("Failed to fetch sold plots");

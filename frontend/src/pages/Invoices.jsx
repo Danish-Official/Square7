@@ -8,8 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { pdf } from "@react-pdf/renderer";
-import InvoicePDF from "@/components/InvoicePDF";
 import { apiClient } from "@/lib/utils";
 import { toast } from "react-toastify";
 import Pagination from "@/components/Pagination";
@@ -20,6 +18,7 @@ import InvoiceDetailsModal from "@/components/InvoiceDetailsModal";
 export default function Invoices() {
   const { selectedLayout } = useLayout();
   const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -38,38 +37,44 @@ export default function Invoices() {
   const fetchInvoices = async () => {
     try {
       if (!selectedLayout) return;
+      setLoading(true);
+      
       const { data } = await apiClient.get(`/invoices/layout/${selectedLayout}`);
-      // Ensure bookings are populated with plot details
-      const populatedInvoices = data.map(invoice => ({
-        ...invoice,
-        booking: {
-          ...invoice.booking,
-          plot: invoice.booking.plot || {}
-        }
-      }));
-      setInvoices(populatedInvoices);
+      
+      if (!Array.isArray(data)) {
+        console.error("Invalid response format:", data);
+        toast.error("Invalid response from server");
+        return;
+      }
+
+      // Filter and validate invoice data
+      const validInvoices = data.filter(invoice => 
+        invoice?.booking?.buyerName && 
+        invoice?.booking?.phoneNumber &&
+        invoice?.booking?.plot?.layoutId === selectedLayout
+      );
+
+      console.log("Valid invoices:", validInvoices); // Debug log
+      setInvoices(validInvoices);
+      
+      if (validInvoices.length === 0) {
+        toast.info("No invoices found for this layout");
+      }
     } catch (error) {
       console.error("Error fetching invoices:", error);
-      toast.error("Failed to fetch invoices");
+      toast.error(error.response?.data?.message || "Failed to fetch invoices");
       setInvoices([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDownloadInvoice = async (invoice) => {
-    const blob = await pdf(<InvoicePDF data={invoice} />).toBlob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Invoice_${invoice?.booking?.buyerName}.pdf`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const filteredInvoices = invoices?.filter((invoice) =>
-    invoice?.booking?.buyerName
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  // Filter invoices with null checks
+  const filteredInvoices = invoices.filter((invoice) => {
+    const buyerName = invoice?.booking?.buyerName || '';
+    const searchTermLower = searchTerm.toLowerCase();
+    return buyerName.toLowerCase().includes(searchTermLower);
+  });
 
   const totalPages = Math.ceil((filteredInvoices?.length || 0) / itemsPerPage);
   const paginatedInvoices = filteredInvoices?.slice(
@@ -94,47 +99,59 @@ export default function Invoices() {
             className="mb-4"
           />
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Buyer Name</TableHead>
-                <TableHead>Phone Number</TableHead>
-                <TableHead className={"ps-20"}>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedInvoices?.map((invoice) => (
-                <TableRow key={invoice?._id}>
-                  <TableCell>{invoice?.booking?.buyerName}</TableCell>
-                  <TableCell>{invoice?.booking?.phoneNumber}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => {
-                          setSelectedInvoice(invoice);
-                          setIsDialogOpen(true);
-                        }}
-                        className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                      >
-                        View Details
-                      </Button>
-                      <Button
-                        onClick={() => handleDownloadInvoice(invoice)}
-                        className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                      >
-                        Download
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+          {loading ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500">Loading invoices...</p>
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500">No invoices found for this layout</p>
+              <Button 
+                onClick={fetchInvoices} 
+                className="mt-4 bg-[#1F263E] hover:bg-[#2A324D] text-white"
+              >
+                Refresh
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Buyer Name</TableHead>
+                    <TableHead>Phone Number</TableHead>
+                    <TableHead className={"ps-20"}>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedInvoices?.map((invoice) => (
+                    <TableRow key={invoice?._id}>
+                      <TableCell>{invoice?.booking?.buyerName}</TableCell>
+                      <TableCell>{invoice?.booking?.phoneNumber}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              setSelectedInvoice(invoice);
+                              setIsDialogOpen(true);
+                            }}
+                            className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
           
           <InvoiceDetailsModal 
             isOpen={isDialogOpen}

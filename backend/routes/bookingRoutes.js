@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const Booking = require("../models/Booking");
-const Plot = require("../models/Plot"); // Ensure Plot model is imported
-const Invoice = require("../models/Invoice"); // Add Invoice model
+const Plot = require("../models/Plot");
+const Invoice = require("../models/Invoice");
+const Broker = require("../models/Broker");
 const authenticate = require("../middleware/authenticate");
 
 // Create Booking
 router.post("/", authenticate(), async (req, res) => {
   try {
-    console.log("Received booking data:", req.body); // Log incoming data for debugging
-    const { plotId, ratePerSqFt, areaSqFt, ...rest } = req.body; // Exclude unnecessary fields
+    console.log("Received booking data:", req.body);
+    const { plotId, ratePerSqFt, areaSqFt, brokerData, ...rest } = req.body;
 
     // Check if any existing booking already uses this plot
     const existingBooking = await Booking.findOne({ plot: plotId });
@@ -25,10 +26,18 @@ router.post("/", authenticate(), async (req, res) => {
       return res.status(400).json({ message: "Plot is not available" });
     }
 
-    // Create booking with layoutId from plot
+    // Create and save broker if brokerData exists
+    let brokerId = null;
+    if (brokerData) {
+      const broker = new Broker(brokerData);
+      await broker.save();
+      brokerId = broker._id;
+    }
+
+    // Create booking with broker reference if exists
     const booking = new Booking({
       plot: plotId,
-      layoutId: plot.layoutId, // Add layoutId from plot
+      broker: brokerId,
       ...rest,
     });
 
@@ -36,9 +45,14 @@ router.post("/", authenticate(), async (req, res) => {
     plot.status = "sold";
     await plot.save();
 
-    res.status(201).json(booking);
+    // Return the populated booking
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate("plot")
+      .populate("broker");
+
+    res.status(201).json(populatedBooking);
   } catch (error) {
-    console.error("Error saving booking:", error.message); // Log error details
+    console.error("Error saving booking:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
@@ -48,11 +62,13 @@ router.get("/", authenticate(), async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate("plot")
+      .populate("broker")
       .sort({ createdAt: -1 })
-      .lean(); // Fetch bookings with plot details in descending order
+      .lean();
     res.status(200).json(bookings);
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error("Error fetching bookings:", error.message);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
@@ -60,8 +76,12 @@ router.get("/", authenticate(), async (req, res) => {
 router.get("/layout/:layoutId", authenticate(), async (req, res) => {
   try {
     const { layoutId } = req.params;
-    const bookings = await Booking.find({ layoutId })
+    const plots = await Plot.find({ layoutId }).lean();
+    const plotIds = plots.map((plot) => plot._id);
+
+    const bookings = await Booking.find({ plot: { $in: plotIds } })
       .populate("plot")
+      .populate("broker")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -72,19 +92,19 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
       }))
     );
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error("Error fetching bookings for layout:", error.message);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
 // Update Booking
 router.put("/:id", authenticate(), async (req, res) => {
   try {
-    // Retrieve the existing booking
     const existingBooking = await Booking.findById(req.params.id);
     if (!existingBooking) {
       return res.status(404).json({ message: "Booking not found" });
     }
-    // Convert numeric fields if provided, else use existing values
+
     const updatedFirstPayment =
       req.body.firstPayment !== undefined
         ? Number(req.body.firstPayment)
@@ -94,7 +114,6 @@ router.put("/:id", authenticate(), async (req, res) => {
         ? Number(req.body.totalCost)
         : existingBooking.totalCost;
 
-    // Check that firstPayment is greater than 0 and less than or equal to totalCost
     if (updatedFirstPayment <= 0 || updatedFirstPayment > updatedTotalCost) {
       return res.status(400).json({
         message:
@@ -102,7 +121,6 @@ router.put("/:id", authenticate(), async (req, res) => {
       });
     }
 
-    // Merge the incoming data with the safe numeric values
     const updateData = {
       ...req.body,
       firstPayment: updatedFirstPayment,
@@ -114,12 +132,14 @@ router.put("/:id", authenticate(), async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     );
+
     if (!updatedBooking) {
       return res.status(404).json({ message: "Booking not found" });
     }
+
     res.status(200).json(updatedBooking);
   } catch (error) {
-    console.error("Error updating booking:", error);
+    console.error("Error updating booking:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
@@ -132,13 +152,9 @@ router.delete("/:id", authenticate(), async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Delete corresponding invoice
     await Invoice.deleteOne({ booking: booking._id });
-
-    // Delete the booking
     await Booking.deleteOne({ _id: booking._id });
 
-    // Update plot status to "available"
     const plot = await Plot.findById(booking.plot);
     if (plot) {
       plot.status = "available";
@@ -149,7 +165,7 @@ router.delete("/:id", authenticate(), async (req, res) => {
       .status(200)
       .json({ message: "Booking and related data deleted successfully" });
   } catch (error) {
-    console.error("Error deleting booking:", error);
+    console.error("Error deleting booking:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });

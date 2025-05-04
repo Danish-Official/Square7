@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import { apiClient } from "@/lib/utils";
 import { pdf } from "@react-pdf/renderer";
 import SinglePaymentPDF from "@/components/SinglePaymentPDF";
+import InvoicePDF from "@/components/InvoicePDF";
 
 export default function InvoiceDetailsModal({ 
   isOpen, 
@@ -44,6 +45,18 @@ export default function InvoiceDetailsModal({
     if (name === "amount") {
       if (!value || value <= 0) {
         error = "Amount must be greater than 0.";
+      } else {
+        // Check if new payment would exceed total cost
+        const currentTotal = localInvoice.payments.reduce((sum, payment, idx) => {
+          // Exclude amount being edited if updating existing payment
+          if (idx === editingPaymentIndex) return sum;
+          return sum + payment.amount;
+        }, 0);
+        
+        const newTotal = currentTotal + Number(value);
+        if (newTotal > localInvoice.booking.totalCost) {
+          error = "Total payments cannot exceed the plot cost.";
+        }
       }
     } else if (name === "paymentDate") {
       if (!value) {
@@ -55,9 +68,11 @@ export default function InvoiceDetailsModal({
   };
 
   const handleAddOrEditPayment = async () => {
-    const isValid = ["amount", "paymentDate"].every((field) =>
-      validateField(field, subsequentPayment?.[field])
+    // Validate fields including total amount check
+    const isValid = Object.entries(subsequentPayment).every(([field, value]) => 
+      validateField(field, value)
     );
+    
     if (!isValid) return;
 
     try {
@@ -139,6 +154,16 @@ export default function InvoiceDetailsModal({
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadInvoice = async () => {
+    const blob = await pdf(<InvoicePDF data={localInvoice} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Invoice_${localInvoice?.booking?.buyerName}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const resetForm = () => {
     setEditingPaymentIndex(null);
     setSubsequentPayment({
@@ -167,13 +192,23 @@ export default function InvoiceDetailsModal({
       <DialogContent className="p-6 bg-white rounded-xl max-h-[100vh] overflow-y-auto">
         {localInvoice && (
           <div className="space-y-6">
-            <DialogHeader className="space-y-3 mb-6">
-              <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
-                Invoice Details
-              </DialogTitle>
-              <p className="text-gray-500 text-sm font-normal">
-                View and manage invoice information
-              </p>
+            <DialogHeader className="space-y-3 mb-6 flex justify-between items-start">
+              <div>
+                <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+                  Invoice Details
+                </DialogTitle>
+                <p className="text-gray-500 text-sm font-normal">
+                  View and manage invoice information
+                </p>
+              </div>
+              <Button
+                variant="outline" 
+                onClick={handleDownloadInvoice}
+                className="bg-white hover:bg-gray-50"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Invoice
+              </Button>
             </DialogHeader>
             <div className="grid gap-6">
               <div className="grid grid-cols-2 gap-6">

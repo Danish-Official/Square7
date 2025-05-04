@@ -8,6 +8,7 @@ const bookingRoutes = require("./routes/bookingRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
 const enquiryRoutes = require("./routes/enquiryRoutes");
 const layoutResourceRoutes = require("./routes/layoutResourceRoutes");
+const brokerRoutes = require("./routes/brokerRoutes");
 const path = require("path");
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use("/api/plots", plotRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/enquiries", enquiryRoutes);
+app.use("/api/brokers", brokerRoutes);
 app.use("/api/layout-resources", layoutResourceRoutes);
 
 // Serve uploaded files statically - move this BEFORE the catch-all route

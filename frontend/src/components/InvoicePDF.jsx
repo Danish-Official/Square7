@@ -121,11 +121,18 @@ const styles = StyleSheet.create({
   },
   total: {
     flexDirection: 'row',
-    alignSelf: 'flex-end',
+    justifyContent: 'space-between',
     marginTop: 10,
     padding: 10,
     backgroundColor: '#f8f9fa',
     borderRadius: 4,
+    gap: 20,
+  },
+  totalItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   footer: {
     position: 'absolute',
@@ -140,91 +147,111 @@ const styles = StyleSheet.create({
   }
 });
 
-const InvoicePDF = ({ data }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Image src={logoPath} style={styles.logo} />
-        <Image src={Layout} style={styles.layoutLogo} />
-        <View style={styles.address}>
-          <Text>HINGNA NAGPUR 441110</Text>
-          <Text>Contact: +91 XXXXXXXXXX</Text>
-          <Text>Email: info@square7.com</Text>
-        </View>
-      </View>
+const InvoicePDF = ({ data }) => {
+  const calculateTotalPaid = () => {
+    return data.payments.reduce((sum, payment) => sum + payment.amount, 0);
+  };
 
-      {/* Billing Information */}
-      <View style={styles.billInfo}>
-        <View>
-          <Text style={styles.label}>Billed To:</Text>
-          <Text style={styles.value}>{data.booking.buyerName}</Text>
-          <Text style={styles.value}>{data.booking.address}</Text>
-        </View>
-        <View>
-          <Text style={styles.label}>Invoice No:</Text>
-          <Text style={styles.value}>{data._id}</Text>
-          <View style={styles.dateGroup}>
-            <Text style={styles.label}>Date:</Text>
-            <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
+  const getRemainingAmount = () => {
+    const totalPaid = calculateTotalPaid();
+    const remaining = data.booking.totalCost - totalPaid;
+    return Math.max(0, remaining); // Ensure remaining amount doesn't go negative
+  };
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Image src={logoPath} style={styles.logo} />
+          <Image src={Layout} style={styles.layoutLogo} />
+          <View style={styles.address}>
+            <Text>HINGNA NAGPUR 441110</Text>
+            <Text>Contact: +91 XXXXXXXXXX</Text>
+            <Text>Email: info@square7.com</Text>
           </View>
         </View>
-      </View>
 
-      {/* Plot Details */}
-      <View style={styles.plotDetails}>
-        <Text style={styles.sectionTitle}>Plot Details</Text>
-        <View style={styles.summaryRow}>
-          <Text style={styles.plotLabel}>Plot Number:</Text>
-          <Text style={styles.plotValue}>{data.booking.plot.plotNumber}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.plotLabel}>Area:</Text>
-          <Text style={styles.plotValue}>{data.booking.plot.areaSqFt} sq ft</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.plotLabel}>Rate per sq ft:</Text>
-          <Text style={styles.plotValue}>Rs. {(data.booking.totalCost / data.booking.plot.areaSqFt).toFixed(2)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.plotLabel}>Total Plot Cost:</Text>
-          <Text style={styles.plotValue}>Rs. {data.booking.totalCost}</Text>
-        </View>
-      </View>
-
-      {/* Payments Section */}
-      <View style={styles.paymentsSection}>
-        <Text style={styles.sectionTitle}>Payment History</Text>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text>
-            <Text style={[styles.tableCell, styles.headerCell]}>Date</Text>
-            <Text style={[styles.tableCell, styles.headerCell]}>Payment Type</Text>
-            <Text style={[styles.tableCell, styles.headerCell]}>Amount (Rs.)</Text>
+        {/* Billing Information */}
+        <View style={styles.billInfo}>
+          <View>
+            <Text style={styles.label}>Billed To:</Text>
+            <Text style={styles.value}>{data.booking.buyerName}</Text>
+            <Text style={styles.value}>{data.booking.address}</Text>
           </View>
-          {data.payments.map((payment, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.tableCell}>{index + 1}</Text>
-              <Text style={styles.tableCell}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
-              <Text style={styles.tableCell}>{payment.paymentType}</Text>
-              <Text style={styles.tableCell}>{payment.amount}</Text>
+          <View>
+            <Text style={styles.label}>Invoice No:</Text>
+            <Text style={styles.value}>{data._id}</Text>
+            <View style={styles.dateGroup}>
+              <Text style={styles.label}>Date:</Text>
+              <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
             </View>
-          ))}
+          </View>
         </View>
-      </View>
 
-      <View style={styles.total}>
-        <Text style={styles.totalLabel}>Total Amount Paid:{" "}</Text>
-        <Text style={styles.totalValue}>
-          Rs. {data.payments.reduce((sum, payment) => sum + payment.amount, 0)}
-        </Text>
-      </View>
+        {/* Plot Details */}
+        <View style={styles.plotDetails}>
+          <Text style={styles.sectionTitle}>Plot Details</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.plotLabel}>Plot Number:</Text>
+            <Text style={styles.plotValue}>{data.booking.plot.plotNumber}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.plotLabel}>Area:</Text>
+            <Text style={styles.plotValue}>{data.booking.plot.areaSqFt} sq ft</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.plotLabel}>Rate per sq ft:</Text>
+            <Text style={styles.plotValue}>Rs. {(data.booking.totalCost / data.booking.plot.areaSqFt).toFixed(2)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.plotLabel}>Total Plot Cost:</Text>
+            <Text style={styles.plotValue}>Rs. {data.booking.totalCost}</Text>
+          </View>
+        </View>
 
-      <View style={styles.footer}>
-        <Text>Generated on {new Date().toLocaleDateString()}</Text>
-        <Text>Square7 Real Estate Solutions</Text>
-      </View>
-    </Page>
-  </Document>
-);
+        {/* Payments Section */}
+        <View style={styles.paymentsSection}>
+          <Text style={styles.sectionTitle}>Payment History</Text>
+          <View style={styles.table}>
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Date</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Payment Type</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Amount (Rs.)</Text>
+            </View>
+            {data.payments.map((payment, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{index + 1}</Text>
+                <Text style={styles.tableCell}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
+                <Text style={styles.tableCell}>{payment.paymentType}</Text>
+                <Text style={styles.tableCell}>{payment.amount}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.total}>
+          <View style={styles.totalItem}>
+            <Text style={styles.totalLabel}>Total Amount Paid:</Text>
+            <Text style={styles.totalValue}>
+              Rs. {calculateTotalPaid()}
+            </Text>
+          </View>
+          <View style={styles.totalItem}>
+            <Text style={styles.totalLabel}>Remaining Amount:</Text>
+            <Text style={styles.totalValue}>
+              Rs. {getRemainingAmount()}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Text>Generated on {new Date().toLocaleDateString()}</Text>
+          <Text>Square7 Real Estate Solutions</Text>
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 export default InvoicePDF;

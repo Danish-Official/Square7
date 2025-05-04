@@ -21,7 +21,7 @@ function TableHeader({ className, ...props }) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b bg-[#1F263E] text-white", className)}
+      className={cn("[&_tr]:border-b [&_tr:hover]:bg-[#1F263E] bg-[#1F263E] text-white", className)}
       {...props}
     />
   );

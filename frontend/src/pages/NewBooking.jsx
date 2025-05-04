@@ -29,10 +29,13 @@ export default function NewBooking() {
     areaSqFt: 0,
     ratePerSqFt: 0,
     paymentType: "Cash",
-    brokerReference: "",
+    brokerName: "",
+    brokerPhone: "",
+    brokerAddress: "",
+    brokerCommission: "",
     firstPayment: 0,
     totalCost: 0,
-    bookingDate: new Date().toISOString().split('T')[0], // Add default date
+    bookingDate: new Date().toISOString().split('T')[0],
   });
   const [plots, setPlots] = useState(null);
   const [availablePlots, setAvailablePlots] = useState([]);
@@ -168,18 +171,34 @@ export default function NewBooking() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Get selected plot details
+      const selectedPlot = availablePlots.find((plot) => plot._id === formData.plotId);
+      
+      // Prepare broker data to be included in booking
+      const brokerData = formData.brokerName ? {
+        name: formData.brokerName,
+        phoneNumber: formData.brokerPhone,
+        address: formData.brokerAddress,
+        commission: Number(formData.brokerCommission),
+        plotNumber: selectedPlot.plotNumber,
+        layoutId: formData.layoutId
+      } : null;
+
+      // Create booking with broker data
       const bookingResponse = await apiClient.post("/bookings", {
         ...formData,
-        bookingDate: new Date(formData.bookingDate) // Ensure date is passed correctly
+        brokerData,
+        bookingDate: new Date(formData.bookingDate)
       });
       const bookingId = bookingResponse.data._id;
 
+      // Create invoice
       const invoiceData = {
         booking: bookingId,
         payments: [
           {
             amount: formData.firstPayment,
-            paymentDate: new Date(formData.bookingDate), // Use booking date for first payment
+            paymentDate: new Date(formData.bookingDate),
             paymentType: formData.paymentType,
           },
         ],
@@ -187,11 +206,6 @@ export default function NewBooking() {
       await apiClient.post("/invoices", invoiceData);
 
       toast.success("Booking and invoice created successfully");
-
-      // Get plot details for the preview
-      const selectedPlot = availablePlots.find(
-        (plot) => plot._id === formData.plotId
-      );
 
       navigate("/booking-preview", {
         state: {
@@ -341,7 +355,7 @@ export default function NewBooking() {
                 <Label htmlFor="layoutId">Layout</Label>
                 <Input
                   id="layoutId"
-                  value={selectedLayout === "layout1" ? "KRISHNAM Nagar 1" : "KRISHNAM Nagar 2"}
+                  value={selectedLayout === "layout1" ? "KRISHNAM NAGAR 1" : "KRISHNAM NAGAR 2"}
                   readOnly
                   placeholder="Layout"
                   className="bg-white text-black w-full"
@@ -445,19 +459,6 @@ export default function NewBooking() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brokerReference">
-                Broker Reference (Optional)
-              </Label>
-              <Input
-                id="brokerReference"
-                name="brokerReference"
-                value={formData.brokerReference}
-                onChange={handleChange}
-                placeholder="Broker Reference (Optional)"
-                className="bg-white text-black"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="firstPayment">First Payment</Label>
               <Input
                 id="firstPayment"
@@ -471,6 +472,34 @@ export default function NewBooking() {
               />
               {errors.firstPayment && (
                 <p className="text-red-500 text-sm">{errors.firstPayment}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brokerName">Broker Name (Optional)</Label>
+              <Input
+                id="brokerName"
+                name="brokerName"
+                value={formData.brokerName}
+                onChange={handleChange}
+                placeholder="Enter broker name"
+                className="bg-white text-black"
+              />
+              {errors.brokerName && (
+                <p className="text-red-500 text-sm">{errors.brokerName}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brokerPhone">Broker Phone (Optional)</Label>
+              <Input
+                id="brokerPhone"
+                name="brokerPhone"
+                value={formData.brokerPhone}
+                onChange={handleChange}
+                placeholder="Enter broker phone number"
+                className="bg-white text-black"
+              />
+              {errors.brokerPhone && (
+                <p className="text-red-500 text-sm">{errors.brokerPhone}</p>
               )}
             </div>
           </div>
@@ -489,9 +518,8 @@ export default function NewBooking() {
         <div className="w-1/4 p-4 border-r bg-[#303750] text-white shadow-md rounded-md flex flex-col gap-y-8">
           <h3 className="text-lg font-bold text-center">Quick Navigation</h3>
           <button
-            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${
-              currentSection === 1 ? "font-bold" : ""
-            }`}
+            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${currentSection === 1 ? "font-bold" : ""
+              }`}
             onClick={(e) => {
               e.preventDefault();
               setCurrentSection(1);
@@ -503,9 +531,8 @@ export default function NewBooking() {
             )}
           </button>
           <button
-            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${
-              currentSection === 2 ? "font-bold" : ""
-            }`}
+            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${currentSection === 2 ? "font-bold" : ""
+              }`}
             onClick={(e) => {
               e.preventDefault();
               setCurrentSection(2);
@@ -518,9 +545,8 @@ export default function NewBooking() {
             )}
           </button>
           <button
-            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${
-              currentSection === 3 ? "font-bold" : ""
-            }`}
+            className={`flex items-center justify-between w-full text-center py-4 px-4 bg-white text-black rounded-md ${currentSection === 3 ? "font-bold" : ""
+              }`}
             onClick={(e) => {
               e.preventDefault();
               setCurrentSection(3);

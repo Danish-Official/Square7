@@ -14,6 +14,7 @@ import ResetPassword from "./components/ResetPassword";
 import BookingPreview from "@/pages/BookingPreview";
 import AppWrapper from "./pages/AppWrapper";
 import LayoutResources from "./pages/LayoutResources";
+import BrokersManagement from "./pages/BrokersManagement";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -78,6 +79,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Invoices />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="brokers"
+            element={
+              <ProtectedRoute>
+                <BrokersManagement />
               </ProtectedRoute>
             }
           />

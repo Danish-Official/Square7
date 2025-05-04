@@ -84,20 +84,31 @@ router.get("/", authenticate(), async (req, res) => {
 router.get("/layout/:layoutId", authenticate(), async (req, res) => {
   try {
     const { layoutId } = req.params;
+    
     const invoices = await Invoice.find()
       .populate({
         path: 'booking',
-        match: { layoutId: layoutId },
-        populate: 'plot'
+        populate: {
+          path: 'plot',
+        }
       })
-      .sort({ createdAt: -1 });
+      .lean()
+      .exec();
 
-    // Filter out null bookings (those that didn't match layoutId)
-    const filteredInvoices = invoices.filter(invoice => invoice.booking);
+    // Filter invoices for the specific layout
+    const filteredInvoices = invoices.filter(invoice => 
+      invoice.booking && 
+      invoice.booking.plot && 
+      invoice.booking.plot.layoutId === layoutId
+    );
+
     res.status(200).json(filteredInvoices);
   } catch (error) {
     console.error("Error fetching invoices:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ 
+      message: "Failed to fetch invoices",
+      error: error.message 
+    });
   }
 });
 

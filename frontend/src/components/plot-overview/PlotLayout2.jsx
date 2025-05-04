@@ -306,7 +306,7 @@ const PlotLayout2 = () => {
       )}
 
       {/* Invoice Modal */}
-      <InvoiceDetailsModal 
+      <InvoiceDetailsModal
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         invoice={selectedInvoice}
