@@ -31,11 +31,12 @@ import { useLayout } from "@/context/LayoutContext";
 import { apiClient } from "@/lib/utils";
 import { toast } from "react-toastify";
 import LayoutSelectionModal from "@/components/LayoutSelectionModal";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import { Calendar } from "@/components/ui/calendar";
 import dayjs from 'dayjs';
 import "../styles/dashboard.scss";
+
+// Add this cache at the top, outside component
+const buyersCache = new Map();
 
 export default function Dashboard({ showLoginModal = false }) {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -124,6 +125,19 @@ export default function Dashboard({ showLoginModal = false }) {
     }
   }, [selectedLayout, setShowLayoutModal]);
 
+  // Update the buyers cache whenever buyers or layout changes
+  useEffect(() => {
+    if (!Array.isArray(buyers) || !selectedLayout) return;
+    
+    const cache = new Set(
+      buyers
+        .filter(buyer => buyer.plot.layoutId === selectedLayout)
+        .map(buyer => dayjs(buyer.bookingDate).format('YYYY-MM-DD'))
+    );
+    
+    buyersCache.set(selectedLayout, cache);
+  }, [buyers, selectedLayout]);
+
   const handleDateClick = (date) => {
     if (date && isBuyerPresentOnDate(date)) {
       setSelectedDate(date);
@@ -156,36 +170,18 @@ export default function Dashboard({ showLoginModal = false }) {
     });
   };
 
-  // Optimize buyerDatesSet to only include dates for the visible month
-  const buyerDatesSet = useMemo(() => {
-    if (!Array.isArray(buyers)) return new Set();
-    return new Set(
-      buyers
-        .filter(buyer => {
-          const buyerDate = dayjs(buyer.bookingDate);
-          return buyer.plot.layoutId === selectedLayout && 
-                 buyerDate.isSame(visibleDate, 'month');
-        })
-        .map(buyer => dayjs(buyer.bookingDate).format('YYYY-MM-DD'))
-    );
-  }, [buyers, selectedLayout, visibleDate]);
-
-  const [count, setCount] = useState(0);
   const isBuyerPresentOnDate = (date) => {
-    if (!date) return false;
+    if (!date || !selectedLayout) return false;
     try {
-      // Early return if date is not in current month view
-      if (!dayjs(date).isSame(visibleDate, 'month')) return false;
-      return buyerDatesSet.has(dayjs(date).format('YYYY-MM-DD'));
+      const cache = buyersCache.get(selectedLayout);
+      if (!cache) return false;
+      
+      const dateStr = dayjs(date).format('YYYY-MM-DD');
+      return cache.has(dateStr);
     } catch (error) {
       console.error("Date validation error:", error);
       return false;
     }
-  };
-
-  const handleYearChange = (date) => {
-    setSelectedYear(date.year());
-    setVisibleDate(date);
   };
 
   const handleMonthChange = (date) => {
@@ -240,25 +236,14 @@ export default function Dashboard({ showLoginModal = false }) {
             </CardContent>
           </Card>
           <Card>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DateCalendar 
-                shouldDisableDate={(date) => !isBuyerPresentOnDate(date)}
-                minDate={dayjs('2010-01-01')}
-                maxDate={dayjs('2040-12-31')}
-                onMonthChange={handleMonthChange}
-                onYearChange={handleYearChange}
-                views={['year', 'month', 'day']}
-                view={calendarView}
-                defaultView="day"
-                value={visibleDate}
-                onViewChange={(view) => setCalendarView(view)}
-                onChange={(newDate, selectionState) => {
-                  if (newDate && selectionState === "finish" && calendarView === 'day') {
-                    handleDateClick(newDate.toDate());
-                  }
-                }}
-              />
-            </LocalizationProvider>
+            <Calendar
+              value={visibleDate}
+              onChange={(date) => handleDateClick(date.toDate())}
+              shouldDisableDate={(date) => !isBuyerPresentOnDate(date)}
+              minDate={dayjs('2010-01-01')}
+              maxDate={dayjs('2040-12-31')}
+              onMonthChange={handleMonthChange}
+            />
           </Card>
         </div>
 

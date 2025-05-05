@@ -24,6 +24,7 @@ export default function NewBooking() {
     address: "",
     phoneNumber: "",
     gender: "Male",
+    dateOfBirth: "",
     layoutId: selectedLayout || "",
     plotId: "",
     areaSqFt: 0,
@@ -94,7 +95,7 @@ export default function NewBooking() {
   useEffect(() => {
     let complete = true;
     if (currentSection === 1) {
-      complete = formData.buyerName && formData.phoneNumber;
+      complete = formData.buyerName && formData.phoneNumber && formData.dateOfBirth;
     } else if (currentSection === 2) {
       complete = formData.plotId && formData.ratePerSqFt;
     } else if (currentSection === 3) {
@@ -131,6 +132,13 @@ export default function NewBooking() {
       if (value <= 0 || value > formData.totalCost) {
         error =
           "First payment should be greater than 0 and less than or equal to the total cost.";
+      }
+    } else if (name === "dateOfBirth") {
+      const dob = new Date(value);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 18) {
+        error = "Buyer must be at least 18 years old.";
       }
     }
     setErrors((prev) => ({ ...prev, [name]: error }));
@@ -221,7 +229,7 @@ export default function NewBooking() {
   const isCurrentSectionValid = () => {
     switch (currentSection) {
       case 1:
-        return formData.buyerName && formData.phoneNumber;
+        return formData.buyerName && formData.phoneNumber && formData.dateOfBirth;
       case 2:
         return formData.plotId && formData.ratePerSqFt;
       case 3:
@@ -248,6 +256,22 @@ export default function NewBooking() {
                 required
                 className="bg-white text-black"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dateOfBirth">Date of Birth</Label>
+              <Input
+                id="dateOfBirth"
+                name="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                required
+                className="bg-white text-black"
+                max={new Date().toISOString().split('T')[0]}
+              />
+              {errors.dateOfBirth && (
+                <p className="text-red-500 text-sm">{errors.dateOfBirth}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="buyerName">Buyer Name</Label>
@@ -537,7 +561,7 @@ export default function NewBooking() {
               e.preventDefault();
               setCurrentSection(2);
             }}
-            disabled={!formData.buyerName || !formData.phoneNumber}
+            disabled={!formData.buyerName || !formData.phoneNumber || !formData.dateOfBirth}
           >
             <span>Plot Details</span>
             {completedSections.includes(2) && (

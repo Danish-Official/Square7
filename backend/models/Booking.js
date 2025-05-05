@@ -6,6 +6,10 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    dateOfBirth: {
+      type: Date,
+      required: true,
+    },
     address: { type: String, required: true },
     phoneNumber: {
       type: String,
