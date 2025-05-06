@@ -24,10 +24,12 @@ import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { useLayout } from "@/context/LayoutContext";
+import { useAuth } from "@/context/AuthContext"; // Add this import
 
 export default function BuyersManagement() {
   const { buyers, deleteBuyer, updateBuyer, setCurrentLayout } = useBuyers();
   const { selectedLayout } = useLayout();
+  const { auth } = useAuth(); // Add this line
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -298,11 +300,13 @@ export default function BuyersManagement() {
                 {/* Use bookingDate */}
               </TableCell>
               <TableCell>
-                <Trash2
-                  color="#f00505"
-                  className="self-center"
-                  onClick={() => handleDelete(buyer._id)}
-                />
+                {auth.user?.role === "superadmin" && (
+                  <Trash2
+                    color="#f00505"
+                    className="self-center"
+                    onClick={() => handleDelete(buyer._id)}
+                  />
+                )}
               </TableCell>
             </TableRow>
           ))}

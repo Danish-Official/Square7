@@ -80,10 +80,7 @@ export default function UsersManagement() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-semibold">User Management</h1>
         <Button
-          className="text-lg font-semibold capitalize cursor-pointer hover:bg-[#5266A4]"
-          style={{
-            background: "linear-gradient(to bottom, #1F263E, #5266A4)",
-          }}
+          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
           onClick={() => setIsDialogOpen(true)}
         >
           Create Admin

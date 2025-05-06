@@ -34,6 +34,7 @@ app.use("/api/invoices", invoiceRoutes);
 app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/brokers", brokerRoutes);
 app.use("/api/layout-resources", layoutResourceRoutes);
+app.use("/api", brokerRoutes);
 
 // Serve uploaded files statically - move this BEFORE the catch-all route
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

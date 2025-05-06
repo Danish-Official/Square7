@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useLayout } from "@/context/LayoutContext";
+import { useAuth } from "@/context/AuthContext"; // Add this import
 import { apiClient } from "@/lib/utils";
 import { File, Image, FileText, Trash2, Upload } from "lucide-react";
 import { format } from "date-fns";
@@ -10,6 +11,7 @@ export default function LayoutResources() {
   const [resources, setResources] = useState([]);
   const [uploading, setUploading] = useState(false);
   const { selectedLayout } = useLayout();
+  const { auth } = useAuth(); // Add this line
 
   useEffect(() => {
     if (selectedLayout) {
@@ -97,11 +99,11 @@ export default function LayoutResources() {
           <Button
             onClick={() => document.getElementById('fileUpload').click()}
             disabled={uploading}
-            className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+            className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E] text-white"
           >
             {uploading ? 'Uploading...' : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload strokeWidth={3}/>
                 Upload File
               </>
             )}
@@ -123,14 +125,18 @@ export default function LayoutResources() {
                   <p className="text-sm text-gray-500">{formatFileSize(resource.fileSize)}</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(resource._id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-4">
+                {auth.user?.role === "superadmin" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(resource._id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
             </div>
             <p className="text-sm text-gray-500">
               Uploaded on {format(new Date(resource.uploadDate), 'MMM d, yyyy')}

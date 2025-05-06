@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ export default function BrokersManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { auth } = useAuth();
 
   useEffect(() => {
     fetchBrokers();
@@ -32,8 +34,10 @@ export default function BrokersManagement() {
   const fetchBrokers = async () => {
     try {
       const { data } = await apiClient.get("/brokers");
+      console.log("Fetched brokers data:", data); // Debug logging
       setBrokers(data);
     } catch (error) {
+      console.error("Failed to fetch brokers:", error);
       toast.error("Failed to fetch brokers");
     }
   };
@@ -89,7 +93,11 @@ export default function BrokersManagement() {
     try {
       const { data } = await apiClient.put(`/brokers/${brokerId}`, editedData);
       setBrokers((prev) =>
-        prev.map((broker) => (broker._id === brokerId ? data : broker))
+        prev.map((broker) =>
+          broker._id === brokerId
+            ? { ...data, plots: broker.plots } // Preserve plots data from previous state
+            : broker
+        )
       );
       setEditingBroker(null);
       setEditedData({});
@@ -134,6 +142,7 @@ export default function BrokersManagement() {
             <TableHead>Phone Number</TableHead>
             <TableHead>Address</TableHead>
             <TableHead>Commission (%)</TableHead>
+            <TableHead>Plots</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -179,7 +188,7 @@ export default function BrokersManagement() {
                 {editingBroker === broker._id ? (
                   <Input
                     type="number"
-                    value={editedData.commission}
+                    value={editedData.commission || ''}
                     onChange={(e) =>
                       handleEditChange("commission", Number(e.target.value))
                     }
@@ -187,6 +196,19 @@ export default function BrokersManagement() {
                   />
                 ) : (
                   broker.commission ? `${broker.commission}%` : '-'
+                )}
+              </TableCell>
+              <TableCell>
+                {broker.plots?.length > 0 ? (
+                  <div className="flex flex-col gap-1">
+                    {broker.plots.map((plot, index) => (
+                      <span key={index} className="text-sm">
+                        Plot {plot.plotNumber} ({plot.layoutId === 'layout1' ? 'Krishnam Nagar 1' : 'Krishnam Nagar 2'})
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  '-'
                 )}
               </TableCell>
               <TableCell>
@@ -217,11 +239,13 @@ export default function BrokersManagement() {
                         className="cursor-pointer mt-0.5"
                         onClick={() => handleEdit(broker)}
                       />
-                      <Trash2
-                        color="#f00505"
-                        className="cursor-pointer"
-                        onClick={() => handleDelete(broker._id)}
-                      />
+                      {auth.user?.role === "superadmin" && (
+                        <Trash2
+                          color="#f00505"
+                          className="cursor-pointer"
+                          onClick={() => handleDelete(broker._id)}
+                        />
+                      )}
                     </>
                   )}
                 </div>

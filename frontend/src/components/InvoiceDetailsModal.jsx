@@ -20,6 +20,7 @@ import { apiClient } from "@/lib/utils";
 import { pdf } from "@react-pdf/renderer";
 import SinglePaymentPDF from "@/components/SinglePaymentPDF";
 import InvoicePDF from "@/components/InvoicePDF";
+import { useAuth } from "@/context/AuthContext"; // Add this import
 
 export default function InvoiceDetailsModal({ 
   isOpen, 
@@ -35,6 +36,7 @@ export default function InvoiceDetailsModal({
   });
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [errors, setErrors] = useState({});
+  const { auth } = useAuth(); // Add this line
 
   useEffect(() => {
     setLocalInvoice(invoice);
@@ -264,14 +266,16 @@ export default function InvoiceDetailsModal({
                         >
                           <Download size={16} />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeletePayment(index)}
-                          className="bg-white hover:bg-gray-50 text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
+                        {auth.user?.role === "superadmin" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeletePayment(index)}
+                            className="bg-white hover:bg-gray-50 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
                       </div>
                     </li>
                   ))}

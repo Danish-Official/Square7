@@ -73,10 +73,10 @@ const PlotManagement = () => {
         {selectedLayout && (
           <Button
             onClick={handleDownloadPDF}
-            className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+            className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
           >
-            <Download className="mr-2 h-4 w-4" />
-            Download Sold Plots List
+            <Download strokeWidth={3} />
+            Sold Plots
           </Button>
         )}
       </div>
