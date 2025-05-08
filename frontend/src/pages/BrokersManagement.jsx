@@ -34,11 +34,11 @@ export default function BrokersManagement() {
   const fetchBrokers = async () => {
     try {
       const { data } = await apiClient.get("/brokers");
-      console.log("Fetched brokers data:", data); // Debug logging
+      console.log("Fetched brokers data:", data);
       setBrokers(data);
     } catch (error) {
       console.error("Failed to fetch brokers:", error);
-      toast.error("Failed to fetch brokers");
+      setBrokers([]);
     }
   };
 

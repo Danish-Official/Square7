@@ -69,7 +69,7 @@ export default function Expenses() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const expenseData = {
         ...formData,
@@ -84,7 +84,7 @@ export default function Expenses() {
         await apiClient.post('/expenses', expenseData);
         toast.success("Expense added successfully");
       }
-      
+
       fetchExpenses();
       handleCloseDialog();
     } catch (error) {
@@ -107,7 +107,7 @@ export default function Expenses() {
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this expense?")) return;
-    
+
     try {
       await apiClient.delete(`/expenses/${id}`);
       setExpenses(expenses.filter(expense => expense._id !== id));
@@ -145,8 +145,8 @@ export default function Expenses() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-3xl font-semibold">Expenses Management</h1>
         <Button
+          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
           onClick={() => setIsDialogOpen(true)}
-          className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
         >
           Add Expense
         </Button>

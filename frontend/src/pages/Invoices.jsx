@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiClient } from "@/lib/utils";
-import { toast } from "react-toastify";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { useLayout } from "@/context/LayoutContext";
@@ -28,7 +27,6 @@ export default function Invoices() {
   useEffect(() => {
     if (!selectedLayout) {
       setInvoices([]);
-      toast.error("Please select a layout first");
       return;
     }
     fetchInvoices();
@@ -43,7 +41,6 @@ export default function Invoices() {
       
       if (!Array.isArray(data)) {
         console.error("Invalid response format:", data);
-        toast.error("Invalid response from server");
         return;
       }
 
@@ -54,15 +51,10 @@ export default function Invoices() {
         invoice?.booking?.plot?.layoutId === selectedLayout
       );
 
-      console.log("Valid invoices:", validInvoices); // Debug log
+      console.log("Valid invoices:", validInvoices);
       setInvoices(validInvoices);
-      
-      if (validInvoices.length === 0) {
-        toast.info("No invoices found for this layout");
-      }
     } catch (error) {
       console.error("Error fetching invoices:", error);
-      toast.error(error.response?.data?.message || "Failed to fetch invoices");
       setInvoices([]);
     } finally {
       setLoading(false);
@@ -106,12 +98,6 @@ export default function Invoices() {
           ) : invoices.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-gray-500">No invoices found for this layout</p>
-              <Button 
-                onClick={fetchInvoices} 
-                className="mt-4 bg-[#1F263E] hover:bg-[#2A324D] text-white"
-              >
-                Refresh
-              </Button>
             </div>
           ) : (
             <>
