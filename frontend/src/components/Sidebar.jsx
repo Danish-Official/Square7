@@ -15,6 +15,7 @@ import {
   MessageCircleQuestion,
   Image,
   Handshake,
+  IndianRupee,
 } from "lucide-react"; // Icons
 import Layout1 from "@/assets/layouts/Layout 1.png"; // Import layout images
 import Layout2 from "@/assets/layouts/Layout 2.png"; // Import layout images
@@ -91,6 +92,11 @@ const Sidebar = () => {
                 to="/layout-resources"
                 icon={<Image size={20} />}
                 label="Layout Resources"
+              />
+              <NavItem
+                to="/expenses"
+                icon={<IndianRupee size={20} />}
+                label="Expenses"
               />
               <NavItem
                 to="/user-management"

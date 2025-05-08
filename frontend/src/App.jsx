@@ -15,6 +15,7 @@ import BookingPreview from "@/pages/BookingPreview";
 import AppWrapper from "./pages/AppWrapper";
 import LayoutResources from "./pages/LayoutResources";
 import BrokersManagement from "./pages/BrokersManagement";
+import Expenses from "./pages/Expenses"; // Add this import
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -119,6 +120,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BookingPreview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="expenses"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                <Expenses />
               </ProtectedRoute>
             }
           />
