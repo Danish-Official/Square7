@@ -22,17 +22,18 @@ import SinglePaymentPDF from "@/components/SinglePaymentPDF";
 import InvoicePDF from "@/components/InvoicePDF";
 import { useAuth } from "@/context/AuthContext"; // Add this import
 
-export default function InvoiceDetailsModal({ 
-  isOpen, 
-  onClose, 
-  invoice, 
-  onInvoiceUpdated 
+export default function InvoiceDetailsModal({
+  isOpen,
+  onClose,
+  invoice,
+  onInvoiceUpdated
 }) {
   const [localInvoice, setLocalInvoice] = useState(invoice);
   const [subsequentPayment, setSubsequentPayment] = useState({
     amount: "",
     paymentDate: "",
     paymentType: "Cash",
+    narration: "",
   });
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [errors, setErrors] = useState({});
@@ -54,7 +55,7 @@ export default function InvoiceDetailsModal({
           if (idx === editingPaymentIndex) return sum;
           return sum + payment.amount;
         }, 0);
-        
+
         const newTotal = currentTotal + Number(value);
         if (newTotal > localInvoice.booking.totalCost) {
           error = "Total payments cannot exceed the plot cost.";
@@ -71,10 +72,10 @@ export default function InvoiceDetailsModal({
 
   const handleAddOrEditPayment = async () => {
     // Validate fields including total amount check
-    const isValid = Object.entries(subsequentPayment).every(([field, value]) => 
+    const isValid = Object.entries(subsequentPayment).every(([field, value]) =>
       validateField(field, value)
     );
-    
+
     if (!isValid) return;
 
     try {
@@ -139,7 +140,7 @@ export default function InvoiceDetailsModal({
 
   const handleDownloadPayment = async (payment, index) => {
     const blob = await pdf(
-      <SinglePaymentPDF 
+      <SinglePaymentPDF
         data={{
           payment,
           paymentIndex: index,
@@ -204,7 +205,7 @@ export default function InvoiceDetailsModal({
                 </p>
               </div>
               <Button
-                variant="outline" 
+                variant="outline"
                 onClick={handleDownloadInvoice}
                 className="bg-white hover:bg-gray-50"
               >
@@ -339,6 +340,19 @@ export default function InvoiceDetailsModal({
                       <SelectItem value="Online">Online</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Input
+                    id="narration"
+                    name="narration"
+                    value={subsequentPayment.narration}
+                    onChange={(e) =>
+                      setSubsequentPayment((prev) => ({
+                        ...prev,
+                        narration: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter payment details (e.g., Cheque number, Transaction ID)"
+                    className="bg-white text-black"
+                  />
                   <Button
                     onClick={handleAddOrEditPayment}
                     className="bg-[#1F263E] hover:bg-[#2A324D] text-white mt-2"

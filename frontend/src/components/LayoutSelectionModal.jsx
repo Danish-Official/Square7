@@ -19,7 +19,7 @@ export default function LayoutSelectionModal({ open, onClose }) {
         <div className="grid grid-cols-2 gap-4">
           <div
             onClick={() => handleLayoutSelect("layout1")}
-            className="cursor-pointer rounded-lg bg-gray-800 hover:bg-gray-900 transition-all transform hover:scale-105"
+            className="cursor-pointer rounded-lg bg-gray-900 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
             {/* <img src={Layout1} alt="Layout 1" className="w-full mb-2" /> */}
             <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
@@ -29,7 +29,7 @@ export default function LayoutSelectionModal({ open, onClose }) {
           </div>
           <div
             onClick={() => handleLayoutSelect("layout2")}
-            className="cursor-pointer rounded-lg bg-gray-800 hover:bg-gray-900 transition-all transform hover:scale-105"
+            className="cursor-pointer rounded-lg bg-gray-900 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
             <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
               <p className="text-5xl">KRISHNAM</p>

@@ -24,6 +24,40 @@ import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 
+// New roles data
+const EXPENSE_ROLES = [
+  {
+    name: 'Architect',
+    color: 'bg-gray-900',
+    icon: '🏛️'
+  },
+  {
+    name: 'Engineer',
+    color: 'bg-gray-900',
+    icon: '⚙️'
+  },
+  {
+    name: 'Contractor',
+    color: 'bg-gray-900',
+    icon: '🏗️'
+  },
+  {
+    name: 'Advocate',
+    color: 'bg-gray-900',
+    icon: '⚖️'
+  },
+  {
+    name: 'CA',
+    color: 'bg-gray-900',
+    icon: '📊'
+  },
+  {
+    name: 'Others',
+    color: 'bg-gray-900',
+    icon: '🧑‍💼'
+  }
+];
+
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -34,36 +68,30 @@ export default function Expenses() {
   const { selectedLayout } = useLayout();
   const { auth } = useAuth();
   const itemsPerPage = 10;
+  const [showRoleModal, setShowRoleModal] = useState(true);
+  const [selectedRole, setSelectedRole] = useState(null);
 
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
-    category: "Other",
+    name: "",
     date: new Date().toISOString().split('T')[0],
-    notes: "",
+    role: "",
   });
 
-  const categories = [
-    "Utilities",
-    "Maintenance",
-    "Salary",
-    "Marketing",
-    "Legal",
-    "Other"
-  ];
-
   useEffect(() => {
-    if (selectedLayout) {
+    if (selectedRole && selectedLayout) {
       fetchExpenses();
     }
-  }, [selectedLayout]);
+  }, [selectedLayout, selectedRole]);
 
   const fetchExpenses = async () => {
     try {
-      const { data } = await apiClient.get(`/expenses/layout/${selectedLayout}`);
+      const { data } = await apiClient.get(`/expenses/layout/${selectedLayout}/role/${selectedRole}`);
       setExpenses(data);
     } catch (error) {
-      toast.error("Failed to fetch expenses");
+      console.error("Failed to fetch expenses:", error);
+      setExpenses([]);
     }
   };
 
@@ -74,6 +102,7 @@ export default function Expenses() {
       const expenseData = {
         ...formData,
         layoutId: selectedLayout,
+        role: selectedRole,
         amount: Number(formData.amount)
       };
 
@@ -97,9 +126,9 @@ export default function Expenses() {
     setFormData({
       description: expense.description,
       amount: expense.amount,
-      category: expense.category,
+      name: expense.name,
       date: new Date(expense.date).toISOString().split('T')[0],
-      notes: expense.notes || "",
+      role: expense.role || "",
     });
     setIsEditMode(true);
     setIsDialogOpen(true);
@@ -124,9 +153,9 @@ export default function Expenses() {
     setFormData({
       description: "",
       amount: "",
-      category: "Other",
+      name: "",
       date: new Date().toISOString().split('T')[0],
-      notes: "",
+      role: "",
     });
   };
 
@@ -140,141 +169,170 @@ export default function Expenses() {
     currentPage * itemsPerPage
   );
 
+  // Role selection modal
+  const RoleSelectionModal = () => (
+    <Dialog open={showRoleModal} onOpenChange={(open) => {
+      setShowRoleModal(open);
+      if (!open && !selectedRole) {
+        setSelectedRole('Architect');
+      }
+    }}>
+      <DialogContent className="sm:max-w-[900px] p-6">
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-2xl font-semibold text-center">Select Role</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          {EXPENSE_ROLES.map((role) => (
+            <Button
+              key={role.name}
+              onClick={() => {
+                setSelectedRole(role.name);
+                setShowRoleModal(false);
+              }}
+              className={`text-4xl p-30 flex flex-col items-center justify-center ${role.color} hover:bg-gray-900 text-white`}
+            >
+              <span className="mb-2">{role.icon}</span>
+              <span className="font-semibold">{role.name}</span>
+            </Button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-semibold">Expenses Management</h1>
-        <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          Add Expense
-        </Button>
-      </div>
-
-      <SearchInput
-        placeholder="Search expenses by description"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-
-      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
-          <DialogHeader className="space-y-3 mb-6">
-            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
-              {isEditMode ? 'Edit Expense' : 'Add New Expense'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              placeholder="Description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-              className="bg-gray-50 border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              type="number"
-              placeholder="Amount"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              required
-              min="0"
-              className="bg-gray-50 border-gray-200 focus:border-blue-500"
-            />
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
-            >
-              <SelectTrigger className="bg-gray-50 border-gray-200 focus:border-blue-500">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-              className="bg-gray-50 border-gray-200 focus:border-blue-500"
-            />
-            <textarea
-              placeholder="Notes (optional)"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full p-2 bg-gray-50 border border-gray-200 rounded-md focus:border-blue-500"
-              rows={3}
-            />
-            <div className="flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-                className="bg-white hover:bg-gray-50"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-              >
-                {isEditMode ? 'Update' : 'Add'} Expense
-              </Button>
+      <RoleSelectionModal />
+      {selectedRole && (
+        <>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-semibold">Expenses Management</h1>
+              <p className="text-gray-500">Managing {selectedRole} expenses</p>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <Button
+              onClick={() => setShowRoleModal(true)}
+              variant="outline"
+              className="mr-4"
+            >
+              Change Role
+            </Button>
+            <Button
+              className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Add Expense
+            </Button>
+          </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Description</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Notes</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedExpenses.map((expense) => (
-            <TableRow key={expense._id}>
-              <TableCell>{expense.description}</TableCell>
-              <TableCell>₹{expense.amount}</TableCell>
-              <TableCell>{expense.category}</TableCell>
-              <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-              <TableCell>{expense.notes || '-'}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Edit2
-                    className="cursor-pointer"
-                    onClick={() => handleEdit(expense)}
-                  />
-                  {auth.user?.role === "superadmin" && (
-                    <Trash2
-                      color="#f00505"
-                      className="cursor-pointer"
-                      onClick={() => handleDelete(expense._id)}
-                    />
-                  )}
+          <SearchInput
+            placeholder="Search expenses by description"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+            <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
+              <DialogHeader className="space-y-3 mb-6">
+                <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+                  {isEditMode ? 'Edit Expense' : 'Add New Expense'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                />
+                <Input
+                  placeholder="Description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  required
+                  className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                />
+                <Input
+                  type="number"
+                  placeholder="Amount"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  required
+                  min="0"
+                  className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                />
+                <Input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  required
+                  className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                />
+                <div className="flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCloseDialog}
+                    className="bg-white hover:bg-gray-50"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                  >
+                    {isEditMode ? 'Update' : 'Add'} Expense
+                  </Button>
                 </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedExpenses.map((expense) => (
+                <TableRow key={expense._id}>
+                  <TableCell>{expense.name}</TableCell>
+                  <TableCell>{expense.description}</TableCell>
+                  <TableCell>₹{expense.amount}</TableCell>
+                  <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Edit2
+                        className="cursor-pointer"
+                        onClick={() => handleEdit(expense)}
+                      />
+                      {auth.user?.role === "superadmin" && (
+                        <Trash2
+                          color="#f00505"
+                          className="cursor-pointer"
+                          onClick={() => handleDelete(expense._id)}
+                        />
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
     </div>
   );
 }

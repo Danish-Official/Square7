@@ -16,6 +16,7 @@ const invoiceSchema = new mongoose.Schema(
           enum: ["Cash", "Cheque", "Online"],
           required: true,
         },
+        narration: { type: String },
       },
     ],
   },

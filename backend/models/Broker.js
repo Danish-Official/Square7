@@ -13,9 +13,7 @@ const brokerSchema = new mongoose.Schema({
         type: String
     },
     commission: { 
-        type: Number,
-        min: 0,
-        max: 100
+        type: Number
     }
 }, { timestamps: true });
 

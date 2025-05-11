@@ -11,11 +11,12 @@ import LoginPage from "./pages/LoginPage";
 import { ToastContainer } from "react-toastify";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
-import BookingPreview from "@/pages/BookingPreview";
+import BookingPreview from "@/pages/BookingDetails";
 import AppWrapper from "./pages/AppWrapper";
 import LayoutResources from "./pages/LayoutResources";
 import BrokersManagement from "./pages/BrokersManagement";
 import Expenses from "./pages/Expenses"; // Add this import
+import BookingDetails from "@/pages/BookingDetails";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -128,6 +129,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
                 <Expenses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="booking/:bookingId"
+            element={
+              <ProtectedRoute>
+                <BookingDetails />
               </ProtectedRoute>
             }
           />

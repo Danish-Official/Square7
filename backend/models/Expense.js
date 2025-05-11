@@ -8,13 +8,12 @@ const expenseSchema = new mongoose.Schema({
   },
   amount: {
     type: Number,
-    required: true,
-    min: 0
+    required: true
   },
-  category: {
+  name: {
     type: String,
     required: true,
-    enum: ['Utilities', 'Maintenance', 'Salary', 'Marketing', 'Legal', 'Other']
+    trim: true
   },
   date: {
     type: Date,
@@ -25,9 +24,10 @@ const expenseSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  notes: {
+  role: {
     type: String,
-    trim: true
+    required: true,
+    enum: ['Architect', 'Engineer', 'Contractor', 'Advocate', 'CA']
   }
 }, { timestamps: true });
 

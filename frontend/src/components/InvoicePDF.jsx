@@ -217,6 +217,7 @@ const InvoicePDF = ({ data }) => {
               <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Date</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Payment Type</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Narration</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Amount (Rs.)</Text>
             </View>
             {data.payments.map((payment, index) => (
@@ -224,6 +225,7 @@ const InvoicePDF = ({ data }) => {
                 <Text style={styles.tableCell}>{index + 1}</Text>
                 <Text style={styles.tableCell}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
                 <Text style={styles.tableCell}>{payment.paymentType}</Text>
+                <Text style={styles.tableCell}>{payment.narration || '-'}</Text>
                 <Text style={styles.tableCell}>{payment.amount}</Text>
               </View>
             ))}

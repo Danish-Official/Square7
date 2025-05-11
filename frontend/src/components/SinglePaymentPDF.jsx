@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F263E',
   },
   tableCell: {
-    width: '33.33%',  // Fixed width distribution
+    width: '25%',  // Adjusted width distribution to accommodate new column
     padding: 4,
     fontSize: 10,
     color: '#2d3748',
@@ -219,6 +219,7 @@ const SinglePaymentPDF = ({ data }) => {
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={[styles.tableCell, styles.headerCell]}>Payment Date</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Mode of Payment</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Narration</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Amount (Rs.)</Text>
             </View>
             <View style={styles.tableRow}>
@@ -226,6 +227,7 @@ const SinglePaymentPDF = ({ data }) => {
                 {formatDate(data.payment?.paymentDate)}
               </Text>
               <Text style={styles.tableCell}>{data.payment?.paymentType || 'N/A'}</Text>
+              <Text style={styles.tableCell}>{data.payment?.narration || '-'}</Text>
               <Text style={styles.tableCell}>
                 {formatNumber(data.payment?.amount)}
               </Text>

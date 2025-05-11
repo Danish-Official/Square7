@@ -39,6 +39,7 @@ app.use("/api/expenses", expenseRoutes);
 
 // Serve uploaded files statically - move this BEFORE the catch-all route
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads/documents", express.static(path.join(__dirname, "uploads/documents")));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

@@ -50,13 +50,11 @@ const Sidebar = () => {
             <PanelLeftClose size={20} />
           </button>
         )}
-        <p className="text-center text-sm">A Project By</p>
-        <p className="font-bold text-center mb-2 text-lg">SQUARE SEVEN INFRA</p>
-        <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center mb-4">
           <img
-            src={selectedLayout === "layout1" ? Layout1 : Layout2}
+            src={selectedLayout === "layout1" ? Layout2 : Layout1}
             alt="Layout"
-            className="h-15 w-auto"
+            className="h-23 w-auto"
           />
         </div>
         <nav className="flex flex-col space-y-2">
@@ -103,6 +101,13 @@ const Sidebar = () => {
                 icon={<UserRoundCog size={20} />}
                 label="Manage Users"
               />
+              <div className="w-full h-40"></div>
+              <a
+                href="/enquiries"
+                className="text-gray-900"
+              >
+                +
+                </a>
             </>
           }
         </nav>

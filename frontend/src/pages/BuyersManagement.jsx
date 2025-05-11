@@ -10,31 +10,20 @@ import {
 } from "@/components/ui/table";
 import { Trash2 } from "lucide-react";
 import { useBuyers } from "@/context/BuyersContext";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { pdf } from "@react-pdf/renderer";
-import BuyerDetailsPDF from "@/components/BuyerDetailsPDF";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { useLayout } from "@/context/LayoutContext";
-import { useAuth } from "@/context/AuthContext"; // Add this import
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function BuyersManagement() {
-  const { buyers, deleteBuyer, updateBuyer, setCurrentLayout } = useBuyers();
+  const { buyers, deleteBuyer, setCurrentLayout } = useBuyers();
   const { selectedLayout } = useLayout();
-  const { auth } = useAuth(); // Add this line
+  const { auth } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedBuyer, setSelectedBuyer] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -54,8 +43,6 @@ export default function BuyersManagement() {
 
     try {
       await deleteBuyer(id);
-      setIsDialogOpen(false);
-      setSelectedBuyer(null);
       toast.success("Buyer and associated data deleted successfully");
     } catch (error) {
       console.error("Delete error:", error);
@@ -63,57 +50,8 @@ export default function BuyersManagement() {
     }
   };
 
-  const handleEdit = (buyer) => {
-    if (!buyer) {
-      toast.error("Invalid buyer data");
-      return;
-    }
-    setSelectedBuyer(buyer);
-    setIsDialogOpen(true);
-    setIsEditing(false); // Start in view mode
-  };
-
-  const handleSave = async () => {
-    const errors = {};
-    if (
-      !selectedBuyer.buyerName ||
-      !/^[A-Za-z\s]+$/.test(selectedBuyer.buyerName)
-    ) {
-      errors.buyerName = "Name should contain only alphabets and spaces.";
-    }
-    if (
-      !selectedBuyer.phoneNumber ||
-      !/^\d{10}$/.test(selectedBuyer.phoneNumber)
-    ) {
-      errors.phoneNumber = "Phone number should be exactly 10 digits.";
-    }
-    if (Object.keys(errors).length > 0) {
-      setErrors(errors);
-      toast.error("Please fix the errors before saving."); // Show error toast
-      return;
-    }
-
-    try {
-      await updateBuyer(selectedBuyer); // Trigger backend update
-      setIsEditing(false); // Exit edit mode
-      toast.success("Buyer details updated successfully"); // Show success toast
-    } catch (error) {
-      toast.error("Failed to update buyer details");
-    }
-  };
-
-  const handleChange = (e) => {
-    setSelectedBuyer({ ...selectedBuyer, [e.target.name]: e.target.value });
-  };
-
-  const handleDownloadPDF = async () => {
-    const blob = await pdf(<BuyerDetailsPDF data={selectedBuyer} />).toBlob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${selectedBuyer.buyerName}_details.pdf`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const handleViewDetails = (bookingId) => {
+    navigate(`/booking/${bookingId}`);
   };
 
   const filteredBuyers = buyers.filter((buyer) =>
@@ -141,139 +79,6 @@ export default function BuyersManagement() {
         className="mb-4"
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl max-h-[100vh] overflow-y-auto">
-          {selectedBuyer && (
-            <div className="space-y-6">
-              <DialogHeader className="space-y-3 mb-6">
-                <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
-                  Buyer Details
-                </DialogTitle>
-                <p className="text-gray-500 text-sm font-normal">
-                  View and manage buyer information
-                </p>
-              </DialogHeader>
-              <div className="grid gap-6">
-                <div className="space-y-2">
-                  <label className="font-medium text-gray-700">Name</label>
-                  {isEditing ? (
-                    <>
-                      <Input
-                        name="buyerName"
-                        value={selectedBuyer.buyerName}
-                        onChange={handleChange}
-                        className="bg-gray-50 border-gray-200 focus:border-blue-500"
-                      />
-                      {errors.buyerName && (
-                        <p className="text-red-500 text-sm">
-                          {errors.buyerName}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-gray-900">{selectedBuyer.buyerName}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-medium text-gray-700">Address</label>
-                  {isEditing ? (
-                    <>
-                      <Input
-                        name="address"
-                        value={selectedBuyer.address}
-                        onChange={handleChange}
-                        className="bg-gray-50 border-gray-200 focus:border-blue-500"
-                      />
-                    </>
-                  ) : (
-                    <p className="text-gray-900 break-words">
-                      {selectedBuyer.address}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-medium text-gray-700">
-                    Phone Number
-                  </label>
-                  {isEditing ? (
-                    <>
-                      <Input
-                        name="phoneNumber"
-                        value={selectedBuyer.phoneNumber}
-                        onChange={handleChange}
-                        className="bg-gray-50 border-gray-200 focus:border-blue-500"
-                      />
-                      {errors.phoneNumber && (
-                        <p className="text-red-500 text-sm">
-                          {errors.phoneNumber}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-gray-900">{selectedBuyer.phoneNumber}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="font-medium text-gray-700">Gender</label>
-                    <p className="text-gray-900">{selectedBuyer.gender}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium text-gray-700">
-                      Plot Number
-                    </label>
-                    <p className="text-gray-900">
-                      {selectedBuyer.plot.plotNumber}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-medium text-gray-700">
-                    Total Cost
-                  </label>
-                  <p className="text-gray-900">₹{selectedBuyer.totalCost}</p>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                {isEditing ? (
-                  <Button
-                    onClick={handleSave}
-                    className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                  >
-                    Save
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-                  >
-                    Edit
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={handleDownloadPDF}
-                  className="bg-white hover:bg-gray-50"
-                >
-                  Download PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="bg-white hover:bg-gray-50"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -281,7 +86,7 @@ export default function BuyersManagement() {
             <TableHead>Phone Number</TableHead>
             <TableHead>Plot Number</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Delete</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -289,21 +94,20 @@ export default function BuyersManagement() {
             <TableRow key={buyer._id}>
               <TableCell
                 className="cursor-pointer text-blue-500"
-                onClick={() => handleEdit(buyer)}
+                onClick={() => handleViewDetails(buyer._id)}
               >
                 {buyer.buyerName}
               </TableCell>
               <TableCell>{buyer.phoneNumber}</TableCell>
               <TableCell>{buyer.plot.plotNumber}</TableCell>
               <TableCell>
-                {new Date(buyer.bookingDate).toLocaleDateString()}{" "}
-                {/* Use bookingDate */}
+                {new Date(buyer.bookingDate).toLocaleDateString()}
               </TableCell>
               <TableCell>
                 {auth.user?.role === "superadmin" && (
                   <Trash2
                     color="#f00505"
-                    className="self-center"
+                    className="cursor-pointer"
                     onClick={() => handleDelete(buyer._id)}
                   />
                 )}
