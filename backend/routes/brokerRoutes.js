@@ -5,46 +5,42 @@ const Booking = require('../models/Booking');
 const authenticate = require('../middleware/authenticate');
 
 // Get all brokers with their plot details
-router.get('/brokers', authenticate(), async (req, res) => {
+router.get('/', authenticate(), async (req, res) => {
     try {
+        // Get all brokers
         const brokers = await Broker.find().lean();
         
         // Get bookings for each broker with plot details
         const brokersWithPlots = await Promise.all(brokers.map(async (broker) => {
-            try {
-                const bookings = await Booking.find({ broker: broker._id })
-                    .populate({
-                        path: 'plot',
-                        select: 'plotNumber layoutId'
-                    })
-                    .lean();
-                
-                const plots = bookings
-                    .filter(booking => booking.plot) // Filter out any null plots
-                    .map(booking => ({
-                        plotNumber: booking.plot.plotNumber,
-                        layoutId: booking.plot.layoutId
-                    }));
-                
-                console.log(`Broker ${broker._id} plots:`, plots); // Debug logging
-                
-                return {
-                    ...broker,
-                    plots: plots
-                };
-            } catch (err) {
-                console.error(`Error processing broker ${broker._id}:`, err);
-                return {
-                    ...broker,
-                    plots: []
-                };
-            }
+            const bookings = await Booking.find({ 
+                broker: broker._id,
+                status: { $ne: 'cancelled' } // Only get active bookings
+            })
+            .populate('plot', 'plotNumber layoutId')
+            .lean();
+            
+            const plots = bookings
+                .filter(booking => booking.plot)
+                .map(booking => ({
+                    _id: booking.plot._id,
+                    plotNumber: booking.plot.plotNumber,
+                    layoutId: booking.plot.layoutId
+                }));
+            
+            return {
+                ...broker,
+                plots: plots || []
+            };
         }));
 
+        console.log('Sending brokers data:', brokersWithPlots); // Debug log
         res.status(200).json(brokersWithPlots);
     } catch (error) {
-        console.error('Error fetching brokers:', error);
-        res.status(500).json({ message: "Server Error", error: error.message });
+        console.error('Error in /brokers route:', error);
+        res.status(500).json({ 
+            message: "Failed to fetch brokers", 
+            error: error.message 
+        });
     }
 });
 

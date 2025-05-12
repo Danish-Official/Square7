@@ -17,6 +17,7 @@ import LayoutResources from "./pages/LayoutResources";
 import BrokersManagement from "./pages/BrokersManagement";
 import Expenses from "./pages/Expenses"; // Add this import
 import BookingDetails from "@/pages/BookingDetails";
+import InvoiceDetails from "./pages/InvoiceDetails";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -137,6 +138,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BookingDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="invoices/:invoiceId"
+            element={
+              <ProtectedRoute>
+                <InvoiceDetails />
               </ProtectedRoute>
             }
           />

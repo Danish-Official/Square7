@@ -12,6 +12,7 @@ const bookingSchema = new mongoose.Schema(
     paymentType: { type: String, enum: ["Cash", "Cheque", "Online"], required: true },
     narration: { type: String },
     totalCost: { type: Number, required: true },
+    ratePerSqFt: { type: Number, required: true }, // Add this field
     bookingDate: { type: Date, required: true, default: Date.now },
     broker: { type: mongoose.Schema.Types.ObjectId, ref: "Broker" },
     documents: [{

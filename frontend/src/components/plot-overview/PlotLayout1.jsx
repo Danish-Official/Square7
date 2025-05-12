@@ -59,26 +59,19 @@ const PlotLayout1 = () => {
 
   const handlePlotClick = async (plot) => {
     if (plot.status === "sold") {
-      setIsLoading(true);
-      setIsDialogOpen(true);
       try {
         const { data } = await apiClient.get(`/invoices/plot/${plot._id}`);
         if (data && data.booking) {
-          setSelectedInvoice(data);
+          navigate(`/invoices/${data._id}`);
         } else {
           toast.error("No invoice found for this plot");
-          setIsDialogOpen(false);
         }
       } catch (error) {
         console.error("Error fetching invoice:", error);
         const errorMessage = error.response?.data?.message || "Failed to fetch invoice details";
         toast.error(errorMessage);
-        setIsDialogOpen(false);
-      } finally {
-        setIsLoading(false);
       }
     } else {
-      // Only show plot details modal for unsold plots
       setSelectedPlot(plot);
     }
   };

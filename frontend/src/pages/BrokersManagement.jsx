@@ -34,10 +34,28 @@ export default function BrokersManagement() {
   const fetchBrokers = async () => {
     try {
       const { data } = await apiClient.get("/brokers");
-      console.log("Fetched brokers data:", data);
-      setBrokers(data);
+      if (!Array.isArray(data)) {
+        console.error("Invalid data format received:", data);
+        toast.error("Invalid data format received from server");
+        setBrokers([]);
+        return;
+      }
+      
+      // Format the data
+      const formattedBrokers = data.map(broker => ({
+        _id: broker._id,
+        name: broker.name || '',
+        phoneNumber: broker.phoneNumber || '',
+        address: broker.address || '',
+        commission: broker.commission || 0,
+        plots: Array.isArray(broker.plots) ? broker.plots : []
+      }));
+
+      console.log("Formatted brokers data:", formattedBrokers);
+      setBrokers(formattedBrokers);
     } catch (error) {
       console.error("Failed to fetch brokers:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch brokers");
       setBrokers([]);
     }
   };
@@ -88,22 +106,36 @@ export default function BrokersManagement() {
     const isValid = Object.keys(editedData).every((key) =>
       validateField(key, editedData[key])
     );
-    if (!isValid) return;
+    if (!isValid) {
+      toast.error("Please fix validation errors");
+      return;
+    }
 
     try {
-      const { data } = await apiClient.put(`/brokers/${brokerId}`, editedData);
-      setBrokers((prev) =>
-        prev.map((broker) =>
+      // Only send required fields
+      const brokerData = {
+        name: editedData.name,
+        phoneNumber: editedData.phoneNumber,
+        address: editedData.address || '',
+        commission: editedData.commission || 0
+      };
+
+      const { data } = await apiClient.put(`/brokers/${brokerId}`, brokerData);
+      
+      setBrokers(prev =>
+        prev.map(broker =>
           broker._id === brokerId
-            ? { ...data, plots: broker.plots } // Preserve plots data from previous state
+            ? { ...data, plots: broker.plots }
             : broker
         )
       );
+      
       setEditingBroker(null);
       setEditedData({});
       toast.success("Broker updated successfully");
     } catch (error) {
-      toast.error("Failed to update broker");
+      console.error("Error updating broker:", error);
+      toast.error(error.response?.data?.message || "Failed to update broker");
     }
   };
 

@@ -70,7 +70,8 @@ router.post("/", authenticate(), (req, res, next) => {
       bookingDate,
       email,
       brokerData,
-      documentType
+      documentType,
+      ratePerSqFt, // Add this field
     } = req.body;
 
     console.log("Parsed booking data:", {
@@ -84,14 +85,15 @@ router.post("/", authenticate(), (req, res, next) => {
     });
 
     // Validate required fields
-    if (!buyerName || !address || !phoneNumber || !plotId || !totalCost || !firstPayment) {
+    if (!buyerName || !address || !phoneNumber || !plotId || !totalCost || !firstPayment || !ratePerSqFt) {
       console.log("Missing required fields:", {
         buyerName: !!buyerName,
         address: !!address,
         phoneNumber: !!phoneNumber,
         plotId: !!plotId,
         totalCost: !!totalCost,
-        firstPayment: !!firstPayment
+        firstPayment: !!firstPayment,
+        ratePerSqFt: !!ratePerSqFt
       });
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -169,6 +171,7 @@ router.post("/", authenticate(), (req, res, next) => {
       paymentType,
       narration,
       totalCost: Number(totalCost),
+      ratePerSqFt: Number(ratePerSqFt),
       firstPayment: Number(firstPayment),
       bookingDate: bookingDate ? new Date(bookingDate) : new Date(),
       email: email || undefined,
@@ -266,50 +269,87 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
 });
 
 // Update Booking
-router.put("/:id", authenticate(), async (req, res) => {
-  try {
-    const existingBooking = await Booking.findById(req.params.id);
-    if (!existingBooking) {
-      return res.status(404).json({ message: "Booking not found" });
+router.put("/:id", authenticate(), (req, res, next) => {
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ message: `File upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ message: `Unknown upload error: ${err.message}` });
     }
 
-    const updatedFirstPayment =
-      req.body.firstPayment !== undefined
-        ? Number(req.body.firstPayment)
-        : existingBooking.firstPayment;
-    const updatedTotalCost =
-      req.body.totalCost !== undefined
-        ? Number(req.body.totalCost)
-        : existingBooking.totalCost;
+    try {
+      const existingBooking = await Booking.findById(req.params.id);
+      if (!existingBooking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
 
-    if (updatedFirstPayment <= 0 || updatedFirstPayment > updatedTotalCost) {
-      return res.status(400).json({
-        message:
-          "First payment must be greater than 0 and less than or equal to the total cost.",
+      // Handle uploaded documents
+      let documents = [...existingBooking.documents];
+      const serverUrl = `${req.protocol}://${req.get('host')}`;
+
+      if (req.files) {
+        for (const docType of ['aadharCard', 'panCard']) {
+          if (req.files[docType]?.[0]) {
+            const file = req.files[docType][0];
+
+            // Remove old document if exists
+            const oldDoc = documents.find(doc => doc.type === docType);
+            if (oldDoc?.filename) {
+              const oldPath = path.join(__dirname, '..', 'uploads', 'documents', oldDoc.filename);
+              if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath);
+              }
+            }
+
+            // Update document list
+            documents = documents.filter(doc => doc.type !== docType);
+            documents.push({
+              type: docType,
+              filename: file.filename,
+              originalName: file.originalname,
+              url: `${serverUrl}/uploads/documents/${file.filename}`,
+              uploadDate: new Date()
+            });
+          }
+        }
+      }
+
+      // Prepare update data
+      const updateData = {
+        ...req.body,
+        documents
+      };
+
+      // Remove undefined fields
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) delete updateData[key];
       });
+
+      // Update booking
+      const updatedBooking = await Booking.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true, runValidators: true }
+      ).populate('plot').populate('broker');
+
+      res.status(200).json(updatedBooking);
+
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      // Cleanup uploaded files on error
+      if (req.files) {
+        Object.values(req.files).forEach(files => {
+          files.forEach(file => {
+            const filePath = path.join(__dirname, '..', 'uploads', 'documents', file.filename);
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          });
+        });
+      }
+      res.status(500).json({ message: "Error updating booking", error: error.message });
     }
-
-    const updateData = {
-      ...req.body,
-      firstPayment: updatedFirstPayment,
-      totalCost: updatedTotalCost,
-    };
-
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedBooking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    res.status(200).json(updatedBooking);
-  } catch (error) {
-    console.error("Error updating booking:", error.message);
-    res.status(500).json({ message: "Server Error", error: error.message });
-  }
+  });
 });
 
 // Delete Booking
@@ -336,6 +376,21 @@ router.delete("/:id", authenticate(), async (req, res) => {
     console.error("Error deleting booking:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
+});
+
+// Serve uploaded documents
+router.get("/documents/:filename", authenticate(), (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(__dirname, '..', 'uploads', 'documents', filename);
+  
+  // Check if file exists
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: "Document not found" });
+  }
+
+  // Set content disposition to force download
+  res.setHeader('Content-Disposition', 'attachment');
+  res.sendFile(filePath);
 });
 
 module.exports = router;

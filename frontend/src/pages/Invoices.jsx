@@ -12,17 +12,16 @@ import { apiClient } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { useLayout } from "@/context/LayoutContext";
-import InvoiceDetailsModal from "@/components/InvoiceDetailsModal";
+import { useNavigate } from "react-router-dom";
 
 export default function Invoices() {
   const { selectedLayout } = useLayout();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!selectedLayout) {
@@ -106,7 +105,8 @@ export default function Invoices() {
                   <TableRow>
                     <TableHead>Buyer Name</TableHead>
                     <TableHead>Phone Number</TableHead>
-                    <TableHead className={"ps-20"}>Actions</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -114,18 +114,16 @@ export default function Invoices() {
                     <TableRow key={invoice?._id}>
                       <TableCell>{invoice?.booking?.buyerName}</TableCell>
                       <TableCell>{invoice?.booking?.phoneNumber}</TableCell>
+                      <TableCell className="max-w-[350px] whitespace-normal break-words">
+                        {invoice?.booking?.address || 'N/A'}
+                      </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
                           <Button
-                            onClick={() => {
-                              setSelectedInvoice(invoice);
-                              setIsDialogOpen(true);
-                            }}
                             className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                            onClick={() => navigate(`/invoices/${invoice._id}`)}
                           >
                             View Details
                           </Button>
-                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -138,13 +136,6 @@ export default function Invoices() {
               />
             </>
           )}
-          
-          <InvoiceDetailsModal 
-            isOpen={isDialogOpen}
-            onClose={() => setIsDialogOpen(false)}
-            invoice={selectedInvoice}
-            onInvoiceUpdated={fetchInvoices}
-          />
         </>
       ) : (
         <div className="text-center py-10">

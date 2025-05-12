@@ -63,6 +63,8 @@ export default function NewBooking() {
   const [completedSections, setCompletedSections] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [brokerSuggestions, setBrokerSuggestions] = useState([]); // Add this
+  const [showSuggestions, setShowSuggestions] = useState(false); // Add this
 
   useEffect(() => {
     async function fetchPlots() {
@@ -139,6 +141,20 @@ export default function NewBooking() {
       }
     }
   }, [location.state, availablePlots]);
+
+  useEffect(() => {
+    // Fetch brokers on component mount
+    const fetchBrokers = async () => {
+      try {
+        const { data } = await apiClient.get("/brokers");
+        setBrokerSuggestions(data);
+      } catch (error) {
+        console.error("Failed to fetch brokers:", error);
+        toast.error("Failed to load broker suggestions");
+      }
+    };
+    fetchBrokers();
+  }, []);
 
   const validateField = (name, value) => {
     let error = "";
@@ -218,6 +234,17 @@ export default function NewBooking() {
     }
   };
 
+  const handleBrokerSelect = (broker) => {
+    setFormData(prev => ({
+      ...prev,
+      brokerName: broker.name,
+      brokerPhone: broker.phoneNumber || "",
+      brokerAddress: broker.address || "",
+      brokerCommission: broker.commission || ""
+    }));
+    setShowSuggestions(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -262,7 +289,8 @@ export default function NewBooking() {
         totalCost: Number(formData.totalCost),
         firstPayment: Number(formData.firstPayment),
         bookingDate: new Date(formData.bookingDate).toISOString(),
-        email: formData.email || undefined
+        email: formData.email || undefined,
+        ratePerSqFt: Number(formData.ratePerSqFt)
       };
 
       // Append each booking field to FormData
@@ -319,7 +347,7 @@ export default function NewBooking() {
       });
 
       toast.success("Booking created successfully!");
-      navigate(`/buyer/${bookingResponse.data._id}`, { replace: true });
+      navigate(`/booking/${bookingResponse.data._id}`, { replace: true });
 
     } catch (error) {
       console.error('Error details:', error);
@@ -340,6 +368,22 @@ export default function NewBooking() {
       default:
         return false;
     }
+  };
+
+  const getUniqueBrokerSuggestions = (brokers, searchTerm) => {
+    const nameMap = new Map();
+    return brokers
+      .filter(broker =>
+        broker.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter(broker => {
+        const key = broker.name.toLowerCase();
+        if (nameMap.has(key)) {
+          return false;
+        }
+        nameMap.set(key, broker);
+        return true;
+      });
   };
 
   const renderSection = () => {
@@ -633,32 +677,36 @@ export default function NewBooking() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="brokerName" className="mb-2 block">Reference</Label>
-              <Input
-                id="brokerName"
-                name="brokerName"
-                value={formData.brokerName}
-                onChange={handleChange}
-                placeholder="Enter reference"
-                className="bg-white text-black"
-              />
-              {/* {errors.brokerName && (
-                <p className="text-red-500 text-sm">{errors.brokerName}</p>
-              )} */}
+              <div className="relative">
+                <Input
+                  id="brokerName"
+                  name="brokerName"
+                  value={formData.brokerName}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="Enter reference"
+                  className="bg-white text-black"
+                  autoComplete="off"
+                />
+                {showSuggestions && formData.brokerName && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                    {getUniqueBrokerSuggestions(brokerSuggestions, formData.brokerName)
+                      .map(broker => (
+                        <div
+                          key={broker._id}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black"
+                          onClick={() => handleBrokerSelect(broker)}
+                        >
+                          <div className="font-medium">{broker.name}</div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
             </div>
-            {/* <div className="space-y-2">
-              <Label htmlFor="brokerPhone" className="mb-2 block">Broker Phone (Optional)</Label>
-              <Input
-                id="brokerPhone"
-                name="brokerPhone"
-                value={formData.brokerPhone}
-                onChange={handleChange}
-                placeholder="Enter broker phone number"
-                className="bg-white text-black"
-              />
-              {errors.brokerPhone && (
-                <p className="text-red-500 text-sm">{errors.brokerPhone}</p>
-              )}
-            </div> */}
           </div>
         );
       case 4:
@@ -822,6 +870,16 @@ export default function NewBooking() {
         return null;
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('#brokerName')) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   return (
     <div className="p-6 space-y-6">

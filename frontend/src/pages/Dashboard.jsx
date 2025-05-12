@@ -51,11 +51,9 @@ export default function Dashboard({ showLoginModal = false }) {
 
   const [layoutStats, setLayoutStats] = useState({});
   const [layoutRevenueData, setLayoutRevenueData] = useState({});
-  const [layouts, setLayouts] = useState([]);
+  const [_layouts, setLayouts] = useState([]);
   const [visibleDate, setVisibleDate] = useState(() => dayjs());
-  const [selectedYear, setSelectedYear] = useState(() => dayjs().year());
-  const [selectedMonth, setSelectedMonth] = useState(() => dayjs().month());
-  const [calendarView, setCalendarView] = useState('day');
+  const [_selectedMonth, setSelectedMonth] = useState(() => dayjs().month());
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
