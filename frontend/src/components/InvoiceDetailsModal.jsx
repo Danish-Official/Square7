@@ -207,7 +207,7 @@ export default function InvoiceDetailsModal({
               <Button
                 variant="outline"
                 onClick={handleDownloadInvoice}
-                className="bg-white hover:bg-gray-50"
+                className="bg-white hover:bg-[#f7f7f7]"
               >
                 <Download className="mr-2 h-4 w-4" />
                 Download Invoice
@@ -236,7 +236,7 @@ export default function InvoiceDetailsModal({
                   {localInvoice?.payments?.map((payment, index) => (
                     <li
                       key={index}
-                      className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                      className="flex items-center justify-between bg-[#f7f7f7] p-3 rounded-lg"
                     >
                       <div>
                         <span className="font-medium">{`${getOrdinalSuffix(
@@ -255,7 +255,7 @@ export default function InvoiceDetailsModal({
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditPayment(index)}
-                          className="bg-white hover:bg-gray-50"
+                          className="bg-white hover:bg-[#f7f7f7]"
                         >
                           Edit
                         </Button>
@@ -263,7 +263,7 @@ export default function InvoiceDetailsModal({
                           variant="outline"
                           size="sm"
                           onClick={() => handleDownloadPayment(payment, index)}
-                          className="bg-white hover:bg-gray-50"
+                          className="bg-white hover:bg-[#f7f7f7]"
                         >
                           <Download size={16} />
                         </Button>
@@ -272,7 +272,7 @@ export default function InvoiceDetailsModal({
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeletePayment(index)}
-                            className="bg-white hover:bg-gray-50 text-red-500 hover:text-red-700"
+                            className="bg-white hover:bg-[#f7f7f7] text-red-500 hover:text-red-700"
                           >
                             <Trash2 size={16} />
                           </Button>
@@ -282,7 +282,7 @@ export default function InvoiceDetailsModal({
                   ))}
                 </ul>
               </div>
-              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+              <div className="space-y-4 bg-[#f7f7f7] p-4 rounded-lg">
                 <h3 className="font-semibold text-[#1F263E]">Add Payment</h3>
                 <div className="grid gap-4">
                   <Input
@@ -366,7 +366,7 @@ export default function InvoiceDetailsModal({
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="bg-white hover:bg-gray-50"
+                className="bg-white hover:bg-[#f7f7f7]"
               >
                 Close
               </Button>

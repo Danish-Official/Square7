@@ -146,6 +146,27 @@ router.get("/plot/:plotId", authenticate(), async (req, res) => {
   }
 });
 
+router.get("/:id", authenticate(), async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id)
+      .populate({
+        path: 'booking',
+        populate: {
+          path: 'plot'
+        }
+      });
+
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    res.status(200).json(invoice);
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 router.get("/revenue", authenticate(), async (req, res) => {
   try {
     const revenueData = await Invoice.calculateMonthlyRevenue();

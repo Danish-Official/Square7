@@ -289,7 +289,7 @@ const PlotLayout2 = () => {
               )}
               <button
                 onClick={() => setSelectedPlot(null)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-[#f7f7f7]"
               >
                 Close
               </button>

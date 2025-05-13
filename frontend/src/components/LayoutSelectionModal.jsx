@@ -1,6 +1,4 @@
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
-import Layout1 from "@/assets/layouts/Layout 1.png";
-import Layout2 from "@/assets/layouts/Layout 2.png";
 import { useLayout } from "@/context/LayoutContext";
 
 export default function LayoutSelectionModal({ open, onClose }) {

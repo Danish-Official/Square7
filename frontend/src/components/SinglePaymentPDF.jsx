@@ -1,11 +1,33 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import Layout1 from "@/assets/layouts/layoutblue1.png";
+import Layout2 from "@/assets/layouts/layoutblue2.png";
+import bgBuilding from "@/assets/bg-building.png";
 import logoPath from "@/assets/logo.png";
-import Layout from "@/assets/Layout.png";
 
 const styles = StyleSheet.create({
   page: {
     padding: 20,
     backgroundColor: '#ffffff',
+    position: 'relative',
+  },
+  backgroundBuilding: {
+    position: 'absolute',
+    bottom: 0,
+    left: '-15%',
+    right: 0,
+    width: '130%',
+    height: '200',
+    opacity: 0.3,
+    zIndex: -1,
+  },
+  backgroundLogo: {
+    position: 'absolute',
+    left: '20%',
+    top: '20%',
+    width: 400,
+    height: 400,
+    opacity: 0.05,
+    zIndex: -1,
   },
   header: {
     flexDirection: 'row',
@@ -19,7 +41,7 @@ const styles = StyleSheet.create({
     height: 70,
   },
   layoutLogo: {
-    width: 100,
+    width: 140,
     height: 70,
   },
   title: {
@@ -35,18 +57,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginVertical: 3,
   },
-  address: {
-    fontSize: 10,
-    textAlign: 'right',
-    width: '30%',
-    color: '#666666',
-  },
   billInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 5,
     marginBottom: 10,
-    backgroundColor: '#f8f9fa',
     padding: 10,
     borderRadius: 4,
   },
@@ -100,7 +115,6 @@ const styles = StyleSheet.create({
   },
   plotDetails: {
     marginVertical: 10,
-    backgroundColor: '#f8f9fa',
     padding: 10,
     borderRadius: 4,
     width: '200px',
@@ -127,7 +141,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#f8f9fa',
     borderRadius: 4,
   },
   totalLabel: {
@@ -154,7 +167,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const SinglePaymentPDF = ({ data }) => {
+const SinglePaymentPDF = ({ data, selectedLayout }) => {  // Add selectedLayout prop
   // Format date using a safe check
   const formatDate = (dateString) => {
     try {
@@ -176,14 +189,11 @@ const SinglePaymentPDF = ({ data }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <Image src={bgBuilding} style={styles.backgroundBuilding} />
+        <Image src={logoPath} style={styles.backgroundLogo} />
         <View style={styles.header}>
           <Image src={logoPath} style={styles.logo} />
-          <Image src={Layout} style={styles.layoutLogo} />
-          <View style={styles.address}>
-            <Text>HINGNA NAGPUR 441110</Text>
-            <Text>Contact: +91 XXXXXXXXXX</Text>
-            <Text>Email: info@square7.com</Text>
-          </View>
+          <Image src={selectedLayout === "layout1" ? Layout1 : Layout2} style={styles.layoutLogo} />
         </View>
 
         <View style={styles.billInfo}>

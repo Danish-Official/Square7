@@ -11,12 +11,11 @@ import LoginPage from "./pages/LoginPage";
 import { ToastContainer } from "react-toastify";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
-import BookingPreview from "@/pages/BookingDetails";
+import BookingDetails from "@/pages/BookingDetails";
 import AppWrapper from "./pages/AppWrapper";
 import LayoutResources from "./pages/LayoutResources";
 import BrokersManagement from "./pages/BrokersManagement";
 import Expenses from "./pages/Expenses"; // Add this import
-import BookingDetails from "@/pages/BookingDetails";
 import InvoiceDetails from "./pages/InvoiceDetails";
 
 function ProtectedRoute({ children, allowedRoles }) {
@@ -121,7 +120,7 @@ function App() {
             path="booking-preview"
             element={
               <ProtectedRoute>
-                <BookingPreview />
+                <BookingDetails />
               </ProtectedRoute>
             }
           />

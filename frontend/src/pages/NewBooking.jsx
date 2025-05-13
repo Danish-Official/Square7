@@ -697,7 +697,7 @@ export default function NewBooking() {
                       .map(broker => (
                         <div
                           key={broker._id}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black"
+                          className="px-4 py-2 hover:bg-[#f7f7f7] cursor-pointer text-black"
                           onClick={() => handleBrokerSelect(broker)}
                         >
                           <div className="font-medium">{broker.name}</div>
@@ -956,7 +956,7 @@ export default function NewBooking() {
           <Button
             type="button"
             onClick={() => navigate("/contact-list")}
-            className="bg-white text-black border border-[#303750] hover:bg-gray-100"
+            className="bg-white text-black border border-[#303750] hover:bg-[#f7f7f7]"
           >
             Cancel
           </Button>

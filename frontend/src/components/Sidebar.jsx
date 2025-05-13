@@ -17,8 +17,8 @@ import {
   Handshake,
   IndianRupee,
 } from "lucide-react"; // Icons
-import Layout1 from "@/assets/layouts/Layout 1.png"; // Import layout images
-import Layout2 from "@/assets/layouts/Layout 2.png"; // Import layout images
+import Layout1 from "@/assets/layouts/Layout1.png"; // Import layout images
+import Layout2 from "@/assets/layouts/Layout2.png"; // Import layout images
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +52,7 @@ const Sidebar = () => {
         )}
         <div className="flex items-center justify-center mb-4">
           <img
-            src={selectedLayout === "layout1" ? Layout2 : Layout1}
+            src={selectedLayout === "layout1" ? Layout1 : Layout2}
             alt="Layout"
             className="h-23 w-auto"
           />

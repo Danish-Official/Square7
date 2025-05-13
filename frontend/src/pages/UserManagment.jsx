@@ -111,7 +111,7 @@ export default function UsersManagement() {
                 onChange={(e) =>
                   setNewAdmin((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
             </div>
             <div>
@@ -121,7 +121,7 @@ export default function UsersManagement() {
                 onChange={(e) =>
                   setNewAdmin((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
             </div>
             <div>
@@ -132,14 +132,14 @@ export default function UsersManagement() {
                 onChange={(e) =>
                   setNewAdmin((prev) => ({ ...prev, password: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
-                className="bg-white hover:bg-gray-50"
+                className="bg-white hover:bg-[#f7f7f7]"
               >
                 Cancel
               </Button>

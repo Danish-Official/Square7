@@ -189,7 +189,7 @@ export default function Enquiries() {
                 placeholder="Name"
                 value={newEnquiry.name}
                 onChange={handleChange}
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -201,7 +201,7 @@ export default function Enquiries() {
                 placeholder="Phone Number"
                 value={newEnquiry.phoneNumber}
                 onChange={handleChange}
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
               {errors.phoneNumber && (
                 <p className="text-red-500 text-sm mt-1">
@@ -219,7 +219,7 @@ export default function Enquiries() {
                     handleChange(e);
                   }
                 }}
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full p-3 bg-[#f7f7f7] border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 rows="4"
               />
               <p className="text-gray-500 text-sm mt-1">
@@ -233,7 +233,7 @@ export default function Enquiries() {
               <Button
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
-                className="bg-white hover:bg-gray-50"
+                className="bg-white hover:bg-[#f7f7f7]"
               >
                 Cancel
               </Button>
@@ -267,7 +267,7 @@ export default function Enquiries() {
                     name: e.target.value,
                   }))
                 }
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -284,7 +284,7 @@ export default function Enquiries() {
                     phoneNumber: e.target.value,
                   }))
                 }
-                className="bg-gray-50 border-gray-200 focus:border-blue-500"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
               {errors.phoneNumber && (
                 <p className="text-red-500 text-sm mt-1">
@@ -305,7 +305,7 @@ export default function Enquiries() {
                     }));
                   }
                 }}
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full p-3 bg-[#f7f7f7] border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 rows="4"
               />
               {errors.message && (
@@ -316,7 +316,7 @@ export default function Enquiries() {
               <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
-                className="bg-white hover:bg-gray-50"
+                className="bg-white hover:bg-[#f7f7f7]"
               >
                 Cancel
               </Button>

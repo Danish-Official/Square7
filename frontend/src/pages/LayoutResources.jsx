@@ -117,15 +117,17 @@ export default function LayoutResources() {
             key={resource._id}
             className="bg-white p-4 rounded-lg shadow-md space-y-3"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {getFileIcon(resource.fileType)}
-                <div className="truncate">
-                  <p className="font-medium truncate">{resource.originalName}</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="flex items-start sm:items-center space-x-3 min-w-0">
+                <div className="flex-shrink-0">
+                  {getFileIcon(resource.fileType)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate max-w-[200px] sm:max-w-[250px]">{resource.originalName}</p>
                   <p className="text-sm text-gray-500">{formatFileSize(resource.fileSize)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 self-end sm:self-auto">
                 {auth.user?.role === "superadmin" && (
                   <Button
                     variant="ghost"
@@ -133,12 +135,12 @@ export default function LayoutResources() {
                     onClick={() => handleDelete(resource._id)}
                     className="text-red-500 hover:text-red-700"
                   >
-                    <Trash2 className="h-5 w-5" />
+                    <Trash2 />
                   </Button>
                 )}
               </div>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 break-words">
               Uploaded on {format(new Date(resource.uploadDate), 'MMM d, yyyy')}
             </p>
             <Button

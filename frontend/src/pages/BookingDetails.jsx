@@ -399,7 +399,7 @@ export default function BookingDetails() {
                 <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Uploaded Documents</h2>
                 <div className="grid grid-cols-1 gap-4">
                   {bookingDetails.documents.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-[#f7f7f7]">
                       <div className="flex items-center gap-3">
                         <FileText className="w-6 h-6 text-[#1F263E]" />
                         <div>
@@ -532,7 +532,7 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
               value={formData.plot?.plotNumber || ""}
               readOnly
               disabled
-              className="bg-gray-50"
+              className="bg-[#f7f7f7]"
             />
           </div>
           <div>
@@ -542,7 +542,7 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
               value={formData.plot?.areaSqFt || ""}
               readOnly
               disabled
-              className="bg-gray-50"
+              className="bg-[#f7f7f7]"
             />
           </div>
           <div>
@@ -706,7 +706,7 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
               <h3 className="font-medium mb-2">Uploaded Documents</h3>
               <div className="grid grid-cols-2 gap-4">
                 {formData.documents.map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                  <div key={index} className="flex items-center justify-between p-2 bg-[#f7f7f7] rounded">
                     <span className="capitalize">{doc.type}</span>
                     <Button
                       variant="ghost"

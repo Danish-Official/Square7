@@ -24,10 +24,10 @@ const expenseSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role: {
+  occupation: {
     type: String,
-    required: true,
-    enum: ['Architect', 'Engineer', 'Contractor', 'Advocate', 'CA']
+    required: false,  // Changed to false to make it optional
+    trim: true
   }
 }, { timestamps: true });
 

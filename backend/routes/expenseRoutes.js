@@ -3,17 +3,6 @@ const router = express.Router();
 const Expense = require('../models/Expense');
 const authenticate = require('../middleware/authenticate');
 
-// Get expenses by layout and role
-router.get('/layout/:layoutId/role/:role', authenticate(), async (req, res) => {
-  try {
-    const { layoutId, role } = req.params;
-    const expenses = await Expense.find({ layoutId, role }).sort({ date: -1 });
-    res.status(200).json(expenses);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error" });
-  }
-});
-
 // Get all expenses for a layout
 router.get('/layout/:layoutId', authenticate(), async (req, res) => {
   try {

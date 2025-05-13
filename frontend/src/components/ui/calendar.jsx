@@ -119,7 +119,7 @@ export function Calendar({
                             onClick={() => handleDateClick(date)}
                             disabled={isDisabled}
                             className={cn(
-                                "w-full text-center rounded-md hover:bg-gray-100",
+                                "w-full text-center rounded-md hover:bg-[#f7f7f7]",
                                 "flex flex-col justify-center items-center",
                                 "p-2 pb-0", 
                                 isDisabled && "pb-2",
@@ -151,7 +151,7 @@ export function Calendar({
                         key={month}
                         onClick={() => handleMonthSelect(i)}
                         className={cn(
-                            "p-2 rounded-md hover:bg-gray-100",
+                            "p-2 rounded-md hover:bg-[#f7f7f7]",
                             viewDate.month() === i && "bg-[#1F263E] text-white hover:bg-[#2A324D]"
                         )}
                     >
@@ -174,7 +174,7 @@ export function Calendar({
                         key={year}
                         onClick={() => handleYearSelect(year)}
                         className={cn(
-                            "p-2 rounded-md hover:bg-gray-100",
+                            "p-2 rounded-md hover:bg-[#f7f7f7]",
                             viewDate.year() === year && "bg-[#1F263E] text-white hover:bg-[#2A324D]"
                         )}
                     >
@@ -199,13 +199,13 @@ export function Calendar({
                 <div className="flex gap-1 text-lg font-semibold">
                     <button
                         onClick={handleMonthClick}
-                        className="hover:bg-gray-100 px-2 py-1 rounded"
+                        className="hover:bg-[#f7f7f7] px-2 py-1 rounded"
                     >
                         {viewDate.format('MMMM')}
                     </button>
                     <button
                         onClick={handleYearClick}
-                        className="hover:bg-gray-100 px-2 py-1 rounded"
+                        className="hover:bg-[#f7f7f7] px-2 py-1 rounded"
                     >
                         {viewDate.format('YYYY')}
                     </button>
