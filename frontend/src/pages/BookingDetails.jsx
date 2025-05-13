@@ -344,7 +344,7 @@ export default function BookingDetails() {
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-medium text-gray-500">First Payment</h3>
+                  <h3 className="font-medium text-gray-500">Booking Payment</h3>
                   <p className="text-lg">₹{bookingDetails.firstPayment}</p>
                 </div>
                 <div>
@@ -593,7 +593,7 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
             </Select>
           </div>
           <div>
-            <Label className="mb-2">First Payment (Rs.)</Label>
+            <Label className="mb-2">Booking Payment (Rs.)</Label>
             <Input
               name="firstPayment"
               type="number"

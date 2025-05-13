@@ -3,9 +3,9 @@ import InvoicePDF from '@/components/InvoicePDF';
 import SinglePaymentPDF from '@/components/SinglePaymentPDF';
 import React from 'react';
 
-export const generateInvoicePDF = async (invoice, filename) => {
+export const generateInvoicePDF = async (invoice, filename, selectedLayout) => {
   try {
-    const blob = await pdf(React.createElement(InvoicePDF, { data: invoice })).toBlob();
+    const blob = await pdf(React.createElement(InvoicePDF, { data: invoice, selectedLayout })).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

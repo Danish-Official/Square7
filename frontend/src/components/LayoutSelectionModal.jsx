@@ -1,5 +1,7 @@
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { useLayout } from "@/context/LayoutContext";
+import Layout1 from "@/assets/layouts/Layout1.png"; // Import layout images
+import Layout2 from "@/assets/layouts/Layout2.png";
 
 export default function LayoutSelectionModal({ open, onClose }) {
   const { setSelectedLayout } = useLayout();
@@ -19,20 +21,13 @@ export default function LayoutSelectionModal({ open, onClose }) {
             onClick={() => handleLayoutSelect("layout1")}
             className="cursor-pointer rounded-lg bg-gray-900 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
-            {/* <img src={Layout1} alt="Layout 1" className="w-full mb-2" /> */}
-            <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
-              <p className="text-5xl">KRISHNAM</p>
-              <p className="ms-10 p-1.5 text-2xl">NAGAR 1</p>
-            </div>
+            <img src={Layout1} alt="Layout 1" className="w-full mb-2" />
           </div>
           <div
             onClick={() => handleLayoutSelect("layout2")}
             className="cursor-pointer rounded-lg bg-gray-900 hover:bg-gray-900 transition-all transform hover:scale-105"
           >
-            <div className="flex flex-col items-center justify-center font-bold p-6 text-amber-400">
-              <p className="text-5xl">KRISHNAM</p>
-              <p className="ms-10 p-1.5 text-2xl">NAGAR 2</p>
-            </div>
+            <img src={Layout2} alt="Layout 2" className="w-full mb-2" />
           </div>
         </div>
       </DialogContent>

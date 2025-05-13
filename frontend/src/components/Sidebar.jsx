@@ -16,6 +16,7 @@ import {
   Image,
   Handshake,
   IndianRupee,
+  Trash2, // Add this import
 } from "lucide-react"; // Icons
 import Layout1 from "@/assets/layouts/Layout1.png"; // Import layout images
 import Layout2 from "@/assets/layouts/Layout2.png"; // Import layout images
@@ -97,13 +98,18 @@ const Sidebar = () => {
                 label="Expenses"
               />
               <NavItem
+                to="/deleted-contacts"
+                icon={<Trash2 size={20} />}
+                label="Deleted Contacts"
+              />
+              <NavItem
                 to="/user-management"
                 icon={<UserRoundCog size={20} />}
                 label="Manage Users"
               />
               <div className="w-full h-40"></div>
               <a
-                href="/enquiries"
+                href="/expense-management"
                 className="text-gray-900"
               >
                 +

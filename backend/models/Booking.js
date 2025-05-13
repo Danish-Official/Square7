@@ -12,7 +12,7 @@ const bookingSchema = new mongoose.Schema(
     paymentType: { type: String, enum: ["Cash", "Cheque", "Online"], required: true },
     narration: { type: String },
     totalCost: { type: Number, required: true },
-    ratePerSqFt: { type: Number, required: true }, // Add this field
+    ratePerSqFt: { type: Number, required: true },
     bookingDate: { type: Date, required: true, default: Date.now },
     broker: { type: mongoose.Schema.Types.ObjectId, ref: "Broker" },
     documents: [{
@@ -26,6 +26,8 @@ const bookingSchema = new mongoose.Schema(
       url: String,
       uploadDate: { type: Date, default: Date.now }
     }],
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
     firstPayment: { type: Number, required: true }
   },
   { timestamps: true }

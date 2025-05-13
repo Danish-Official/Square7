@@ -17,6 +17,8 @@ import LayoutResources from "./pages/LayoutResources";
 import BrokersManagement from "./pages/BrokersManagement";
 import Expenses from "./pages/Expenses"; // Add this import
 import InvoiceDetails from "./pages/InvoiceDetails";
+import DeletedContacts from "./pages/DeletedContacts"; // Add this import at the top
+import ExpenseManagement from "./pages/ExpenseManagement";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -145,6 +147,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <InvoiceDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="deleted-contacts"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+                <DeletedContacts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="expense-management"
+            element={
+              <ProtectedRoute allowedRoles={["superadmin"]}>
+                <ExpenseManagement />
               </ProtectedRoute>
             }
           />

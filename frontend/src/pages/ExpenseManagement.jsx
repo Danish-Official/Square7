@@ -135,7 +135,7 @@ export default function Expenses() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-semibold">Expenses Management</h1>
+          <h1 className="text-3xl font-semibold">Cost Management</h1>
         </div>
         <Button
           className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
@@ -183,25 +183,6 @@ export default function Expenses() {
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
             <Input
-              type="number"
-              placeholder="TDS"
-              value={formData.tds}
-              onChange={(e) => setFormData({ ...formData, tds: e.target.value })}
-              required
-              min="0"
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              type="number"
-              placeholder="Net Amount"
-              value={formData.amount - (formData.tds * formData.amount / 100)}
-              readOnly
-              onChange={(e) => setFormData({ ...formData, netAmount: e.target.value })}
-              required
-              min="0"
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
@@ -240,8 +221,6 @@ export default function Expenses() {
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Amount</TableHead>
-            <TableHead>TDS</TableHead>
-            <TableHead>Net Amount</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Occupation</TableHead>
             <TableHead>Actions</TableHead>
@@ -253,8 +232,6 @@ export default function Expenses() {
               <TableCell>{expense.name}</TableCell>
               <TableCell>{expense.description}</TableCell>
               <TableCell>₹{expense.amount}</TableCell>
-              <TableCell>₹{expense.tds}</TableCell>
-              <TableCell>₹{expense.netAmount}</TableCell>
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
               <TableCell>{expense.occupation || '-'}</TableCell>
               <TableCell>

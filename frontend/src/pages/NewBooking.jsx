@@ -715,9 +715,9 @@ export default function NewBooking() {
             <h3 className="text-xl font-semibold mb-6">Upload Documents</h3>
 
             {/* Aadhar Card Upload */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3  text-center">
               <div className="space-y-2">
-                <Label htmlFor="aadharCard" className="text-lg mb-2 block">Aadhar Card</Label>
+                <Label htmlFor="aadharCard" className="text-lg mb-2 block">Aadhar Card Front Side</Label>
                 <div className="flex items-center justify-center w-full">
                   <label className={`relative flex flex-col items-center justify-center w-100 h-72 border-2 border-gray-300 border-dashed rounded-xl ${!formData.documents.find(doc => doc.type === 'aadharCard') ? 'cursor-pointer hover:bg-white/10' : 'cursor-default pointer-events-none'
                     } bg-white/5 backdrop-blur-sm transition-all duration-300`}>
@@ -788,7 +788,78 @@ export default function NewBooking() {
                   </label>
                 </div>
               </div>
-
+              <div className="space-y-2">
+                <Label htmlFor="aadharCard" className="text-lg mb-2 block">Aadhar Card Back Side</Label>
+                <div className="flex items-center justify-center w-full">
+                  <label className={`relative flex flex-col items-center justify-center w-100 h-72 border-2 border-gray-300 border-dashed rounded-xl ${!formData.documents.find(doc => doc.type === 'aadharCard') ? 'cursor-pointer hover:bg-white/10' : 'cursor-default pointer-events-none'
+                    } bg-white/5 backdrop-blur-sm transition-all duration-300`}>
+                    {isUploading && formData.uploadingDoc === 'aadharCard' ? (
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+                        <p className="mt-4 text-lg font-medium text-white/80">Uploading...</p>
+                      </div>
+                    ) : formData.documents.find(doc => doc.type === 'aadharCard') ? (
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
+                        <p className="mb-2 text-lg font-medium text-white/80">
+                          {formData.documents.find(doc => doc.type === 'aadharCard').file.name}
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setFormData(prev => ({
+                              ...prev,
+                              documents: prev.documents.filter(doc => doc.type !== 'aadharCard')
+                            }));
+                          }}
+                          className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors duration-200 hover:bg-red-500/10 rounded-md pointer-events-auto"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>Remove file</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-16 h-16 mb-4 text-white/60" />
+                        <p className="mb-2 text-lg font-medium text-white/80">
+                          <span className="font-semibold">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
+                      </div>
+                    )}
+                    <input
+                      id="aadharCard"
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) {
+                            toast.error("File size should be less than 2MB");
+                            return;
+                          }
+                          setIsUploading(true);
+                          setFormData(prev => ({ ...prev, uploadingDoc: 'aadharCard' }));
+                          try {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            setFormData(prev => ({
+                              ...prev,
+                              documents: [...prev.documents.filter(doc => doc.type !== 'aadharCard'), { type: 'aadharCard', file }]
+                            }));
+                          } catch (error) {
+                            toast.error("Failed to upload file");
+                          } finally {
+                            setIsUploading(false);
+                            setFormData(prev => ({ ...prev, uploadingDoc: null }));
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
               {/* PAN Card Upload */}
               <div className="space-y-2">
                 <Label htmlFor="panCard" className="text-lg mb-2 block">PAN Card</Label>

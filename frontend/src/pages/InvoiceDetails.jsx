@@ -15,6 +15,7 @@ import { apiClient } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { generateInvoicePDF, generatePaymentReceiptPDF } from "@/utils/pdfUtils";
+import { useLayout } from "@/context/LayoutContext";
 
 const x = 3;
 export default function InvoiceDetails() {
@@ -30,6 +31,7 @@ export default function InvoiceDetails() {
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [errors, setErrors] = useState({});
   const { auth } = useAuth();
+  const { selectedLayout } = useLayout();
 
   useEffect(() => {
     fetchInvoice();
@@ -140,7 +142,7 @@ export default function InvoiceDetails() {
 
   const handleDownloadInvoice = async () => {
     try {
-      await generateInvoicePDF(invoice, `invoice-${invoice.invoiceNumber}.pdf`);
+      await generateInvoicePDF(invoice, `invoice-${invoice.invoiceNumber}.pdf`, selectedLayout);
     } catch (error) {
       toast.error("Failed to download invoice");
     }
@@ -151,7 +153,8 @@ export default function InvoiceDetails() {
       await generatePaymentReceiptPDF(
         payment,
         invoice,
-        `payment-receipt-${invoice.invoiceNumber}-${payment.id}.pdf`
+        `payment-receipt-${invoice.invoiceNumber}-${payment.id}.pdf`,
+        selectedLayout
       );
     } catch (error) {
       toast.error("Failed to download payment receipt");

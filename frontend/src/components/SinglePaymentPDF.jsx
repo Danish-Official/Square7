@@ -159,16 +159,16 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 30,
     right: 30,
-    textAlign: 'center',
+    textAlign: 'right',
     color: '#666666',
     fontSize: 10,
     borderTop: '1 solid #dee2e6',
     paddingTop: 5,
+    textTransform: 'uppercase',
   }
 });
 
-const SinglePaymentPDF = ({ data, selectedLayout }) => {  // Add selectedLayout prop
-  // Format date using a safe check
+const SinglePaymentPDF = ({ data, selectedLayout }) => {
   const formatDate = (dateString) => {
     try {
       return new Date(dateString).toLocaleDateString('en-IN');
@@ -206,7 +206,7 @@ const SinglePaymentPDF = ({ data, selectedLayout }) => {  // Add selectedLayout 
             <Text style={styles.value}>PMT-{(data.paymentIndex || 0) + 1}</Text>
             <View style={styles.dateGroup}>
               <Text style={styles.label}>Date:</Text>
-              <Text style={styles.value}>{formatDate(new Date())}</Text>
+              <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
             </View>
           </View>
         </View>
@@ -218,8 +218,8 @@ const SinglePaymentPDF = ({ data, selectedLayout }) => {  // Add selectedLayout 
             <Text style={styles.plotValue}>{data.plotNumber || 'N/A'}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.plotLabel}>Payment Number:</Text>
-            <Text style={styles.plotValue}>{(data.paymentIndex || 0) + 1}</Text>
+            <Text style={styles.plotLabel}>Area:</Text>
+            <Text style={styles.plotValue}>{data.areaSqFt || 'N/A'}</Text>
           </View>
         </View>
 
@@ -251,8 +251,8 @@ const SinglePaymentPDF = ({ data, selectedLayout }) => {  // Add selectedLayout 
         </View>
 
         <View style={styles.footer}>
-          <Text>Generated on {formatDate(new Date())}</Text>
-          <Text>Square7 Real Estate Solutions</Text>
+          <Text>Generated on {new Date().toLocaleDateString()}</Text>
+          <Text>Square Seven Infra</Text>
         </View>
       </Page>
     </Document>
