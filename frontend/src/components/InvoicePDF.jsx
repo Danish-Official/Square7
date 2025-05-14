@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 5,
     marginBottom: 10,
-    backgroundColor: '#f8f9fa',
     padding: 10,
     borderRadius: 4,
   },
@@ -89,7 +88,6 @@ const styles = StyleSheet.create({
   },
   plotDetails: {
     marginVertical: 10,
-    backgroundColor: '#f8f9fa',
     padding: 10,
     borderRadius: 4,
     width: '300px',
@@ -139,7 +137,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#f8f9fa',
     borderRadius: 4,
     gap: 20,
   },

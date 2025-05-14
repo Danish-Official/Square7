@@ -163,12 +163,13 @@ export default function BookingDetails() {
       });
   
       // Handle broker data
-      if (formData.broker?.name?.trim()) {
+      if (formData.broker) {
         const brokerData = {
-          name: formData.broker.name.trim(),
+          name: formData.broker.name || "",
           phoneNumber: formData.broker.phoneNumber || "",
           address: formData.broker.address || "",
-          commission: Number(formData.broker.commission) || 0
+          commission: Number(formData.broker.commission) || 0,
+          _id: formData.broker._id // Include broker ID if it exists
         };
         formDataToSend.append('brokerData', JSON.stringify(brokerData));
       }

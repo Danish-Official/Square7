@@ -10,6 +10,18 @@ const expenseSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  tds: {
+    type: Number,
+    required: false,
+    default: 0
+  },
+  netAmount: {
+    type: Number,
+    required: false,
+    default: function() {
+      return this.amount - (this.amount * (this.tds || 0) / 100);
+    }
+  },
   name: {
     type: String,
     required: true,
@@ -26,9 +38,15 @@ const expenseSchema = new mongoose.Schema({
   },
   occupation: {
     type: String,
-    required: false,  // Changed to false to make it optional
+    required: false,
     trim: true
   }
 }, { timestamps: true });
+
+// Add pre-save middleware to calculate netAmount
+expenseSchema.pre('save', function(next) {
+  this.netAmount = this.amount - (this.amount * (this.tds || 0) / 100);
+  next();
+});
 
 module.exports = mongoose.model('Expense', expenseSchema);

@@ -122,7 +122,9 @@ export default function Expenses() {
   };
 
   const filteredExpenses = expenses.filter(expense =>
-    expense.description.toLowerCase().includes(searchTerm.toLowerCase())
+    expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (expense.occupation && expense.occupation.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
@@ -146,7 +148,7 @@ export default function Expenses() {
       </div>
 
       <SearchInput
-        placeholder="Search expenses by description"
+        placeholder="Search by name, description or occupation"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -187,16 +189,6 @@ export default function Expenses() {
               placeholder="TDS"
               value={formData.tds}
               onChange={(e) => setFormData({ ...formData, tds: e.target.value })}
-              required
-              min="0"
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              type="number"
-              placeholder="Net Amount"
-              value={formData.amount - (formData.tds * formData.amount / 100)}
-              readOnly
-              onChange={(e) => setFormData({ ...formData, netAmount: e.target.value })}
               required
               min="0"
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
@@ -253,7 +245,7 @@ export default function Expenses() {
               <TableCell>{expense.name}</TableCell>
               <TableCell>{expense.description}</TableCell>
               <TableCell>₹{expense.amount}</TableCell>
-              <TableCell>₹{expense.tds}</TableCell>
+              <TableCell>{expense.tds}%</TableCell>
               <TableCell>₹{expense.netAmount}</TableCell>
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
               <TableCell>{expense.occupation || '-'}</TableCell>

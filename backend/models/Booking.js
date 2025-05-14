@@ -26,8 +26,6 @@ const bookingSchema = new mongoose.Schema(
       url: String,
       uploadDate: { type: Date, default: Date.now }
     }],
-    deleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
     firstPayment: { type: Number, required: true }
   },
   { timestamps: true }

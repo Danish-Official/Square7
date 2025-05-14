@@ -17,28 +17,52 @@ router.get('/layout/:layoutId', authenticate(), async (req, res) => {
 // Add new expense
 router.post('/', authenticate(), async (req, res) => {
   try {
-    const expense = new Expense(req.body);
+    const { amount, tds, ...otherFields } = req.body;
+    
+    // Calculate net amount
+    const netAmount = amount - (amount * (tds || 0) / 100);
+    
+    const expense = new Expense({
+      amount,
+      tds,
+      netAmount,
+      ...otherFields
+    });
+    
     await expense.save();
     res.status(201).json(expense);
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error('Error creating expense:', error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
 // Update expense
 router.put('/:id', authenticate(), async (req, res) => {
   try {
+    const { amount, tds, ...otherFields } = req.body;
+    
+    // Calculate net amount
+    const netAmount = amount - (amount * (tds || 0) / 100);
+    
     const expense = await Expense.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        amount,
+        tds,
+        netAmount,
+        ...otherFields
+      },
       { new: true, runValidators: true }
     );
+    
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }
     res.status(200).json(expense);
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error('Error updating expense:', error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 

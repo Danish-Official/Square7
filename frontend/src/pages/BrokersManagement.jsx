@@ -146,7 +146,7 @@ export default function BrokersManagement() {
   };
 
   const filteredBrokers = brokers.filter((broker) =>
-    broker.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (broker?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredBrokers.length / itemsPerPage);

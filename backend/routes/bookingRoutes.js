@@ -7,6 +7,7 @@ const Booking = require("../models/Booking");
 const Plot = require("../models/Plot");
 const Invoice = require("../models/Invoice");
 const Broker = require("../models/Broker");
+const DeletedContact = require("../models/DeletedContact");
 const authenticate = require("../middleware/authenticate");
 
 // Configure multer for document upload
@@ -314,13 +315,37 @@ router.put("/:id", authenticate(), (req, res, next) => {
         }
       }
 
+      // Handle broker data
+      let brokerId = existingBooking.broker;
+      if (req.body.brokerData) {
+        const brokerInfo = JSON.parse(req.body.brokerData);
+        
+        if (brokerInfo._id) {
+          // Update existing broker
+          await Broker.findByIdAndUpdate(brokerInfo._id, {
+            name: brokerInfo.name,
+            phoneNumber: brokerInfo.phoneNumber,
+            address: brokerInfo.address,
+            commission: brokerInfo.commission
+          });
+          brokerId = brokerInfo._id;
+        } else if (brokerInfo.name) {
+          // Create new broker
+          const broker = new Broker(brokerInfo);
+          await broker.save();
+          brokerId = broker._id;
+        }
+      }
+
       // Prepare update data
       const updateData = {
         ...req.body,
+        broker: brokerId,
         documents
       };
 
-      // Remove undefined fields
+      // Remove unnecessary fields
+      delete updateData.brokerData;
       Object.keys(updateData).forEach(key => {
         if (updateData[key] === undefined) delete updateData[key];
       });
@@ -353,12 +378,22 @@ router.put("/:id", authenticate(), (req, res, next) => {
 });
 
 // Delete Booking
-router.delete("/:id", authenticate(), async (req, res) => {
+router.delete("/:id", authenticate('superadmin'), async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
+
+    // Create deleted contact record
+    const deletedContact = new DeletedContact({
+      originalId: booking._id,
+      buyerName: booking.buyerName,
+      phoneNumber: booking.phoneNumber,
+      plot: booking.plot,
+      deletedBy: req.user.id
+    });
+    await deletedContact.save();
 
     await Invoice.deleteOne({ booking: booking._id });
     await Booking.deleteOne({ _id: booking._id });
@@ -369,9 +404,7 @@ router.delete("/:id", authenticate(), async (req, res) => {
       await plot.save();
     }
 
-    res
-      .status(200)
-      .json({ message: "Booking and related data deleted successfully" });
+    res.status(200).json({ message: "Booking and related data deleted successfully" });
   } catch (error) {
     console.error("Error deleting booking:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });

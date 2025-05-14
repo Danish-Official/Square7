@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,8 +10,6 @@ import {
 import { toast } from "react-toastify";
 import { useLayout } from "@/context/LayoutContext";
 import { apiClient } from "@/lib/utils";
-import { RotateCcw } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 
@@ -21,7 +18,6 @@ export default function DeletedContacts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const { selectedLayout } = useLayout();
-  const { auth } = useAuth();
   const itemsPerPage = 10;
 
   const fetchDeletedContacts = async () => {
@@ -40,18 +36,6 @@ export default function DeletedContacts() {
       fetchDeletedContacts();
     }
   }, [selectedLayout]);
-
-  const handleRestore = async (id) => {
-    if (!confirm("Are you sure you want to restore this contact?")) return;
-
-    try {
-      await apiClient.post(`/deleted-contacts/restore/${id}`);
-      toast.success("Contact restored successfully");
-      fetchDeletedContacts();
-    } catch (error) {
-      toast.error("Failed to restore contact");
-    }
-  };
 
   const filteredContacts = deletedContacts.filter((contact) =>
     contact.buyerName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -81,7 +65,6 @@ export default function DeletedContacts() {
             <TableHead>Phone Number</TableHead>
             <TableHead>Plot Number</TableHead>
             <TableHead>Deleted Date</TableHead>
-            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -92,14 +75,6 @@ export default function DeletedContacts() {
               <TableCell>{contact.plot.plotNumber}</TableCell>
               <TableCell>
                 {new Date(contact.deletedAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell>
-                {auth.user?.role === "superadmin" && (
-                  <RotateCcw
-                    className="cursor-pointer text-blue-500"
-                    onClick={() => handleRestore(contact._id)}
-                  />
-                )}
               </TableCell>
             </TableRow>
           ))}
