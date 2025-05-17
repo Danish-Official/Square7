@@ -23,14 +23,13 @@ import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 
-export default function Expenses() {
-  const [expenses, setExpenses] = useState([]);
+export default function OthersPage() {
+  const [Entries, setEntries] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [currentExpense, setCurrentExpense] = useState(null);
+  const [currententry, setCurrententry] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { selectedLayout } = useLayout();
   const { auth } = useAuth();
   const itemsPerPage = 10;
 
@@ -39,22 +38,19 @@ export default function Expenses() {
     amount: "",
     name: "",
     date: new Date().toISOString().split('T')[0],
-    occupation: "", // Add occupation field
   });
 
   useEffect(() => {
-    if (selectedLayout) {
-      fetchExpenses();
-    }
-  }, [selectedLayout]);
+    fetchEntries();
+  }, []);
 
-  const fetchExpenses = async () => {
+  const fetchEntries = async () => {
     try {
-      const { data } = await apiClient.get(`/expenses/layout/${selectedLayout}`);
-      setExpenses(data);
+      const { data } = await apiClient.get('/others');
+      setEntries(data);
     } catch (error) {
-      console.error("Failed to fetch expenses:", error);
-      setExpenses([]);
+      console.error("Failed to fetch Entries:", error);
+      setEntries([]);
     }
   };
 
@@ -62,71 +58,68 @@ export default function Expenses() {
     e.preventDefault();
 
     try {
-      const expenseData = {
+      const entryData = {
         ...formData,
-        layoutId: selectedLayout,
         amount: Number(formData.amount)
       };
 
-      if (isEditMode && currentExpense) {
-        await apiClient.put(`/expenses/${currentExpense._id}`, expenseData);
-        toast.success("Expense updated successfully");
+      if (isEditMode && currententry) {
+        await apiClient.put(`/others/${currententry._id}`, entryData);
+        toast.success("Cost updated successfully");
       } else {
-        await apiClient.post('/expenses', expenseData);
-        toast.success("Expense added successfully");
+        await apiClient.post('/others', entryData);
+        toast.success("Cost added successfully");
       }
 
-      fetchExpenses();
+      fetchEntries();
       handleCloseDialog();
     } catch (error) {
-      toast.error(isEditMode ? "Failed to update expense" : "Failed to add expense");
+      toast.error(isEditMode ? "Failed to update cost" : "Failed to add cost");
     }
   };
 
-  const handleEdit = (expense) => {
-    setCurrentExpense(expense);
+  const handleEdit = (entry) => {
+    setCurrententry(entry);
     setFormData({
-      description: expense.description,
-      amount: expense.amount,
-      name: expense.name,
-      date: new Date(expense.date).toISOString().split('T')[0],
-      occupation: expense.occupation || "", // Add occupation field
+      description: entry.description,
+      amount: entry.amount,
+      name: entry.name,
+      date: new Date(entry.date).toISOString().split('T')[0],
     });
     setIsEditMode(true);
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this expense?")) return;
+    if (!confirm("Are you sure you want to delete this cost?")) return;
 
     try {
-      await apiClient.delete(`/expenses/${id}`);
-      setExpenses(expenses.filter(expense => expense._id !== id));
-      toast.success("Expense deleted successfully");
+      await apiClient.delete(`/others/${id}`);
+      setEntries(Entries.filter(entry => entry._id !== id));
+      toast.success("Cost deleted successfully");
     } catch (error) {
-      toast.error("Failed to delete expense");
+      toast.error("Failed to delete cost");
     }
   };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setIsEditMode(false);
-    setCurrentExpense(null);
+    setCurrententry(null);
     setFormData({
       description: "",
       amount: "",
       name: "",
       date: new Date().toISOString().split('T')[0],
-      occupation: "", // Add occupation field
     });
   };
 
-  const filteredExpenses = expenses.filter(expense =>
-    expense.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEntries = Entries.filter(entry =>
+    entry.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
-  const paginatedExpenses = filteredExpenses.slice(
+  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+  const paginatedEntries = filteredEntries.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -135,18 +128,18 @@ export default function Expenses() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-semibold">Cost Management</h1>
+          <h1 className="text-3xl font-semibold">Others</h1>
         </div>
         <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
           onClick={() => setIsDialogOpen(true)}
         >
-          Add Expense
+          Add New Entry
         </Button>
       </div>
 
       <SearchInput
-        placeholder="Search expenses by description"
+        placeholder="Search Entries by description"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -155,7 +148,7 @@ export default function Expenses() {
         <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
           <DialogHeader className="space-y-3 mb-6">
             <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
-              {isEditMode ? 'Edit Expense' : 'Add New Expense'}
+              {isEditMode ? 'Edit entry' : 'Add New entry'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,12 +182,6 @@ export default function Expenses() {
               required
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
-            <Input
-              placeholder="Occupation (optional)"
-              value={formData.occupation}
-              onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
             <div className="flex justify-end gap-3">
               <Button
                 type="button"
@@ -208,7 +195,7 @@ export default function Expenses() {
                 type="submit"
                 className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
               >
-                {isEditMode ? 'Update' : 'Add'} Expense
+                {isEditMode ? 'Update' : 'Add'} Entry
               </Button>
             </div>
           </form>
@@ -222,29 +209,27 @@ export default function Expenses() {
             <TableHead>Description</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Occupation</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedExpenses.map((expense) => (
-            <TableRow key={expense._id}>
-              <TableCell>{expense.name}</TableCell>
-              <TableCell>{expense.description}</TableCell>
-              <TableCell>₹{expense.amount}</TableCell>
-              <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-              <TableCell>{expense.occupation || '-'}</TableCell>
+          {paginatedEntries.map((entry) => (
+            <TableRow key={entry._id}>
+              <TableCell>{entry.name}</TableCell>
+              <TableCell>{entry.description}</TableCell>
+              <TableCell>₹{entry.amount}</TableCell>
+              <TableCell>{new Date(entry.date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Edit2
                     className="cursor-pointer"
-                    onClick={() => handleEdit(expense)}
+                    onClick={() => handleEdit(entry)}
                   />
                   {auth.user?.role === "superadmin" && (
                     <Trash2
                       color="#f00505"
                       className="cursor-pointer"
-                      onClick={() => handleDelete(expense._id)}
+                      onClick={() => handleDelete(entry._id)}
                     />
                   )}
                 </div>

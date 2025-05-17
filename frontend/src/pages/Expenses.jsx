@@ -140,7 +140,7 @@ export default function Expenses() {
           <h1 className="text-3xl font-semibold">Expenses Management</h1>
         </div>
         <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
           onClick={() => setIsDialogOpen(true)}
         >
           Add Expense

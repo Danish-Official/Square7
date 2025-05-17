@@ -24,30 +24,47 @@ const storage = multer.diskStorage({
   }
 });
 
-// Update multer configuration to handle multiple files
+// Update the file upload configuration
 const upload = multer({
   storage: storage,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG and PDF are allowed.'));
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type. Only JPEG, PNG and PDF are allowed.'));
     }
+    
+    // Validate file field name
+    const validFields = ['aadharCardFront', 'aadharCardBack', 'panCard'];
+    if (!validFields.includes(file.fieldname)) {
+      return cb(new Error('Invalid document type'));
+    }
+    
+    cb(null, true);
   }
 }).fields([
-  { name: 'aadharCard', maxCount: 1 },
+  { name: 'aadharCardFront', maxCount: 1 },
+  { name: 'aadharCardBack', maxCount: 1 },
   { name: 'panCard', maxCount: 1 }
 ]);
+
+// Add error handling middleware for file uploads
+const handleUploadError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'File size should be less than 2MB' });
+    }
+    return res.status(400).json({ message: `Upload error: ${err.message}` });
+  }
+  next(err);
+};
 
 // Create Booking with document upload
 router.post("/", authenticate(), (req, res, next) => {
   upload(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ message: `File upload error: ${err.message}` });
-    } else if (err) {
-      return res.status(400).json({ message: `Unknown upload error: ${err.message}` });
+    if (err) {
+      handleUploadError(err, req, res, next);
+      return;
     }
     next();
   });
@@ -109,10 +126,10 @@ router.post("/", authenticate(), (req, res, next) => {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // Validate first payment
+    // Validate Booking Payment
     if (Number(firstPayment) <= 0 || Number(firstPayment) > Number(totalCost)) {
       return res.status(400).json({ 
-        message: "First payment must be greater than 0 and less than or equal to total cost" 
+        message: "Booking Payment must be greater than 0 and less than or equal to total cost" 
       });
     }
 
@@ -141,10 +158,19 @@ router.post("/", authenticate(), (req, res, next) => {
     const serverUrl = `${req.protocol}://${req.get('host')}`;
 
     if (req.files) {
-      if (req.files.aadharCard) {
-        const file = req.files.aadharCard[0];
+      if (req.files.aadharCardFront) {
+        const file = req.files.aadharCardFront[0];
         documents.push({
-          type: 'aadharCard',
+          type: 'aadharCardFront',
+          filename: file.filename,
+          originalName: file.originalname,
+          url: `${serverUrl}/uploads/documents/${file.filename}`
+        });
+      }
+      if (req.files.aadharCardBack) {
+        const file = req.files.aadharCardBack[0];
+        documents.push({
+          type: 'aadharCardBack',
           filename: file.filename,
           originalName: file.originalname,
           url: `${serverUrl}/uploads/documents/${file.filename}`
@@ -289,7 +315,7 @@ router.put("/:id", authenticate(), (req, res, next) => {
       const serverUrl = `${req.protocol}://${req.get('host')}`;
 
       if (req.files) {
-        for (const docType of ['aadharCard', 'panCard']) {
+        for (const docType of ['aadharCardFront', 'aadharCardBack', 'panCard']) {
           if (req.files[docType]?.[0]) {
             const file = req.files[docType][0];
 

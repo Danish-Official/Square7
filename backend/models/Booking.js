@@ -18,7 +18,7 @@ const bookingSchema = new mongoose.Schema(
     documents: [{
       type: {
         type: String,
-        enum: ["aadharCard", "panCard"],
+        enum: ["aadharCardFront", "aadharCardBack", "panCard"],
         required: true
       },
       filename: String,

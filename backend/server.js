@@ -11,6 +11,7 @@ const layoutResourceRoutes = require("./routes/layoutResourceRoutes");
 const brokerRoutes = require("./routes/brokerRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const deletedContactsRoutes = require("./routes/deletedContactsRoutes");
+const otherRoutes = require("./routes/otherRoutes");
 const path = require("path");
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use("/api/brokers", brokerRoutes);
 app.use("/api/layout-resources", layoutResourceRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/deleted-contacts", deletedContactsRoutes);
+app.use("/api/others", otherRoutes);
 
 // Serve uploaded files statically - move this BEFORE the catch-all route
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

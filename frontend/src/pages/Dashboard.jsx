@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FilePlus } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import Login from "../components/Login";
 import { useAuth } from "@/context/AuthContext";
 import { useBuyers } from "@/context/BuyersContext";
@@ -126,13 +126,13 @@ export default function Dashboard({ showLoginModal = false }) {
   // Update the buyers cache whenever buyers or layout changes
   useEffect(() => {
     if (!Array.isArray(buyers) || !selectedLayout) return;
-    
+
     const cache = new Set(
       buyers
         .filter(buyer => buyer.plot.layoutId === selectedLayout)
         .map(buyer => dayjs(buyer.bookingDate).format('YYYY-MM-DD'))
     );
-    
+
     buyersCache.set(selectedLayout, cache);
   }, [buyers, selectedLayout]);
 
@@ -173,7 +173,7 @@ export default function Dashboard({ showLoginModal = false }) {
     try {
       const cache = buyersCache.get(selectedLayout);
       if (!cache) return false;
-      
+
       const dateStr = dayjs(date).format('YYYY-MM-DD');
       return cache.has(dateStr);
     } catch (error) {
@@ -191,23 +191,23 @@ export default function Dashboard({ showLoginModal = false }) {
     <>
       <div className={`p-6 space-y-6 ${isLoginModalOpen || showLayoutModal ? "blur-sm" : ""}`}>
         <h1 className="text-3xl font-semibold">Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 bg-[#E8E8E8] p-2 rounded-[30px]">
           <Link
             to="/new-booking"
-            className="w-full h-full rounded-xl text-white font-semibold text-2xl cursor-pointer flex justify-center items-center gap-2 bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+            className="w-full height-[70px] rounded-[30px] font-semibold text-2xl cursor-pointer flex justify-center items-center gap-2 bg-[#E2AF3C] hover:bg-[#b98b2e] text-[#2F304B] font-oxygen shadow-[0px_10px_10px_0px_#00000061]"
           >
-            New Booking
-            <FilePlus size={30} />
+            Booking
+            <Bookmark />
           </Link>
           {selectedLayout &&
             layoutStats[selectedLayout] &&
             Object.entries(layoutStats[selectedLayout]).map(([key, value]) => (
-              <Card key={key} className="p-4 shadow-md">
+              <Card key={key} className="p-1 shadow-[0px_10px_10px_0px_#00000061] rounded-[30px] height-[70px] text-center text-white bg-[#21222A] border-[1px] border-[#E2AF3C]">
                 <CardContent>
-                  <h2 className="text-lg capitalize font-light font-oxygen">
+                  <h2 className="text-lg capitalize font-oxygen">
                     {key.replace(/([A-Z])/g, " $1")}
                   </h2>
-                  <p className="text-xl font-bold font-philosopher">{value}</p>
+                  <p className="text-3xl font-oxygen">{value}</p>
                 </CardContent>
               </Card>
             ))}

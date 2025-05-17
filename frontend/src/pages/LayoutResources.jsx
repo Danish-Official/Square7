@@ -99,7 +99,7 @@ export default function LayoutResources() {
           <Button
             onClick={() => document.getElementById('fileUpload').click()}
             disabled={uploading}
-            className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E] text-white"
+            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E] text-white"
           >
             {uploading ? 'Uploading...' : (
               <>

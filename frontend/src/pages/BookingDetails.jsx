@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { pdf } from '@react-pdf/renderer';
-import { FileText, Download, File, Receipt, CircleUserRound } from "lucide-react";
+import { FileText, Download, File, Receipt, CircleUserRound, X } from "lucide-react";
 import BookingDetailsPDF from '@/components/BookingDetailsPDF';
 import { apiClient } from "@/lib/utils";
 import { toast } from "react-toastify";
@@ -18,6 +18,8 @@ export default function BookingDetails() {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [isUploading, setIsUploading] = useState(false); // New state for upload status
+  const [tempDocuments, setTempDocuments] = useState([]); // Add this state if not already present
 
   useEffect(() => {
     async function fetchBookingDetails() {
@@ -99,7 +101,7 @@ export default function BookingDetails() {
       };
 
       console.log('PDF Data:', pdfData); // For debugging
-      
+
       const blob = await pdf(<BookingDetailsPDF data={pdfData} />).toBlob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -109,7 +111,7 @@ export default function BookingDetails() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       toast.success("PDF generated successfully");
     } catch (error) {
       console.error('PDF Generation Error:', error);
@@ -137,9 +139,8 @@ export default function BookingDetails() {
 
   const handleUpdate = async () => {
     try {
-      // Create form data
       const formDataToSend = new FormData();
-  
+
       // Add basic booking data
       const bookingData = {
         buyerName: formData.buyerName,
@@ -154,14 +155,14 @@ export default function BookingDetails() {
         email: formData.email || undefined,
         ratePerSqFt: Number(formData.ratePerSqFt)
       };
-  
+
       // Add each booking field to FormData
       Object.entries(bookingData).forEach(([key, value]) => {
         if (value !== undefined) {
           formDataToSend.append(key, value);
         }
       });
-  
+
       // Handle broker data
       if (formData.broker) {
         const brokerData = {
@@ -169,76 +170,45 @@ export default function BookingDetails() {
           phoneNumber: formData.broker.phoneNumber || "",
           address: formData.broker.address || "",
           commission: Number(formData.broker.commission) || 0,
-          _id: formData.broker._id // Include broker ID if it exists
+          _id: formData.broker._id
         };
         formDataToSend.append('brokerData', JSON.stringify(brokerData));
       }
-  
+
+      // Handle deleted documents
+      tempDocuments.forEach(doc => {
+        if (doc.isDeleted) {
+          formDataToSend.append(`delete_${doc.type}`, 'true');
+        } else if (doc.file) {
+          formDataToSend.append(doc.type, doc.file);
+        }
+      });
+
       const response = await apiClient.put(`/bookings/${bookingId}`, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-  
+
+      // Update state with the response data
       setBookingDetails(response.data);
+      setFormData(prev => ({
+        ...prev,
+        documents: response.data.documents
+      }));
       setIsEditing(false);
+
+      // Cleanup temporary documents
+      tempDocuments.forEach(doc => {
+        if (doc.previewUrl) {
+          URL.revokeObjectURL(doc.previewUrl);
+        }
+      });
+      setTempDocuments([]);
+
       toast.success("Booking updated successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update booking");
-    }
-  };
-
-  const handleDocumentUpload = async (file, type) => {
-    try {
-      if (!file) return;
-  
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("File size should be less than 2MB");
-        return;
-      }
-  
-      const formData = new FormData();
-      formData.append(type, file);
-  
-      // Add all other booking data for the update
-      const bookingData = {
-        buyerName: formData.buyerName,
-        address: formData.address,
-        phoneNumber: formData.phoneNumber,
-        gender: formData.gender,
-        dateOfBirth: formData.dateOfBirth || undefined,
-        paymentType: formData.paymentType,
-        narration: formData.narration || "",
-        totalCost: Number(formData.totalCost),
-        firstPayment: Number(formData.firstPayment),
-        email: formData.email || undefined,
-        ratePerSqFt: Number(formData.ratePerSqFt)
-      };
-  
-      Object.entries(bookingData).forEach(([key, value]) => {
-        if (value !== undefined) {
-          formData.append(key, value);
-        }
-      });
-  
-      // Add broker data if exists
-      if (formData.broker?.name) {
-        formData.append('brokerData', JSON.stringify(formData.broker));
-      }
-  
-      const response = await apiClient.put(`/bookings/${bookingId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-  
-      if (response.data) {
-        setBookingDetails(response.data);
-        setFormData(prev => ({
-          ...prev,
-          documents: response.data.documents
-        }));
-        toast.success(`${type === 'aadharCard' ? 'Aadhar Card' : 'PAN Card'} uploaded successfully`);
-      }
-    } catch (error) {
-      console.error('Document upload error:', error);
-      toast.error(`Failed to upload document: ${error.response?.data?.message || 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -272,7 +242,12 @@ export default function BookingDetails() {
 
       {/* Replace the display sections with form fields when editing */}
       {isEditing ? (
-        <EditForm formData={formData} setFormData={setFormData} handleDocumentUpload={handleDocumentUpload} />
+        <EditForm
+          formData={formData}
+          setFormData={setFormData}
+          tempDocuments={tempDocuments}
+          setTempDocuments={setTempDocuments}
+        />
       ) : (
         <>
           <div className="flex items-center justify-center mb-4 gap-2">
@@ -405,7 +380,7 @@ export default function BookingDetails() {
                         <FileText className="w-6 h-6 text-[#1F263E]" />
                         <div>
                           <p className="font-medium capitalize">
-                            {doc.type === 'aadharCard' ? 'Aadhar Card' : 'PAN Card'}
+                            {doc.type === 'aadharCardFront' ? 'Aadhar Card Front Side' : doc.type === 'aadharCardBack' ? 'Aadhar Card Back Side' : 'PAN Card'}
                           </p>
                           <p className="text-sm text-gray-500">{doc.originalName}</p>
                         </div>
@@ -430,8 +405,59 @@ export default function BookingDetails() {
   );
 }
 
-function EditForm({ formData, setFormData, handleDocumentUpload }) {
-  if (!formData) return null;
+function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
+  const fileInputRefs = {
+    aadharCardFront: useRef(null),
+    aadharCardBack: useRef(null),
+    panCard: useRef(null)
+  };
+
+  // Handle temporary document upload
+  const handleTempDocumentUpload = async (file, type) => {
+    // Validate file size (2MB limit)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size should not exceed 2MB");
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only PDF, PNG, JPG or JPEG files are allowed");
+      return;
+    }
+
+    // Store file temporarily with preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setTempDocuments(prev => [
+      ...prev.filter(doc => doc.type !== type),
+      {
+        type,
+        file,
+        previewUrl,
+        originalName: file.name
+      }
+    ]);
+  };
+
+  const clearFileInput = (type) => {
+    if (fileInputRefs[type]?.current) {
+      fileInputRefs[type].current.value = '';
+    }
+  };
+
+  // Cleanup function for temporary documents
+  useEffect(() => {
+    return () => {
+      // Cleanup temporary document preview URLs
+      tempDocuments.forEach(doc => {
+        if (doc.previewUrl) {
+          URL.revokeObjectURL(doc.previewUrl);
+        }
+      });
+    };
+  }, [tempDocuments]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -440,7 +466,7 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
     // Handle numeric fields
     if (name === "ratePerSqFt" || name === "totalCost" || name === "firstPayment") {
       newValue = Math.ceil(Number(value));
-      
+
       // Update totalCost when ratePerSqFt changes
       if (name === "ratePerSqFt" && formData.plot?.areaSqFt) {
         const newTotalCost = Math.ceil(formData.plot.areaSqFt * Number(value));
@@ -670,20 +696,33 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
         </div>
       </div>
 
-      {/* Documents section */}
+      {/* Documents section - Updated version */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Documents</h2>
-        <div className="grid grid-cols-2 gap-4">
+        {/* File upload inputs */}
+        <div className="grid grid-cols-3 gap-4">
           <div>
-            <Label className="mb-2">Aadhar Card</Label>
+            <Label className="mb-2">Aadhar Card (Front)</Label>
             <Input
+              ref={fileInputRefs.aadharCardFront}
               type="file"
               accept=".jpg,.jpeg,.png,.pdf"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) {
-                  handleDocumentUpload(file, 'aadharCard');
-                }
+                if (file) handleTempDocumentUpload(file, 'aadharCardFront');
+              }}
+              className="bg-white"
+            />
+          </div>
+          <div>
+            <Label className="mb-2">Aadhar Card (Back)</Label>
+            <Input
+              ref={fileInputRefs.aadharCardBack}
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleTempDocumentUpload(file, 'aadharCardBack');
               }}
               className="bg-white"
             />
@@ -691,24 +730,31 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
           <div>
             <Label className="mb-2">PAN Card</Label>
             <Input
+              ref={fileInputRefs.panCard}
               type="file"
               accept=".jpg,.jpeg,.png,.pdf"
               onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  handleDocumentUpload(file, 'panCard');
-                }
+                const file = e.target.files?.[0];
+                if (file) handleTempDocumentUpload(file, 'panCard');
               }}
               className="bg-white"
             />
           </div>
-          {formData.documents?.length > 0 && (
-            <div className="col-span-2">
-              <h3 className="font-medium mb-2">Uploaded Documents</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {formData.documents.map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-[#f7f7f7] rounded">
-                    <span className="capitalize">{doc.type}</span>
+        </div>
+
+        {/* Display existing documents */}
+        {formData.documents?.length > 0 && (
+          <div className="mt-4">
+            <h3 className="font-medium mb-2">Uploaded Documents</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {formData.documents.map((doc, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-[#f7f7f7] rounded">
+                  <span className="capitalize text-sm">
+                    {doc.type === 'aadharCardFront' ? 'Aadhar Front' :
+                      doc.type === 'aadharCardBack' ? 'Aadhar Back' :
+                        'PAN Card'}
+                  </span>
+                  <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -716,13 +762,60 @@ function EditForm({ formData, setFormData, handleDocumentUpload }) {
                     >
                       <Download className="h-4 w-4" />
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setTempDocuments(prev => [
+                          ...prev.filter(d => d.type !== doc.type),
+                          { type: doc.type, isDeleted: true }
+                        ]);
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: prev.documents.filter(d => d.type !== doc.type)
+                        }));
+                      }}
+                    >
+                      <X className="h-4 w-4 text-red-500" />
+                    </Button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Display temporary documents */}
+        {tempDocuments.length > 0 && (
+          <div className="mt-4">
+            <h3 className="font-medium mb-2">New Documents</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {tempDocuments.filter(doc => !doc.isDeleted).map((doc, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-[#f7f7f7] rounded">
+                  <span className="capitalize text-sm">
+                    {doc.type === 'aadharCardFront' ? 'Aadhar Front' :
+                     doc.type === 'aadharCardBack' ? 'Aadhar Back' :
+                     'PAN Card'}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        URL.revokeObjectURL(doc.previewUrl);
+                        setTempDocuments(prev => prev.filter(d => d.type !== doc.type));
+                        clearFileInput(doc.type);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};

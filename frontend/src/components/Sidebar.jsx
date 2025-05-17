@@ -107,13 +107,6 @@ const Sidebar = () => {
                 icon={<UserRoundCog size={20} />}
                 label="Manage Users"
               />
-              <div className="w-full h-40"></div>
-              <a
-                href="/expense-management"
-                className="text-gray-900"
-              >
-                +
-                </a>
             </>
           }
         </nav>

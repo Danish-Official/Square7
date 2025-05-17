@@ -20,6 +20,7 @@ import { useAuth } from "@/context/AuthContext"; // Import useAuth
 import { toast } from "react-toastify"; // Import toast
 import SearchInput from "@/components/SearchInput";
 import { Input } from "@/components/ui/input";
+import { NavLink } from "react-router-dom";
 
 export default function UsersManagement() {
   const { auth } = useAuth(); // Access auth from context
@@ -77,10 +78,20 @@ export default function UsersManagement() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-semibold">User Management</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <h1 className="text-3xl font-semibold">User Management</h1>
+          <span>
+            <NavLink
+              to="/other-page"
+              className="text-white cursor-default"
+            >
+              +
+            </NavLink>
+          </span>
+        </div>
         <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
           onClick={() => setIsDialogOpen(true)}
         >
           Create Admin

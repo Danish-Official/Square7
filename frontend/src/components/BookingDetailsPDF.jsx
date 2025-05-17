@@ -138,7 +138,7 @@ const BookingDetailsPDF = ({ data }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Details</Text>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>First Payment:</Text>
+            <Text style={styles.label}>Booking Payment:</Text>
             <Text style={styles.value}>₹{data.payments[0]?.amount || 'N/A'}</Text>
           </View>
           <View style={styles.detailRow}>
@@ -152,6 +152,23 @@ const BookingDetailsPDF = ({ data }) => {
             </View>
           )}
         </View>
+
+        {/* Documents Section */}
+        {data.documents && data.documents.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Documents</Text>
+            {data.documents.map((doc, index) => (
+              <View style={styles.detailRow} key={index}>
+                <Text style={styles.label}>
+                  {doc.type === 'aadharCardFront' ? 'Aadhar Card (Front)' :
+                   doc.type === 'aadharCardBack' ? 'Aadhar Card (Back)' :
+                   'PAN Card'}:
+                </Text>
+                <Text style={styles.value}>{doc.originalName || 'Uploaded'}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Broker Details if available */}
         {data.broker && (

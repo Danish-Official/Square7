@@ -180,9 +180,9 @@ export default function NewBooking() {
       }
     } else if (name === "firstPayment") {
       if (!value) {
-        error = "First payment is required.";
+        error = "Booking Payment is required.";
       } else if (value <= 0 || value > formData.totalCost) {
-        error = "First payment should be greater than 0 and less than or equal to the total cost.";
+        error = "Booking Payment should be greater than 0 and less than or equal to the total cost.";
       }
     } else if (name === "dateOfBirth") {
       if (value) { // Optional field
@@ -248,14 +248,14 @@ export default function NewBooking() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all required fields before submission
+    // Validate required fields
     const requiredFields = {
       buyerName: 'Buyer Name',
       phoneNumber: 'Phone Number',
       address: 'Address',
       plotId: 'Plot',
       paymentType: 'Payment Type',
-      firstPayment: 'First Payment',
+      firstPayment: 'Booking Payment',
       totalCost: 'Total Cost',
       bookingDate: 'Booking Date'
     };
@@ -312,18 +312,17 @@ export default function NewBooking() {
       }
 
       // Handle documents
-      const aadharDoc = formData.documents.find(doc => doc.type === 'aadharCard');
-      if (aadharDoc) {
-        formDataToSend.append('aadharCard', aadharDoc.file);
-      }
-
-      const panDoc = formData.documents.find(doc => doc.type === 'panCard');
-      if (panDoc) {
-        formDataToSend.append('panCard', panDoc.file);
-      }
+      formData.documents.forEach(doc => {
+        if (doc.file) {
+          formDataToSend.append(doc.type, doc.file);
+        }
+      });
 
       // Log the data being sent
-      console.log('Sending booking data:', Object.fromEntries(formDataToSend));
+      console.log('Sending booking data:', {
+        ...Object.fromEntries(formDataToSend),
+        documents: formData.documents.map(d => ({ type: d.type, name: d.file?.name }))
+      });
 
       const bookingResponse = await apiClient.post("/bookings", formDataToSend, {
         headers: {
@@ -660,14 +659,14 @@ export default function NewBooking() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="firstPayment" className="mb-2 block">First Payment</Label>
+              <Label htmlFor="firstPayment" className="mb-2 block">Booking Payment</Label>
               <Input
                 id="firstPayment"
                 name="firstPayment"
                 type="number"
                 value={formData.firstPayment || ""}
                 onChange={handleChange}
-                placeholder="First Payment"
+                placeholder="Booking Payment"
                 required
                 className="bg-white text-black"
               />
@@ -713,226 +712,33 @@ export default function NewBooking() {
         return (
           <div className="space-y-8">
             <h3 className="text-xl font-semibold mb-6">Upload Documents</h3>
-
-            {/* Aadhar Card Upload */}
-            <div className="grid grid-cols-3 gap-3  text-center">
-              <div className="space-y-2">
-                <Label htmlFor="aadharCard" className="text-lg mb-2 block">Aadhar Card Front Side</Label>
-                <div className="flex items-center justify-center w-full">
-                  <label className={`relative flex flex-col items-center justify-center w-100 h-72 border-2 border-gray-300 border-dashed rounded-xl ${!formData.documents.find(doc => doc.type === 'aadharCard') ? 'cursor-pointer hover:bg-white/10' : 'cursor-default pointer-events-none'
-                    } bg-white/5 backdrop-blur-sm transition-all duration-300`}>
-                    {isUploading && formData.uploadingDoc === 'aadharCard' ? (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
-                        <p className="mt-4 text-lg font-medium text-white/80">Uploading...</p>
-                      </div>
-                    ) : formData.documents.find(doc => doc.type === 'aadharCard') ? (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
-                        <p className="mb-2 text-lg font-medium text-white/80">
-                          {formData.documents.find(doc => doc.type === 'aadharCard').file.name}
-                        </p>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setFormData(prev => ({
-                              ...prev,
-                              documents: prev.documents.filter(doc => doc.type !== 'aadharCard')
-                            }));
-                          }}
-                          className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors duration-200 hover:bg-red-500/10 rounded-md pointer-events-auto"
-                        >
-                          <X className="w-4 h-4" />
-                          <span>Remove file</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-16 h-16 mb-4 text-white/60" />
-                        <p className="mb-2 text-lg font-medium text-white/80">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
-                      </div>
-                    )}
-                    <input
-                      id="aadharCard"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          if (file.size > 2 * 1024 * 1024) {
-                            toast.error("File size should be less than 2MB");
-                            return;
-                          }
-                          setIsUploading(true);
-                          setFormData(prev => ({ ...prev, uploadingDoc: 'aadharCard' }));
-                          try {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            setFormData(prev => ({
-                              ...prev,
-                              documents: [...prev.documents.filter(doc => doc.type !== 'aadharCard'), { type: 'aadharCard', file }]
-                            }));
-                          } catch (error) {
-                            toast.error("Failed to upload file");
-                          } finally {
-                            setIsUploading(false);
-                            setFormData(prev => ({ ...prev, uploadingDoc: null }));
-                          }
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="aadharCard" className="text-lg mb-2 block">Aadhar Card Back Side</Label>
-                <div className="flex items-center justify-center w-full">
-                  <label className={`relative flex flex-col items-center justify-center w-100 h-72 border-2 border-gray-300 border-dashed rounded-xl ${!formData.documents.find(doc => doc.type === 'aadharCard') ? 'cursor-pointer hover:bg-white/10' : 'cursor-default pointer-events-none'
-                    } bg-white/5 backdrop-blur-sm transition-all duration-300`}>
-                    {isUploading && formData.uploadingDoc === 'aadharCard' ? (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
-                        <p className="mt-4 text-lg font-medium text-white/80">Uploading...</p>
-                      </div>
-                    ) : formData.documents.find(doc => doc.type === 'aadharCard') ? (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
-                        <p className="mb-2 text-lg font-medium text-white/80">
-                          {formData.documents.find(doc => doc.type === 'aadharCard').file.name}
-                        </p>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setFormData(prev => ({
-                              ...prev,
-                              documents: prev.documents.filter(doc => doc.type !== 'aadharCard')
-                            }));
-                          }}
-                          className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors duration-200 hover:bg-red-500/10 rounded-md pointer-events-auto"
-                        >
-                          <X className="w-4 h-4" />
-                          <span>Remove file</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-16 h-16 mb-4 text-white/60" />
-                        <p className="mb-2 text-lg font-medium text-white/80">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
-                      </div>
-                    )}
-                    <input
-                      id="aadharCard"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          if (file.size > 2 * 1024 * 1024) {
-                            toast.error("File size should be less than 2MB");
-                            return;
-                          }
-                          setIsUploading(true);
-                          setFormData(prev => ({ ...prev, uploadingDoc: 'aadharCard' }));
-                          try {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            setFormData(prev => ({
-                              ...prev,
-                              documents: [...prev.documents.filter(doc => doc.type !== 'aadharCard'), { type: 'aadharCard', file }]
-                            }));
-                          } catch (error) {
-                            toast.error("Failed to upload file");
-                          } finally {
-                            setIsUploading(false);
-                            setFormData(prev => ({ ...prev, uploadingDoc: null }));
-                          }
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {/* Aadhar Card Front Upload */}
+              <DocumentUploader
+                label="Aadhar Card Front Side"
+                type="aadharCardFront"
+                formData={formData}
+                isUploading={isUploading}
+                handleDocumentUpload={handleDocumentUpload}
+              />
+              
+              {/* Aadhar Card Back Upload */}
+              <DocumentUploader
+                label="Aadhar Card Back Side"
+                type="aadharCardBack"
+                formData={formData}
+                isUploading={isUploading}
+                handleDocumentUpload={handleDocumentUpload}
+              />
+              
               {/* PAN Card Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="panCard" className="text-lg mb-2 block">PAN Card</Label>
-                <div className="flex items-center justify-center w-full">
-                  <label className={`relative flex flex-col items-center justify-center w-100 h-72 border-2 border-gray-300 border-dashed rounded-xl ${!formData.documents.find(doc => doc.type === 'panCard') ? 'cursor-pointer hover:bg-white/10' : 'cursor-default pointer-events-none'
-                    } bg-white/5 backdrop-blur-sm transition-all duration-300`}>
-                    {isUploading && formData.uploadingDoc === 'panCard' ? (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
-                        <p className="mt-4 text-lg font-medium text-white/80">Uploading...</p>
-                      </div>
-                    ) : formData.documents.find(doc => doc.type === 'panCard') ? (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
-                        <p className="mb-2 text-lg font-medium text-white/80">
-                          {formData.documents.find(doc => doc.type === 'panCard').file.name}
-                        </p>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setFormData(prev => ({
-                              ...prev,
-                              documents: prev.documents.filter(doc => doc.type !== 'panCard')
-                            }));
-                          }}
-                          className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300 transition-colors duration-200 hover:bg-red-500/10 rounded-md pointer-events-auto"
-                        >
-                          <X className="w-4 h-4" />
-                          <span>Remove file</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-16 h-16 mb-4 text-white/60" />
-                        <p className="mb-2 text-lg font-medium text-white/80">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
-                      </div>
-                    )}
-                    <input
-                      id="panCard"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.png,.jpg,.jpeg"
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          if (file.size > 2 * 1024 * 1024) {
-                            toast.error("File size should be less than 2MB");
-                            return;
-                          }
-                          setIsUploading(true);
-                          setFormData(prev => ({ ...prev, uploadingDoc: 'panCard' }));
-                          try {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            setFormData(prev => ({
-                              ...prev,
-                              documents: [...prev.documents.filter(doc => doc.type !== 'panCard'), { type: 'panCard', file }]
-                            }));
-                          } catch (error) {
-                            toast.error("Failed to upload file");
-                          } finally {
-                            setIsUploading(false);
-                            setFormData(prev => ({ ...prev, uploadingDoc: null }));
-                          }
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
+              <DocumentUploader
+                label="PAN Card"
+                type="panCard"
+                formData={formData}
+                isUploading={isUploading}
+                handleDocumentUpload={handleDocumentUpload}
+              />
             </div>
           </div>
 
@@ -951,6 +757,122 @@ export default function NewBooking() {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  const handleDocumentUpload = async (file, type) => {
+    // Validate file size (2MB limit)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size should not exceed 2MB");
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only PDF, PNG, JPG or JPEG files are allowed");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setFormData(prev => ({
+        ...prev,
+        uploadingDoc: type
+      }));
+
+      // Store file temporarily with preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setFormData(prev => ({
+        ...prev,
+        documents: [
+          ...prev.documents.filter(doc => doc.type !== type),
+          {
+            type,
+            file,
+            previewUrl,
+            originalName: file.name
+          }
+        ]
+      }));
+
+      toast.success("Document ready for upload");
+    } catch (error) {
+      console.error("Error handling document:", error);
+      toast.error("Failed to process document");
+    } finally {
+      setIsUploading(false);
+      setFormData(prev => ({
+        ...prev,
+        uploadingDoc: null
+      }));
+    }
+  };
+
+  const DocumentUploader = ({ label, type, formData, isUploading, handleDocumentUpload }) => {
+    const uploadedDoc = formData.documents.find(doc => doc.type === type);
+
+    return (
+      <div className="space-y-2">
+        <Label className="text-lg mb-2 block">{label}</Label>
+        <div className="flex items-center justify-center w-full">
+          <label className={`relative flex flex-col items-center justify-center w-full h-72 border-2 border-gray-300 border-dashed rounded-xl ${!uploadedDoc ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'} bg-white/5 backdrop-blur-sm transition-all duration-300`}>
+            {isUploading && formData.uploadingDoc === type ? (
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+                <p className="mt-4 text-lg font-medium text-white/80">Processing...</p>
+              </div>
+            ) : uploadedDoc ? (
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
+                <p className="mb-2 text-lg font-medium text-white/80">
+                  {uploadedDoc.originalName}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setFormData(prev => ({
+                      ...prev,
+                      documents: prev.documents.filter(doc => doc.type !== type)
+                    }));
+                    if (uploadedDoc.previewUrl) {
+                      URL.revokeObjectURL(uploadedDoc.previewUrl);
+                    }
+                  }}
+                  className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Remove</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <Upload className="w-16 h-16 mb-4 text-white/60" />
+                <p className="mb-2 text-lg font-medium text-white/80">
+                  <span className="font-semibold">Click to upload</span> or drag and drop
+                </p>
+                <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
+              </div>
+            )}
+            <input
+              type="file"
+              className="hidden"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleDocumentUpload(file, type);
+                }
+              }}
+              disabled={isUploading}
+            />
+          </label>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -1052,3 +974,69 @@ export default function NewBooking() {
     </div>
   );
 }
+
+const DocumentUploader = ({ label, type, formData, isUploading, handleDocumentUpload }) => {
+  const uploadedDoc = formData.documents.find(doc => doc.type === type);
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-lg mb-2 block">{label}</Label>
+      <div className="flex items-center justify-center w-full">
+        <label className={`relative flex flex-col items-center justify-center w-full h-72 border-2 border-gray-300 border-dashed rounded-xl ${!uploadedDoc ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'} bg-white/5 backdrop-blur-sm transition-all duration-300`}>
+          {isUploading && formData.uploadingDoc === type ? (
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+              <p className="mt-4 text-lg font-medium text-white/80">Processing...</p>
+            </div>
+          ) : uploadedDoc ? (
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
+              <p className="mb-2 text-lg font-medium text-white/80">
+                {uploadedDoc.originalName}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setFormData(prev => ({
+                    ...prev,
+                    documents: prev.documents.filter(doc => doc.type !== type)
+                  }));
+                  if (uploadedDoc.previewUrl) {
+                    URL.revokeObjectURL(uploadedDoc.previewUrl);
+                  }
+                }}
+                className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300"
+              >
+                <X className="w-4 h-4" />
+                <span>Remove</span>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <Upload className="w-16 h-16 mb-4 text-white/60" />
+              <p className="mb-2 text-lg font-medium text-white/80">
+                <span className="font-semibold">Click to upload</span> or drag and drop
+              </p>
+              <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
+            </div>
+          )}
+          <input
+            type="file"
+            className="hidden"
+            accept=".pdf,.png,.jpg,.jpeg"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                handleDocumentUpload(file, type);
+              }
+            }}
+            disabled={isUploading}
+          />
+        </label>
+      </div>
+    </div>
+  );
+};

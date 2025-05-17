@@ -156,10 +156,10 @@ export default function Enquiries() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold">Enquiry Management</h1>
         <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-gradient-to-b from-[#1F263E] to-[#5266A4] transition-all duration-200 hover:from-[#5266A4] hover:to-[#1F263E]"
+          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
           onClick={() => setIsDialogOpen(true)}
         >
           Add Enquiry
@@ -169,7 +169,6 @@ export default function Enquiries() {
         placeholder="Search enquiries by name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

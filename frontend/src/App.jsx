@@ -18,7 +18,7 @@ import BrokersManagement from "./pages/BrokersManagement";
 import Expenses from "./pages/Expenses"; // Add this import
 import InvoiceDetails from "./pages/InvoiceDetails";
 import DeletedContacts from "./pages/DeletedContacts"; // Add this import at the top
-import ExpenseManagement from "./pages/ExpenseManagement";
+import OthersPage from "./pages/OthersPage";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
@@ -159,10 +159,10 @@ function App() {
             }
           />
           <Route
-            path="expense-management"
+            path="other-page"
             element={
               <ProtectedRoute allowedRoles={["superadmin"]}>
-                <ExpenseManagement />
+                <OthersPage />
               </ProtectedRoute>
             }
           />
