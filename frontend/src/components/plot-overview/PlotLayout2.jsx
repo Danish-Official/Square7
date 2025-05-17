@@ -65,29 +65,31 @@ const PlotLayout2 = () => {
     }
   };
 
-  const createPlot = (num) => {
-    const plot = plots.find((p) => p.plotNumber === num);
-    const plotClass = plot ? getPlotClass(plot.status) : "available";
+  const createPlots = (numbers) =>
+    numbers.map((num) => {
+      const plot = plots.find((p) => p.plotNumber === num);
 
-    return (
-      <div
-        key={num}
-        className={`plot plot${num} ${plotClass}`}
-        onMouseEnter={() => plot && setHoveredPlot(plot)}
-        onMouseLeave={() => setHoveredPlot(null)}
-        onClick={() => plot && handlePlotClick(plot)}
-      >
-        {num}
-        {plot?.status === "sold" && plot?.buyer && hoveredPlot?.plotNumber === num && (
-          <div className="popup-hover">
-            <strong>Buyer:</strong> {plot.buyer}
-            <br />
-            <strong>Contact:</strong> {plot.contact}
-          </div>
-        )}
-      </div>
-    );
-  };
+      return (
+        <div
+          key={num}
+          className={`plot plot${num} ${getPlotClass(plot?.status)}`}
+          onMouseEnter={() => plot && setHoveredPlot(plot)}
+          onMouseLeave={() => setHoveredPlot(null)}
+          onClick={() => plot && handlePlotClick(plot)}
+        >
+          {num}
+          {plot?.status === "sold" &&
+            plot?.buyer &&
+            hoveredPlot?.plotNumber === num && (
+              <div className="popup-hover">
+                <strong>Buyer:</strong> {plot.buyer}
+                <br />
+                <strong>Contact:</strong> {plot.contact}
+              </div>
+            )}
+        </div>
+      );
+    });
 
   const handleBooking = (plot) => {
     navigate("/new-booking", {
@@ -121,23 +123,10 @@ const PlotLayout2 = () => {
               </div>
               <div className="leftPlots">
                 <div className="plot23to27">
-                  {createPlot(23)}
-                  {createPlot(24)}
-                  {createPlot(25)}
-                  {createPlot(26)}
-                  {createPlot(27)}
+                  {createPlots([23, 24, 25, 26, 27])}
                 </div>
                 <div className="plot13to22">
-                  {createPlot(13)}
-                  {createPlot(14)}
-                  {createPlot(15)}
-                  {createPlot(16)}
-                  {createPlot(17)}
-                  {createPlot(18)}
-                  {createPlot(19)}
-                  {createPlot(20)}
-                  {createPlot(21)}
-                  {createPlot(22)}
+                  {createPlots([13, 14, 15, 16, 17, 18, 19, 20, 21, 22])}
                 </div>
               </div>
               <div className="verticalRoads road">
@@ -148,21 +137,11 @@ const PlotLayout2 = () => {
               </div>
               <div className="rightPlots">
                 <div className="plot3to12">
-                  {createPlot(3)}
-                  {createPlot(4)}
-                  {createPlot(5)}
-                  {createPlot(6)}
-                  {createPlot(7)}
-                  {createPlot(8)}
-                  {createPlot(9)}
-                  {createPlot(10)}
-                  {createPlot(11)}
-                  {createPlot(12)}
+                  {createPlots([3, 4, 5, 6, 7, 8, 9, 10, 11, 12])}
                 </div>
                 <div className="plot1-2-amenitySpace">
                   <div className="plot1-2">
-                    {createPlot(2)}
-                    {createPlot(1)}
+                    {createPlots([2, 1])}
                   </div>
                   <div className="amenitySpace">Amenity Space</div>
                 </div>
@@ -185,21 +164,10 @@ const PlotLayout2 = () => {
               </div>
               <div className="leftPlots">
                 <div className="plot28to31">
-                  {createPlot(28)}
-                  {createPlot(29)}
-                  {createPlot(30)}
-                  {createPlot(31)}
+                  {createPlots([28, 29, 30, 31])}
                 </div>
                 <div className="plot32to40">
-                  {createPlot(32)}
-                  {createPlot(33)}
-                  {createPlot(34)}
-                  {createPlot(35)}
-                  {createPlot(36)}
-                  {createPlot(37)}
-                  {createPlot(38)}
-                  {createPlot(39)}
-                  {createPlot(40)}
+                  {createPlots([32, 33, 34, 35, 36, 37, 38, 39, 40])}
                 </div>
               </div>
               <div className="verticalRoads road">
@@ -210,24 +178,10 @@ const PlotLayout2 = () => {
               </div>
               <div className="rightPlots">
                 <div className="plot41to48">
-                  {createPlot(41)}
-                  {createPlot(42)}
-                  {createPlot(43)}
-                  {createPlot(44)}
-                  {createPlot(45)}
-                  {createPlot(46)}
-                  {createPlot(47)}
-                  {createPlot(48)}
+                  {createPlots([41, 42, 43, 44, 45, 46, 47, 48])}
                 </div>
                 <div className="plot49to56">
-                  {createPlot(49)}
-                  {createPlot(50)}
-                  {createPlot(51)}
-                  {createPlot(52)}
-                  {createPlot(53)}
-                  {createPlot(54)}
-                  {createPlot(55)}
-                  {createPlot(56)}
+                  {createPlots([49, 50, 51, 52, 53, 54, 55, 56])}
                 </div>
               </div>
               <div className="verticalRoads road">
