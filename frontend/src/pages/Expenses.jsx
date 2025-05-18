@@ -22,6 +22,9 @@ import { Edit2, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
+import { pdf } from "@react-pdf/renderer";
+import ExpensesPDF from "@/components/ExpensesPDF";
+import { Download } from "lucide-react";
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
@@ -40,6 +43,7 @@ export default function Expenses() {
     name: "",
     date: new Date().toISOString().split('T')[0],
     occupation: "", // Add occupation field
+    tds: ""
   });
 
   useEffect(() => {
@@ -91,6 +95,7 @@ export default function Expenses() {
       name: expense.name,
       date: new Date(expense.date).toISOString().split('T')[0],
       occupation: expense.occupation || "", // Add occupation field
+      tds: expense.tds || ""
     });
     setIsEditMode(true);
     setIsDialogOpen(true);
@@ -118,7 +123,31 @@ export default function Expenses() {
       name: "",
       date: new Date().toISOString().split('T')[0],
       occupation: "", // Add occupation field
+      tds: ""
     });
+  };
+
+  const handleDownloadStatement = async () => {
+    try {
+      const blob = await pdf(
+        <ExpensesPDF 
+          expenses={filteredExpenses} 
+          selectedLayout={selectedLayout}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `expenses_statement_${selectedLayout}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate statement");
+    }
   };
 
   const filteredExpenses = expenses.filter(expense =>
@@ -139,12 +168,21 @@ export default function Expenses() {
         <div>
           <h1 className="text-3xl font-semibold">Expenses Management</h1>
         </div>
-        <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          Add Expense
-        </Button>
+        <div className="flex gap-4">
+          <Button
+            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            onClick={handleDownloadStatement}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Statement
+          </Button>
+          <Button
+            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            Add Expense
+          </Button>
+        </div>
       </div>
 
       <SearchInput
@@ -244,7 +282,7 @@ export default function Expenses() {
             <TableRow key={expense._id}>
               <TableCell>{expense.name}</TableCell>
               <TableCell>{expense.description}</TableCell>
-              <TableCell>₹{expense.amount}</TableCell>
+              <TableCell>{expense.amount}</TableCell>
               <TableCell>{expense.tds}%</TableCell>
               <TableCell>₹{expense.netAmount}</TableCell>
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>

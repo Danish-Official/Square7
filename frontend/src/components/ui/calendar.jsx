@@ -163,24 +163,25 @@ export function Calendar({
     };
 
     const renderYearSelection = () => {
-        const currentYear = viewDate.year();
-        const startYear = currentYear - 6;
-        const years = Array.from({ length: 12 }, (_, i) => startYear + i);
+        const startYear = 2000;
+        const years = Array.from({ length: 51 }, (_, i) => startYear + i);
 
         return (
-            <div className="grid grid-cols-3 gap-2 p-2">
-                {years.map(year => (
-                    <button
-                        key={year}
-                        onClick={() => handleYearSelect(year)}
-                        className={cn(
-                            "p-2 rounded-md hover:bg-[#f7f7f7]",
-                            viewDate.year() === year && "bg-[#1F263E] text-white hover:bg-[#2A324D]"
-                        )}
-                    >
-                        {year}
-                    </button>
-                ))}
+            <div className="h-[280px] overflow-y-auto">
+                <div className="grid grid-cols-3 gap-2 p-2">
+                    {years.map(year => (
+                        <button
+                            key={year}
+                            onClick={() => handleYearSelect(year)}
+                            className={cn(
+                                "p-2 rounded-md hover:bg-[#f7f7f7]",
+                                viewDate.year() === year && "bg-[#1F263E] text-white hover:bg-[#2A324D]"
+                            )}
+                        >
+                            {year}
+                        </button>
+                    ))}
+                </div>
             </div>
         );
     };

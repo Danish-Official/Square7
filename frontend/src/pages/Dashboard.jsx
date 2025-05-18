@@ -202,7 +202,7 @@ export default function Dashboard({ showLoginModal = false }) {
           {selectedLayout &&
             layoutStats[selectedLayout] &&
             Object.entries(layoutStats[selectedLayout]).map(([key, value]) => (
-              <Card key={key} className="p-1 shadow-[0px_10px_10px_0px_#00000061] rounded-[30px] height-[70px] text-center text-white bg-[#21222A] border-[1px] border-[#E2AF3C]">
+              <Card key={key} className="p-1 shadow-[0px_10px_10px_0px_#00000061] rounded-[30px] height-[70px] text-center text-white bg-[#272b4e] border-[1px] border-[#E2AF3C]">
                 <CardContent>
                   <h2 className="text-lg capitalize font-oxygen">
                     {key.replace(/([A-Z])/g, " $1")}
