@@ -60,7 +60,9 @@ const PlotLayout1 = () => {
   const handlePlotClick = async (plot) => {
     if (plot.status === "sold") {
       try {
+        console.log("Fetching invoice for plot:", plot._id);
         const { data } = await apiClient.get(`/invoices/plot/${plot._id}`);
+        console.log("Invoice data:", data); 
         if (data && data.booking) {
           setSelectedInvoice(data);
           setIsDialogOpen(true);

@@ -1,12 +1,13 @@
 import { pdf } from '@react-pdf/renderer';
-import InvoicePDF from '@/components/InvoicePDF';
-import SinglePaymentPDF from '@/components/SinglePaymentPDF';
+import StatementPDF from '@/components/StatementPDF';
+import InvoicePDF from '@/components/StatementPDF';
 import ExpensesPDF from '@/components/ExpensesPDF';
+import BrokersPDF from '@/components/BrokersPDF';
 import React from 'react';
 
-export const generateInvoicePDF = async (invoice, filename, selectedLayout) => {
+export const generateStatementPDF = async (invoice, filename, selectedLayout) => {
   try {
-    const blob = await pdf(React.createElement(InvoicePDF, { data: invoice, selectedLayout })).toBlob();
+    const blob = await pdf(React.createElement(StatementPDF, { data: invoice, selectedLayout })).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -23,7 +24,7 @@ export const generateInvoicePDF = async (invoice, filename, selectedLayout) => {
 
 export const generatePaymentReceiptPDF = async (payment, invoice, filename, selectedLayout) => {
   try {
-    const blob = await pdf(React.createElement(SinglePaymentPDF, {
+    const blob = await pdf(React.createElement(InvoicePDF, {
       data: {
         payment,
         buyerName: invoice?.booking?.buyerName,
@@ -59,5 +60,22 @@ export const generateExpensesPDF = async (expenses, filename, selectedLayout) =>
   } catch (error) {
     console.error('PDF Generation Error:', error);
     throw new Error('Failed to generate PDF');
+  }
+};
+
+export const generateBrokersPDF = async (brokers, selectedLayout) => {
+  try {
+    const blob = await pdf(React.createElement(BrokersPDF, { brokers, selectedLayout })).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Brokers_List_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
   }
 };

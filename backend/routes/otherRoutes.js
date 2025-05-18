@@ -6,7 +6,7 @@ const authenticate = require('../middleware/authenticate');
 // Get all others
 router.get('/', authenticate(), async (req, res) => {
   try {
-    const others = await Other.find().sort({ date: -1 });
+    const others = await Other.find().sort({ createdAt: -1 });
     res.status(200).json(others);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

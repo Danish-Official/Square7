@@ -117,8 +117,8 @@ router.post("/", authenticate(), (req, res, next) => {
     }
 
     // Validate phone number
-    if (!/^\d{10}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: "Invalid phone number format" });
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: "Phone number should be exactly 10 digits" });
     }
 
     // Validate email if provided

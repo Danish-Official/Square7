@@ -8,17 +8,17 @@ const authenticate = require('../middleware/authenticate');
 router.get('/', authenticate(), async (req, res) => {
     try {
         // Get all brokers
-        const brokers = await Broker.find().lean();
-        
+        const brokers = await Broker.find().lean().sort({ createdAt: -1 });
+
         // Get bookings for each broker with plot details
         const brokersWithPlots = await Promise.all(brokers.map(async (broker) => {
-            const bookings = await Booking.find({ 
+            const bookings = await Booking.find({
                 broker: broker._id,
                 status: { $ne: 'cancelled' } // Only get active bookings
             })
-            .populate('plot', 'plotNumber layoutId')
-            .lean();
-            
+                .populate('plot', 'plotNumber layoutId')
+                .lean();
+
             const plots = bookings
                 .filter(booking => booking.plot)
                 .map(booking => ({
@@ -26,7 +26,7 @@ router.get('/', authenticate(), async (req, res) => {
                     plotNumber: booking.plot.plotNumber,
                     layoutId: booking.plot.layoutId
                 }));
-            
+
             return {
                 ...broker,
                 plots: plots || []
@@ -37,9 +37,9 @@ router.get('/', authenticate(), async (req, res) => {
         res.status(200).json(brokersWithPlots);
     } catch (error) {
         console.error('Error in /brokers route:', error);
-        res.status(500).json({ 
-            message: "Failed to fetch brokers", 
-            error: error.message 
+        res.status(500).json({
+            message: "Failed to fetch brokers",
+            error: error.message
         });
     }
 });
@@ -54,7 +54,7 @@ router.put('/:id', authenticate(), async (req, res) => {
             return res.status(400).json({ message: 'Invalid broker name. Only alphabets and spaces are allowed.' });
         }
         if (phoneNumber && !/^\d{10}$/.test(phoneNumber)) {
-            return res.status(400).json({ message: 'Phone number should be exactly 10 digits.' });
+            return res.status(400).json({ message: "Phone number should be exactly 10 digits" });
         }
         if (address && typeof address !== 'string') {
             return res.status(400).json({ message: 'Invalid address format.' });
@@ -64,7 +64,7 @@ router.put('/:id', authenticate(), async (req, res) => {
         }
 
         const broker = await Broker.findByIdAndUpdate(
-            req.params.id, 
+            req.params.id,
             { name, phoneNumber, address, commission },
             { new: true, runValidators: true }
         );

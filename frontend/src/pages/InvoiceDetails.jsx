@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import { apiClient } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { generateInvoicePDF, generatePaymentReceiptPDF } from "@/utils/pdfUtils";
+import { generateStatementPDF, generatePaymentReceiptPDF } from "@/utils/pdfUtils";
 import { useLayout } from "@/context/LayoutContext";
 
 const x = 3;
@@ -142,7 +142,7 @@ export default function InvoiceDetails() {
 
   const handleDownloadInvoice = async () => {
     try {
-      await generateInvoicePDF(invoice, `invoice-${invoice.invoiceNumber}.pdf`, selectedLayout);
+      await generateStatementPDF(invoice, `invoice-${invoice.invoiceNumber}.pdf`, selectedLayout);
     } catch (error) {
       toast.error("Failed to download invoice");
     }

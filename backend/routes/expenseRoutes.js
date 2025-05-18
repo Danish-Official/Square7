@@ -7,7 +7,7 @@ const authenticate = require('../middleware/authenticate');
 router.get('/layout/:layoutId', authenticate(), async (req, res) => {
   try {
     const { layoutId } = req.params;
-    const expenses = await Expense.find({ layoutId }).sort({ date: -1 });
+    const expenses = await Expense.find({ layoutId }).sort({ createdAt: -1 });
     res.status(200).json(expenses);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

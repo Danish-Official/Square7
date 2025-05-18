@@ -8,7 +8,13 @@ const styles = StyleSheet.create({
   page: {
     padding: 20,
     backgroundColor: '#ffffff',
-    position: 'relative',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    borderBottom: '2 solid #1F263E',
+    paddingBottom: 10,
   },
   backgroundBuilding: {
     position: 'absolute',
@@ -29,13 +35,6 @@ const styles = StyleSheet.create({
     opacity: 0.05,
     zIndex: -1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    borderBottom: '2 solid #1F263E',
-    paddingBottom: 10,
-  },
   logo: {
     width: 70,
     height: 70,
@@ -44,19 +43,6 @@ const styles = StyleSheet.create({
     width: 140,
     height: 70,
   },
-  title: {
-    fontSize: 20,
-    color: '#1F263E',
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  section: {
-    marginBottom: 15,
-  },
-  row: {
-    flexDirection: 'row',
-    marginVertical: 3,
-  },
   billInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -64,6 +50,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 10,
     borderRadius: 4,
+  },
+  label: {
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  value: {
+    fontSize: 11,
+    color: '#2d3748',
   },
   dateGroup: {
     marginTop: 8,
@@ -81,43 +77,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F263E',
   },
   tableCell: {
-    width: '25%',  // Adjusted width distribution to accommodate new column
+    flex: 1,
     padding: 4,
     fontSize: 10,
     color: '#2d3748',
-    textAlign: 'left',
   },
   headerCell: {
     color: '#ffffff',
     fontWeight: 'bold',
   },
-  label: {
-    fontSize: 10,
-    color: '#4a5568',
-    fontWeight: 'bold',
-    marginBottom: 2,
+  plotDetails: {
+    marginVertical: 10,
+    padding: 10,
+    borderRadius: 4,
+    width: '300px',
   },
-  value: {
-    fontSize: 11,
-    color: '#2d3748',
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+    alignItems: 'center',
+    gap: 2
   },
   plotLabel: {
-    width: '60%',
+    width: '40%',
     fontSize: 10,
     color: '#4a5568',
     fontWeight: 'bold',
   },
   plotValue: {
-    width: '40%',
+    width: '60%',
     fontSize: 11,
     color: '#2d3748',
     paddingLeft: 10,
-  },
-  plotDetails: {
-    marginVertical: 10,
-    padding: 10,
-    borderRadius: 4,
-    width: '200px',
   },
   paymentsSection: {
     marginTop: 10,
@@ -130,19 +122,6 @@ const styles = StyleSheet.create({
     borderBottom: '1 solid #dee2e6',
     paddingBottom: 4,
   },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 2,
-    paddingVertical: 2,
-  },
-  total: {
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    marginTop: 10,
-    padding: 10,
-    borderRadius: 4,
-  },
   totalLabel: {
     fontSize: 12,
     fontWeight: 'bold',
@@ -152,7 +131,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#1F263E',
-    textAlign: 'right',
+  },
+  total: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 4,
+    gap: 20,
+  },
+  totalItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   footer: {
     position: 'absolute',
@@ -163,27 +155,20 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontSize: 10,
     borderTop: '1 solid #dee2e6',
-    paddingTop: 5,
     textTransform: 'uppercase',
+    paddingTop: 5,
   }
 });
 
-const SinglePaymentPDF = ({ data, selectedLayout }) => {
-  const formatDate = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleDateString('en-IN');
-    } catch (e) {
-      return dateString;
-    }
+const StatementPDF = ({ data, selectedLayout }) => {
+  const calculateTotalPaid = () => {
+    return data.payments.reduce((sum, payment) => sum + payment.amount, 0);
   };
 
-  // Format number with safe check
-  const formatNumber = (num) => {
-    try {
-      return typeof num === 'number' ? num.toLocaleString('en-IN') : num;
-    } catch (e) {
-      return num;
-    }
+  const getRemainingAmount = () => {
+    const totalPaid = calculateTotalPaid();
+    const remaining = data.booking.totalCost - totalPaid;
+    return Math.max(0, remaining); // Ensure remaining amount doesn't go negative
   };
 
   return (
@@ -196,14 +181,16 @@ const SinglePaymentPDF = ({ data, selectedLayout }) => {
           <Image src={selectedLayout === "layout1" ? Layout1 : Layout2} style={styles.layoutLogo} />
         </View>
 
+        {/* Billing Information */}
         <View style={styles.billInfo}>
           <View>
             <Text style={styles.label}>Billed To:</Text>
-            <Text style={styles.value}>{data.buyerName || 'N/A'}</Text>
+            <Text style={styles.value}>{data.booking.buyerName}</Text>
+            <Text style={styles.value}>{data.booking.address}</Text>
           </View>
           <View>
-            <Text style={styles.label}>Payment No:</Text>
-            <Text style={styles.value}>PMT-{(data.paymentIndex || 0) + 1}</Text>
+            <Text style={styles.label}>Invoice No:</Text>
+            <Text style={styles.value}>{data._id}</Text>
             <View style={styles.dateGroup}>
               <Text style={styles.label}>Date:</Text>
               <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
@@ -211,43 +198,63 @@ const SinglePaymentPDF = ({ data, selectedLayout }) => {
           </View>
         </View>
 
+        {/* Plot Details */}
         <View style={styles.plotDetails}>
           <Text style={styles.sectionTitle}>Plot Details</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.plotLabel}>Plot Number:</Text>
-            <Text style={styles.plotValue}>{data.plotNumber || 'N/A'}</Text>
+            <Text style={styles.plotValue}>{data.booking.plot.plotNumber}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.plotLabel}>Area:</Text>
-            <Text style={styles.plotValue}>{data.areaSqFt || 'N/A'}</Text>
+            <Text style={styles.plotValue}>{data.booking.plot.areaSqFt} sq ft</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.plotLabel}>Rate per sq ft:</Text>
+            <Text style={styles.plotValue}>Rs. {(data.booking.totalCost / data.booking.plot.areaSqFt).toFixed(2)}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.plotLabel}>Total Plot Cost:</Text>
+            <Text style={styles.plotValue}>Rs. {data.booking.totalCost}</Text>
           </View>
         </View>
 
+        {/* Payments Section */}
         <View style={styles.paymentsSection}>
-          <Text style={styles.sectionTitle}>Payment Receipt</Text>
+          <Text style={styles.sectionTitle}>Payment History</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, styles.headerCell]}>Payment Date</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>Mode of Payment</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Date</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>Payment Type</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Narration</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Amount (Rs.)</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>
-                {formatDate(data.payment?.paymentDate)}
-              </Text>
-              <Text style={styles.tableCell}>{data.payment?.paymentType || 'N/A'}</Text>
-              <Text style={styles.tableCell}>{data.payment?.narration || '-'}</Text>
-              <Text style={styles.tableCell}>
-                {formatNumber(data.payment?.amount)}
-              </Text>
-            </View>
+            {data.payments.map((payment, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{index + 1}</Text>
+                <Text style={styles.tableCell}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
+                <Text style={styles.tableCell}>{payment.paymentType}</Text>
+                <Text style={styles.tableCell}>{payment.narration || '-'}</Text>
+                <Text style={styles.tableCell}>{payment.amount}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
         <View style={styles.total}>
-          <Text style={styles.totalLabel}>Amount Paid: </Text>
-          <Text style={styles.totalValue}>Rs. {formatNumber(data.payment?.amount)}</Text>
+          <View style={styles.totalItem}>
+            <Text style={styles.totalLabel}>Total Amount Paid:</Text>
+            <Text style={styles.totalValue}>
+              Rs. {calculateTotalPaid()}
+            </Text>
+          </View>
+          <View style={styles.totalItem}>
+            <Text style={styles.totalLabel}>Remaining Amount:</Text>
+            <Text style={styles.totalValue}>
+              Rs. {getRemainingAmount()}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -259,4 +266,4 @@ const SinglePaymentPDF = ({ data, selectedLayout }) => {
   );
 };
 
-export default SinglePaymentPDF;
+export default StatementPDF;

@@ -20,6 +20,7 @@ export default function BookingDetails() {
   const [formData, setFormData] = useState(null);
   const [isUploading, setIsUploading] = useState(false); // New state for upload status
   const [tempDocuments, setTempDocuments] = useState([]); // Add this state if not already present
+  const [hasValidationErrors, setHasValidationErrors] = useState(false); // Add new state for tracking validation
 
   useEffect(() => {
     async function fetchBookingDetails() {
@@ -138,6 +139,12 @@ export default function BookingDetails() {
   };
 
   const handleUpdate = async () => {
+    // Validate all fields before updating
+    if (hasValidationErrors) {
+      toast.error("Please fix all errors before saving");
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
 
@@ -212,6 +219,40 @@ export default function BookingDetails() {
     }
   };
 
+  const resetForm = () => {
+    // Reset form data to original booking details
+    setFormData({
+      buyerName: bookingDetails.buyerName,
+      address: bookingDetails.address,
+      phoneNumber: bookingDetails.phoneNumber,
+      gender: bookingDetails.gender,
+      email: bookingDetails.email || '',
+      dateOfBirth: bookingDetails.dateOfBirth ? new Date(bookingDetails.dateOfBirth).toISOString().split('T')[0] : '',
+      paymentType: bookingDetails.paymentType,
+      narration: bookingDetails.narration || '',
+      totalCost: bookingDetails.totalCost,
+      firstPayment: bookingDetails.firstPayment,
+      documents: bookingDetails.documents || [],
+      uploadingDoc: null,
+      plot: bookingDetails.plot || {},
+      broker: bookingDetails.broker || {},
+      ratePerSqFt: bookingDetails.plot?.ratePerSqFt || bookingDetails.ratePerSqFt || 0,
+    });
+    
+    // Clear temp documents
+    tempDocuments.forEach(doc => {
+      if (doc.previewUrl) {
+        URL.revokeObjectURL(doc.previewUrl);
+      }
+    });
+    setTempDocuments([]);
+    
+    // Reset validation state
+    setHasValidationErrors(false);
+    
+    setIsEditing(false);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center mb-8">
@@ -219,10 +260,14 @@ export default function BookingDetails() {
         <div className="flex gap-4">
           {isEditing ? (
             <>
-              <Button onClick={() => setIsEditing(false)} variant="outline">
+              <Button onClick={resetForm} variant="outline">
                 Cancel
               </Button>
-              <Button onClick={handleUpdate} className="bg-[#1F263E] text-white">
+              <Button 
+                onClick={handleUpdate} 
+                className="bg-[#1F263E] text-white"
+                disabled={hasValidationErrors}
+              >
                 Save Changes
               </Button>
             </>
@@ -247,6 +292,7 @@ export default function BookingDetails() {
           setFormData={setFormData}
           tempDocuments={tempDocuments}
           setTempDocuments={setTempDocuments}
+          setHasValidationErrors={setHasValidationErrors}
         />
       ) : (
         <>
@@ -405,59 +451,79 @@ export default function BookingDetails() {
   );
 }
 
-function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
+function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setHasValidationErrors }) {
   const fileInputRefs = {
     aadharCardFront: useRef(null),
     aadharCardBack: useRef(null),
     panCard: useRef(null)
   };
 
-  // Handle temporary document upload
-  const handleTempDocumentUpload = async (file, type) => {
-    // Validate file size (2MB limit)
-    const MAX_FILE_SIZE = 2 * 1024 * 1024;
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("File size should not exceed 2MB");
-      return;
-    }
+  const [errors, setErrors] = useState({});
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only PDF, PNG, JPG or JPEG files are allowed");
-      return;
-    }
-
-    // Store file temporarily with preview URL
-    const previewUrl = URL.createObjectURL(file);
-    setTempDocuments(prev => [
-      ...prev.filter(doc => doc.type !== type),
-      {
-        type,
-        file,
-        previewUrl,
-        originalName: file.name
-      }
-    ]);
-  };
-
-  const clearFileInput = (type) => {
-    if (fileInputRefs[type]?.current) {
-      fileInputRefs[type].current.value = '';
-    }
-  };
-
-  // Cleanup function for temporary documents
+  // Add validation check effect
   useEffect(() => {
-    return () => {
-      // Cleanup temporary document preview URLs
-      tempDocuments.forEach(doc => {
-        if (doc.previewUrl) {
-          URL.revokeObjectURL(doc.previewUrl);
-        }
-      });
-    };
-  }, [tempDocuments]);
+    const requiredFields = ['buyerName', 'phoneNumber', 'address', 'ratePerSqFt', 'totalCost', 'firstPayment'];
+    const hasErrors = Object.keys(errors).some(key => errors[key]) || 
+                     requiredFields.some(field => !formData[field]);
+    
+    setHasValidationErrors(hasErrors);
+  }, [errors, formData, setHasValidationErrors]);
+
+  const validateInput = (name, value) => {
+    switch (name) {
+      case 'buyerName':
+        if (!value.trim()) return 'Name is required';
+        if (value.length < 3) return 'Name must be at least 3 characters';
+        if (!/^[a-zA-Z\s]*$/.test(value)) return 'Name should only contain letters';
+        return '';
+
+      case 'email':
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) 
+          return 'Invalid email format';
+        return '';
+
+      case 'phoneNumber':
+        if (!value) return 'Phone number is required';
+        if (!/^[0-9]{10}$/.test(value)) 
+          return 'Phone number must be 10 digits';
+        return '';
+
+      case 'address':
+        if (!value.trim()) return 'Address is required';
+        if (value.length < 10) return 'Address is too short';
+        return '';
+
+      case 'totalCost':
+        if (!value) return 'Total cost is required';
+        if (value <= 0) return 'Total cost must be greater than 0';
+        return '';
+
+      case 'firstPayment':
+        if (!value) return 'Booking payment is required';
+        if (value <= 0) return 'Booking payment must be greater than 0';
+        if (value > formData.totalCost) 
+          return 'Booking payment cannot exceed total cost';
+        return '';
+
+      case 'ratePerSqFt':
+        if (!value) return 'Rate per sq ft is required';
+        if (value <= 0) return 'Rate must be greater than 0';
+        return '';
+
+      case 'broker.phoneNumber':
+        if (value && !/^[0-9]{10}$/.test(value)) 
+          return 'Phone number must be 10 digits';
+        return '';
+
+      case 'broker.commission':
+        if (value && (value < 0 || value > 100)) 
+          return 'Commission must be between 0 and 100';
+        return '';
+
+      default:
+        return '';
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -467,30 +533,81 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
     if (name === "ratePerSqFt" || name === "totalCost" || name === "firstPayment") {
       newValue = Math.ceil(Number(value));
 
-      // Update totalCost when ratePerSqFt changes
       if (name === "ratePerSqFt" && formData.plot?.areaSqFt) {
         const newTotalCost = Math.ceil(formData.plot.areaSqFt * Number(value));
         setFormData(prev => ({ ...prev, totalCost: newTotalCost }));
+        
+        // Validate totalCost
+        const totalCostError = validateInput('totalCost', newTotalCost);
+        setErrors(prev => ({ ...prev, totalCost: totalCostError }));
         return;
       }
     }
 
+    // Validate the input
+    const error = validateInput(name, newValue);
+    setErrors(prev => ({ ...prev, [name]: error }));
+
     setFormData(prev => ({ ...prev, [name]: newValue }));
   };
 
+  const handleBrokerChange = (e) => {
+    const { name, value } = e.target;
+    const error = validateInput(`broker.${name}`, value);
+    setErrors(prev => ({ ...prev, [`broker.${name}`]: error }));
+
+    setFormData(prev => ({
+      ...prev,
+      broker: { ...prev.broker, [name]: value }
+    }));
+  };
+
+  const clearFileInput = (type) => {
+    if (fileInputRefs[type]?.current) {
+      fileInputRefs[type].current.value = '';
+    }
+  };
+
+  const handleTempDocumentUpload = (file, type) => {
+    // Remove any existing temp document of the same type
+    setTempDocuments(prev => prev.filter(doc => doc.type !== type));
+
+    // Create preview URL for the new file
+    const previewUrl = URL.createObjectURL(file);
+
+    // Add the new document
+    setTempDocuments(prev => [
+      ...prev,
+      {
+        type,
+        file,
+        previewUrl,
+        originalName: file.name
+      }
+    ]);
+
+    // Remove the document from formData if it exists
+    setFormData(prev => ({
+      ...prev,
+      documents: prev.documents?.filter(doc => doc.type !== type) || []
+    }));
+  };
+
+  // Modify input fields to show validation errors
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Personal Details</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2">Full Name</Label>
+            <Label className="mb-2">Full Name *</Label>
             <Input
               name="buyerName"
               value={formData.buyerName}
               onChange={handleChange}
-              required
+              className={errors.buyerName ? "border-red-500" : ""}
             />
+            {errors.buyerName && <p className="text-red-500 text-sm mt-1">{errors.buyerName}</p>}
           </div>
           <div>
             <Label className="mb-2">Email</Label>
@@ -502,13 +619,14 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
             />
           </div>
           <div>
-            <Label className="mb-2">Phone Number</Label>
+            <Label className="mb-2">Phone Number *</Label>
             <Input
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
-              required
+              className={errors['phoneNumber'] ? "border-red-500" : ""}
             />
+            {errors['phoneNumber'] && <p className="text-red-500 text-sm mt-1">{errors['phoneNumber']}</p>}
           </div>
           <div>
             <Label className="mb-2">Date of Birth</Label>
@@ -536,19 +654,20 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
             </Select>
           </div>
           <div className="col-span-2">
-            <Label className="mb-2">Address</Label>
+            <Label className="mb-2">Address *</Label>
             <textarea
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="w-full p-2 border rounded"
+              className={`w-full p-2 border rounded ${errors.address ? "border-red-500" : ""}`}
               rows={3}
             />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
           </div>
         </div>
       </div>
 
-      {/* Plot Details section - Moved before Payment Details */}
+      {/* Plot Details section */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Plot Details</h2>
         <div className="grid grid-cols-2 gap-4">
@@ -573,16 +692,15 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
             />
           </div>
           <div>
-            <Label className="mb-2">Rate per sq ft</Label>
+            <Label className="mb-2">Rate per sq ft *</Label>
             <Input
               name="ratePerSqFt"
               type="number"
               value={formData.ratePerSqFt || ""}
               onChange={handleChange}
-              required
-              min="1"
-              className="bg-white"
+              className={errors.ratePerSqFt ? "border-red-500" : ""}
             />
+            {errors.ratePerSqFt && <p className="text-red-500 text-sm mt-1">{errors.ratePerSqFt}</p>}
           </div>
           <div>
             <Label className="mb-2">Total Cost (Rs.)</Label>
@@ -591,8 +709,6 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
               type="number"
               value={formData.totalCost || ""}
               onChange={handleChange}
-              required
-              min="1"
               className="bg-white"
             />
           </div>
@@ -626,9 +742,6 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments }) {
               type="number"
               value={formData.firstPayment}
               onChange={handleChange}
-              required
-              min="1"
-              max={formData.totalCost}
               className="bg-white"
             />
           </div>

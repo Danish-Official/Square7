@@ -18,8 +18,8 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { apiClient } from "@/lib/utils";
 import { pdf } from "@react-pdf/renderer";
-import SinglePaymentPDF from "@/components/SinglePaymentPDF";
 import InvoicePDF from "@/components/InvoicePDF";
+import StatementPDF from "@/components/StatementPDF";
 import { useAuth } from "@/context/AuthContext"; // Add this import
 
 export default function InvoiceDetailsModal({
@@ -88,6 +88,7 @@ export default function InvoiceDetailsModal({
         amount: Number(subsequentPayment.amount),
         paymentDate: new Date(subsequentPayment.paymentDate).toISOString(),
         paymentType: subsequentPayment.paymentType,
+        narration: subsequentPayment.narration, // Add this line
         paymentIndex: editingPaymentIndex
       };
 
@@ -119,7 +120,8 @@ export default function InvoiceDetailsModal({
       setSubsequentPayment({
         amount: payment.amount,
         paymentDate: formattedDate,
-        paymentType: payment.paymentType
+        paymentType: payment.paymentType,
+        narration: payment.narration || "" // Add this line
       });
       setEditingPaymentIndex(index);
     }
@@ -140,7 +142,7 @@ export default function InvoiceDetailsModal({
 
   const handleDownloadPayment = async (payment, index) => {
     const blob = await pdf(
-      <SinglePaymentPDF
+      <InvoicePDF
         data={{
           payment,
           paymentIndex: index,
@@ -158,7 +160,7 @@ export default function InvoiceDetailsModal({
   };
 
   const handleDownloadInvoice = async () => {
-    const blob = await pdf(<InvoicePDF data={localInvoice} />).toBlob();
+    const blob = await pdf(<StatementPDF data={localInvoice} />).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -173,6 +175,7 @@ export default function InvoiceDetailsModal({
       amount: "",
       paymentDate: "",
       paymentType: "Cash",
+      narration: "" // Add this line
     });
     setErrors({});
   };
@@ -318,9 +321,7 @@ export default function InvoiceDetailsModal({
                     className="bg-white border-gray-200 focus:border-blue-500"
                   />
                   {errors?.paymentDate && (
-                    <p className="text-red-500 text-sm">
-                      {errors?.paymentDate}
-                    </p>
+                    <p className="text-red-500 text-sm">{errors?.paymentDate}</p>
                   )}
                   <Select
                     onValueChange={(value) =>
@@ -377,3 +378,4 @@ export default function InvoiceDetailsModal({
     </Dialog>
   );
 }
+

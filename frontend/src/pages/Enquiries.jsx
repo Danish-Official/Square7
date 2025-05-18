@@ -15,13 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2, Edit2 } from "lucide-react";
+import { Trash2, Edit2, Download } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import { toast } from "react-toastify";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { Input } from "@/components/ui/input";
+import { pdf } from "@react-pdf/renderer";
+import EnquiriesPDF from "@/components/EnquiriesPDF";
 
 export default function Enquiries() {
   const { auth } = useAuth();
@@ -33,6 +35,7 @@ export default function Enquiries() {
     name: "",
     phoneNumber: "",
     message: "",
+    date: "",
   });
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,7 +65,9 @@ export default function Enquiries() {
         error = "Name should contain only alphabets and spaces.";
       }
     } else if (name === "phoneNumber") {
-      if (!/^\d{10}$/.test(value)) {
+      if (!value) {
+        error = "Phone number is required.";
+      } else if (!/^\d{10}$/.test(value)) {
         error = "Phone number should be exactly 10 digits.";
       }
     } else if (name === "message") {
@@ -140,6 +145,28 @@ export default function Enquiries() {
     }
   };
 
+  const handleDownloadStatement = async () => {
+    try {
+      const blob = await pdf(
+        <EnquiriesPDF
+          enquiries={filteredEnquiries}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `enquiries_statement_${selectedLayout}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate statement");
+    }
+  };
+
   const filteredEnquiries = enquiries.filter((enquiry) =>
     enquiry.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -158,12 +185,21 @@ export default function Enquiries() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold">Enquiry Management</h1>
-        <Button
-          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          Add Enquiry
-        </Button>
+        <div className="flex gap-4">
+          <Button
+            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            onClick={handleDownloadStatement}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Statement
+          </Button>
+          <Button
+            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            Add Enquiry
+          </Button>
+        </div>
       </div>
       <SearchInput
         placeholder="Search enquiries by name"
@@ -226,6 +262,18 @@ export default function Enquiries() {
               </p>
               {errors.message && (
                 <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+              )}
+            </div>
+            <div>
+              <Input
+                type="date"
+                value={newEnquiry.date}
+                onChange={(e) => setNewEnquiry({ ...newEnquiry, date: e.target.value })}
+                required
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+              {errors.date && (
+                <p className="text-red-500 text-sm mt-1">{errors.date}</p>
               )}
             </div>
             <div className="flex justify-end gap-3 pt-4">
@@ -336,6 +384,7 @@ export default function Enquiries() {
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Message</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -351,6 +400,7 @@ export default function Enquiries() {
                   ))}
                 </ul>
               </TableCell>
+              <TableCell>{new Date(enquiry.date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Edit2

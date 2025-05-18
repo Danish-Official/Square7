@@ -6,20 +6,23 @@ const authenticate = require("../middleware/authenticate");
 // Create Enquiry
 router.post("/", authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, message, layoutId } = req.body;
+    const { name, phoneNumber, message, layoutId, date } = req.body;
 
     // Validation
     if (!name || typeof name !== "string" || !/^[A-Za-z\s]+$/.test(name)) {
       return res.status(400).json({ message: "Invalid name" });
     }
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: "Invalid phone number" });
+      return res.status(400).json({ message: "Phone number should be exactly 10 digits" });
     }
     if (!message || typeof message !== "string") {
       return res.status(400).json({ message: "Invalid message" });
     }
+    if (!date || isNaN(new Date(date).getTime())) {
+      return res.status(400).json({ message: "Invalid date" });
+    }
 
-    const enquiry = new Enquiry({ name, phoneNumber, message, layoutId });
+    const enquiry = new Enquiry({ name, phoneNumber, message, layoutId, date });
     await enquiry.save();
     res.status(201).json(enquiry);
   } catch (error) {
@@ -51,22 +54,25 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
 // Update Enquiry
 router.put("/:id", authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, message } = req.body;
+    const { name, phoneNumber, message, date } = req.body;
 
     // Validation
     if (!name || typeof name !== "string" || !/^[A-Za-z\s]+$/.test(name)) {
       return res.status(400).json({ message: "Invalid name" });
     }
     if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: "Invalid phone number" });
+      return res.status(400).json({ message: "Phone number should be exactly 10 digits" });
     }
     if (!message || typeof message !== "string") {
       return res.status(400).json({ message: "Invalid message" });
     }
+    if (!date || isNaN(new Date(date).getTime())) {
+      return res.status(400).json({ message: "Invalid date" });
+    }
 
     const updatedEnquiry = await Enquiry.findByIdAndUpdate(
       req.params.id,
-      { name, phoneNumber, message },
+      { name, phoneNumber, message, date },
       { new: true }
     );
 

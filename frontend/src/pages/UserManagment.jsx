@@ -65,6 +65,7 @@ export default function UsersManagement() {
       toast.success("Admin user created successfully"); // Show success toast
       setIsDialogOpen(false);
       fetchUsers(); // Refresh the user list
+      setNewAdmin({ name: "", email: "", password: "" });
     } catch (error) {
       toast.error("Failed to create admin user"); // Show error toast
     }

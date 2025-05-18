@@ -60,7 +60,7 @@ router.get("/users", authenticate("superadmin"), async (req, res) => {
     const users = await User.find(
       { role: { $ne: "superadmin" } },
       { password: 0 }
-    );
+    ).sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });

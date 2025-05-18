@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Invoice = require("../models/Invoice");
 const authenticate = require("../middleware/authenticate");
+const Booking = require("../models/Booking");
 
 router.post("/", authenticate(), async (req, res) => {
   try {
@@ -16,7 +17,7 @@ router.post("/", authenticate(), async (req, res) => {
 
 router.post("/:id/add-payment", authenticate(), async (req, res) => {
   try {
-    const { amount, paymentDate, paymentType, paymentIndex } = req.body;
+    const { amount, paymentDate, paymentType, paymentIndex, narration } = req.body;
     
     if (!amount || !paymentDate || !paymentType) {
       return res.status(400).json({ message: "Missing required payment information" });
@@ -42,7 +43,8 @@ router.post("/:id/add-payment", authenticate(), async (req, res) => {
     const paymentObj = {
       amount: paymentAmount,
       paymentDate: paymentDateObj,
-      paymentType
+      paymentType,
+      narration// Add this line
     };
 
     if (typeof paymentIndex === 'number' && paymentIndex >= 0 && paymentIndex < invoice.payments.length) {
@@ -92,6 +94,7 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
           path: 'plot',
         }
       })
+      .sort({ createdAt: -1 })
       .lean()
       .exec();
 
@@ -116,35 +119,32 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
 router.get("/plot/:plotId", authenticate(), async (req, res) => {
   try {
     const { plotId } = req.params;
-    const invoice = await Invoice.findOne()
+
+    // Find bookings with the correct plot
+    const booking = await Booking.findOne({ plot: plotId });
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found for this plot" });
+    }
+
+    // Now find the invoice with that booking
+    const invoice = await Invoice.findOne({ booking: booking._id })
       .populate({
         path: 'booking',
-        populate: {
-          path: 'plot'
-        }
+        populate: { path: 'plot' }
       });
 
-    // Find the invoice where booking.plot matches plotId
-    const matchedInvoice = await Invoice.findOne()
-      .populate({
-        path: 'booking',
-        match: { plot: plotId },
-        populate: {
-          path: 'plot'
-        }
-      })
-      .exec();
-
-    if (!matchedInvoice || !matchedInvoice.booking) {
+    if (!invoice) {
       return res.status(404).json({ message: "Invoice not found for this plot" });
     }
 
-    res.status(200).json(matchedInvoice);
+    res.status(200).json(invoice);
   } catch (error) {
     console.error("Error fetching invoice:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 router.get("/:id", authenticate(), async (req, res) => {
   try {

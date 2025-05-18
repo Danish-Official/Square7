@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Download } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "@/context/AuthContext";
 
@@ -16,6 +16,8 @@ import {
 import { apiClient } from "@/lib/utils";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
+import { generateBrokersPDF } from "@/utils/pdfUtils";
+import { useLayout } from "@/context/LayoutContext";
 
 export default function BrokersManagement() {
   const [brokers, setBrokers] = useState([]);
@@ -26,6 +28,7 @@ export default function BrokersManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { auth } = useAuth();
+  const { selectedLayout } = useLayout();
 
   useEffect(() => {
     fetchBrokers();
@@ -68,8 +71,7 @@ export default function BrokersManagement() {
         error = "Name should contain only alphabets.";
       }
     } else if (name === "phoneNumber") {
-      const phoneRegex = /^\d{10}$/;
-      if (!phoneRegex.test(value)) {
+      if (value && !/^\d{10}$/.test(value)) {
         error = "Phone number should be exactly 10 digits.";
       }
     } else if (name === "commission") {
@@ -145,6 +147,15 @@ export default function BrokersManagement() {
     setErrors({});
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      await generateBrokersPDF(brokers, selectedLayout);
+      toast.success("PDF downloaded successfully");
+    } catch (error) {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   const filteredBrokers = brokers.filter((broker) =>
     (broker?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
@@ -159,6 +170,14 @@ export default function BrokersManagement() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-semibold">Brokers List</h1>
+        <Button
+          variant="outline"
+          onClick={handleDownloadPDF}
+          className="flex items-center gap-2"
+        >
+          <Download size={16} />
+          Download PDF
+        </Button>
       </div>
 
       <SearchInput
