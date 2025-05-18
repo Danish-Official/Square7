@@ -62,7 +62,8 @@ const PlotLayout1 = () => {
       try {
         const { data } = await apiClient.get(`/invoices/plot/${plot._id}`);
         if (data && data.booking) {
-          navigate(`/invoices/${data._id}`);
+          setSelectedInvoice(data);
+          setIsDialogOpen(true);
         } else {
           toast.error("No invoice found for this plot");
         }

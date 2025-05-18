@@ -49,11 +49,16 @@ const PlotLayout2 = () => {
   const handlePlotClick = async (plot) => {
     if (plot.status === "sold") {
       try {
+        console.log("Fetching invoice for plot:", plot._id);
         const { data } = await apiClient.get(`/invoices/plot/${plot._id}`);
+        console.log("Invoice response:", data);
+        
         if (data && data.booking) {
-          navigate(`/invoices/${data._id}`);
+          setSelectedInvoice(data);
+          setIsDialogOpen(true);
         } else {
-          toast.error("No invoice found for this plot");
+          console.error("Invalid invoice data:", data);
+          toast.error("No invoice details found for this plot");
         }
       } catch (error) {
         console.error("Error fetching invoice:", error);
