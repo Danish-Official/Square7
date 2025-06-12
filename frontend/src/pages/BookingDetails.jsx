@@ -101,8 +101,6 @@ export default function BookingDetails() {
         broker: bookingDetails.broker
       };
 
-      console.log('PDF Data:', pdfData); // For debugging
-
       const blob = await pdf(<BookingDetailsPDF data={pdfData} />).toBlob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');

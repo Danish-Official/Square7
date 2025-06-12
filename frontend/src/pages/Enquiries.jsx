@@ -187,11 +187,11 @@ export default function Enquiries() {
         <h1 className="text-3xl font-semibold">Enquiry Management</h1>
         <div className="flex gap-4">
           <Button
-            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            variant="outline"
             onClick={handleDownloadStatement}
           >
             <Download className="mr-2 h-4 w-4" />
-            Statement
+            Entries
           </Button>
           <Button
             className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"

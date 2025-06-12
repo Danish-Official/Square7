@@ -69,10 +69,6 @@ router.post("/", authenticate(), (req, res, next) => {
     next();
   });
 }, async (req, res) => {
-  console.log("========= NEW BOOKING REQUEST =========");
-  console.log("Request body:", JSON.stringify(req.body, null, 2));
-  console.log("Request files:", req.files);
-  
   try {
     const {
       buyerName,
@@ -91,28 +87,8 @@ router.post("/", authenticate(), (req, res, next) => {
       documentType,
       ratePerSqFt, // Add this field
     } = req.body;
-
-    console.log("Parsed booking data:", {
-      buyerName,
-      address,
-      phoneNumber,
-      plotId,
-      totalCost,
-      firstPayment,
-      bookingDate
-    });
-
     // Validate required fields
     if (!buyerName || !address || !phoneNumber || !plotId || !totalCost || !firstPayment || !ratePerSqFt) {
-      console.log("Missing required fields:", {
-        buyerName: !!buyerName,
-        address: !!address,
-        phoneNumber: !!phoneNumber,
-        plotId: !!plotId,
-        totalCost: !!totalCost,
-        firstPayment: !!firstPayment,
-        ratePerSqFt: !!ratePerSqFt
-      });
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -133,8 +109,6 @@ router.post("/", authenticate(), (req, res, next) => {
       });
     }
 
-    console.log("Received booking data:", req.body);
-    
     // Check if plot exists and is available
     const plot = await Plot.findById(plotId);
     if (!plot) {
@@ -206,18 +180,9 @@ router.post("/", authenticate(), (req, res, next) => {
       documents: documents
     });
 
-    // Log before saving
-    console.log("About to save booking:", booking);
     await booking.save();
-    console.log("Booking saved successfully");
-
-    // Log before updating plot
-    console.log("Updating plot status:", plot._id);
     plot.status = "sold";
     await plot.save();
-    console.log("Plot status updated successfully");
-
-    // Return populated booking
     const populatedBooking = await Booking.findById(booking._id)
       .populate('plot')
       .populate('broker');

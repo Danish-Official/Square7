@@ -54,7 +54,6 @@ export default function BrokersManagement() {
         plots: Array.isArray(broker.plots) ? broker.plots : []
       }));
 
-      console.log("Formatted brokers data:", formattedBrokers);
       setBrokers(formattedBrokers);
     } catch (error) {
       console.error("Failed to fetch brokers:", error);
@@ -173,10 +172,10 @@ export default function BrokersManagement() {
         <Button
           variant="outline"
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2"
+          className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E] text-white"
         >
           <Download size={16} />
-          Download PDF
+          Entries
         </Button>
       </div>
 

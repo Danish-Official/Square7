@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   descriptionCell: { width: '40%' },
   amountCell: { width: '20%' },
   dateCell: { width: '20%' },
-  footer: {
+ footer: {
     position: 'absolute',
     bottom: 20,
     left: 30,
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     borderTop: '1 solid #dee2e6',
     paddingTop: 5,
+    textTransform: 'uppercase',
   }
 });
 

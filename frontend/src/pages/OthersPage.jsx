@@ -131,12 +131,12 @@ export default function OthersPage() {
   const handleDownloadStatement = async () => {
     try {
       const blob = await pdf(
-        <OthersPDF 
-          entries={filteredEntries} 
+        <OthersPDF
+          entries={filteredEntries}
           selectedLayout={selectedLayout}
         />
       ).toBlob();
-      
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -159,7 +159,7 @@ export default function OthersPage() {
         </div>
         <div className="flex gap-4">
           <Button
-            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            variant="outline"
             onClick={handleDownloadStatement}
           >
             <Download className="mr-2 h-4 w-4" />

@@ -50,7 +50,6 @@ export default function Invoices() {
         invoice?.booking?.plot?.layoutId === selectedLayout
       );
 
-      console.log("Valid invoices:", validInvoices);
       setInvoices(validInvoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);

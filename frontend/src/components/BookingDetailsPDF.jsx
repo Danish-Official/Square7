@@ -19,14 +19,15 @@ const styles = StyleSheet.create({
     height: 70,
   },
   layoutLogo: {
-    width: 100,
+    width: 140,
     height: 70,
   },
-  address: {
-    fontSize: 10,
-    textAlign: 'right',
-    width: '30%',
-    color: '#666666',
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#1F263E',
+    textAlign: 'center',
   },
   section: {
     marginVertical: 10,
@@ -63,11 +64,12 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 30,
     right: 30,
-    textAlign: 'center',
+    textAlign: 'right',
     color: '#666666',
     fontSize: 10,
     borderTop: '1 solid #dee2e6',
     paddingTop: 5,
+    textTransform: 'uppercase',
   }
 });
 
@@ -161,8 +163,8 @@ const BookingDetailsPDF = ({ data }) => {
               <View style={styles.detailRow} key={index}>
                 <Text style={styles.label}>
                   {doc.type === 'aadharCardFront' ? 'Aadhar Card (Front)' :
-                   doc.type === 'aadharCardBack' ? 'Aadhar Card (Back)' :
-                   'PAN Card'}:
+                    doc.type === 'aadharCardBack' ? 'Aadhar Card (Back)' :
+                      'PAN Card'}:
                 </Text>
                 <Text style={styles.value}>{doc.originalName || 'Uploaded'}</Text>
               </View>
@@ -197,7 +199,7 @@ const BookingDetailsPDF = ({ data }) => {
 
         <View style={styles.footer}>
           <Text>Generated on {new Date().toLocaleDateString()}</Text>
-          <Text>Square7 Real Estate Solutions</Text>
+          <Text>Square Seven Infra</Text>
         </View>
       </Page>
     </Document>

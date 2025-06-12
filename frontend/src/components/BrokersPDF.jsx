@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   addressCell: { width: '25%' },
   commissionCell: { width: '15%' },
   plotsCell: { width: '25%' },
-  footer: {
+ footer: {
     position: 'absolute',
     bottom: 20,
     left: 30,
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     borderTop: '1 solid #dee2e6',
     paddingTop: 5,
+    textTransform: 'uppercase',
   }
 });
 

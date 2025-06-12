@@ -318,12 +318,6 @@ export default function NewBooking() {
         }
       });
 
-      // Log the data being sent
-      console.log('Sending booking data:', {
-        ...Object.fromEntries(formDataToSend),
-        documents: formData.documents.map(d => ({ type: d.type, name: d.file?.name }))
-      });
-
       const bookingResponse = await apiClient.post("/bookings", formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',

@@ -170,7 +170,7 @@ export default function Expenses() {
         </div>
         <div className="flex gap-4">
           <Button
-            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+            variant="outline"
             onClick={handleDownloadStatement}
           >
             <Download className="mr-2 h-4 w-4" />

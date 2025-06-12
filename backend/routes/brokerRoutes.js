@@ -33,7 +33,6 @@ router.get('/', authenticate(), async (req, res) => {
             };
         }));
 
-        console.log('Sending brokers data:', brokersWithPlots); // Debug log
         res.status(200).json(brokersWithPlots);
     } catch (error) {
         console.error('Error in /brokers route:', error);
