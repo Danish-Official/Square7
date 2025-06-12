@@ -4,7 +4,7 @@ import React from "react";
 const LoginPage = () => {
   return (
     <div className="flex h-screen bg-[#27304f] items-center justify-center">
-      <div className="h-[350px] w-[800px] bg-white rounded-[20px] shadow-lg flex flex-col justify-center items-center">
+      <div className="h-[400px] w-[800px] bg-white rounded-[20px] shadow-lg flex flex-col justify-center items-center">
         <Login isModal={true} />
       </div>
     </div>

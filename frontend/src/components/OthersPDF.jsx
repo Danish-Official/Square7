@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
   page: {
     padding: 20,
     backgroundColor: '#ffffff',
+    position: 'relative',
   },
   header: {
     flexDirection: 'row',
@@ -84,8 +85,8 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontSize: 10,
     borderTop: '1 solid #dee2e6',
-    paddingTop: 5,
     textTransform: 'uppercase',
+    paddingTop: 5,
   }
 });
 

@@ -6,7 +6,7 @@ import { apiClient } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import logo from "@/assets/logo.png";
-import { LockKeyholeOpen, Mail } from "lucide-react";
+import { LockKeyholeOpen, LogIn, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function Login({ isModal = false }) {
@@ -46,8 +46,8 @@ export default function Login({ isModal = false }) {
       </div>
       <div className="w-1/2 p-6 pt-0">
         {error && <p className="text-red-500 mb-2">{error}</p>}
-        <h3 className="text-[#CE9921] text-[2.25rem] mb-2">Welcome !</h3>
-        <p className="text-[#C6C6C6] mb-2">Enter your username and password</p>
+        <LogIn size={30} strokeWidth={1}/>
+        <p className="text-[#C6C6C6] mb-4">Enter your username and password</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="mb-4">
             <div className="relative">

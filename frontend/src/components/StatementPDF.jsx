@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
   page: {
     padding: 20,
     backgroundColor: '#ffffff',
+    position: 'relative',
   },
   header: {
     flexDirection: 'row',
