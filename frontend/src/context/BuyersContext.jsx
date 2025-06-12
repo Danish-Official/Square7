@@ -1,23 +1,22 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiClient } from "@/lib/utils";
+import { useLayout } from "./LayoutContext";
 
 const BuyersContext = createContext();
 
 export function BuyersProvider({ children }) {
   const [buyers, setBuyers] = useState([]);
-  const [currentLayout, setCurrentLayout] = useState(null);
+  const { selectedLayout } = useLayout();
 
   useEffect(() => {
-    if (currentLayout) {
+    if (selectedLayout) {
       fetchBuyers();
     }
-  }, [currentLayout]);
+  }, [selectedLayout]);
 
   async function fetchBuyers() {
     try {
-      const { data } = await apiClient.get(
-        currentLayout ? `/bookings/layout/${currentLayout}` : "/bookings"
-      );
+      const { data } = await apiClient.get(`/bookings/layout/${selectedLayout}`);
       setBuyers(data);
     } catch (error) {
       setBuyers([]); // Set empty array on error
@@ -55,9 +54,6 @@ export function BuyersProvider({ children }) {
         fetchBuyers,
         deleteBuyer,
         updateBuyer,
-        refetchBuyers: fetchBuyers,
-        setCurrentLayout,
-        currentLayout,
       }}
     >
       {children}

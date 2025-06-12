@@ -1,0 +1,15 @@
+.quickLinks{
+    border-radius: 10px;
+}
+.quickLinks a{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 8.5rem;
+    cursor: pointer;
+    font-weight: 300;
+    text-align: center;
+}
+.bookingLink a{
+    height: 100%;
+}

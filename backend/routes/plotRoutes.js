@@ -93,10 +93,14 @@ router.get("/stats/:layoutId", authenticate(), async (req, res) => {
   try {
     const { layoutId } = req.params;
     const totalPlots = await Plot.countDocuments({ layoutId });
-    // const soldPlots = await Plot.countDocuments({ layoutId, status: "sold" });
-    // const availablePlots = totalPlots - soldPlots;
+    const soldPlots = await Plot.countDocuments({ layoutId, status: "sold" });
+    const availablePlots = totalPlots - soldPlots;
 
-    res.status(200).json({ totalPlots });
+    res.status(200).json({
+      total: totalPlots,
+      sold: soldPlots,
+      available: availablePlots
+    });
   } catch (error) {
     console.error("Error fetching plot stats:", error);
     res.status(500).json({ message: "Server Error" });

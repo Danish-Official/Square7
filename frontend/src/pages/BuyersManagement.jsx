@@ -14,24 +14,16 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
-import { useLayout } from "@/context/LayoutContext";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function BuyersManagement() {
-  const { buyers, deleteBuyer, setCurrentLayout } = useBuyers();
-  const { selectedLayout } = useLayout();
+  const { buyers, deleteBuyer } = useBuyers();
   const { auth } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  useEffect(() => {
-    if (selectedLayout) {
-      setCurrentLayout(selectedLayout);
-    }
-  }, [selectedLayout, setCurrentLayout]);
 
   const handleDelete = async (id) => {
     if (

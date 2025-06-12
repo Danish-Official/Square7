@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,7 @@ import LayoutSelectionModal from "@/components/LayoutSelectionModal";
 import { Calendar } from "@/components/ui/calendar";
 import dayjs from 'dayjs';
 import "../styles/dashboard.scss";
+import { set } from "date-fns";
 
 // Add this cache at the top, outside component
 const buyersCache = new Map();
@@ -43,17 +44,16 @@ export default function Dashboard({ showLoginModal = false }) {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(showLoginModal);
   const { auth, isTokenExpired } = useAuth();
-  const { buyers, refetchBuyers } = useBuyers();
+  const { buyers } = useBuyers();
   const { selectedLayout, showLayoutModal, setShowLayoutModal } = useLayout();
   const recentBuyers = buyers
     .filter((buyer) => buyer.plot.layoutId === selectedLayout)
     .slice(0, 5);
 
-  const [layoutStats, setLayoutStats] = useState({});
   const [layoutRevenueData, setLayoutRevenueData] = useState({});
-  const [_layouts, setLayouts] = useState([]);
   const [visibleDate, setVisibleDate] = useState(() => dayjs());
   const [_selectedMonth, setSelectedMonth] = useState(() => dayjs().month());
+  const [plotStats, setPlotStats] = useState({ total: 0, sold: 0, available: 0 });
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
@@ -62,34 +62,16 @@ export default function Dashboard({ showLoginModal = false }) {
   }, [auth.token, isTokenExpired]);
 
   useEffect(() => {
-    if (!auth.token || isTokenExpired(auth.token)) return;
-
-    const fetchLayouts = async () => {
-      try {
-        const response = await apiClient.get("/plots/layouts");
-        setLayouts(response.data);
-      } catch (error) {
-        console.error("Error fetching layouts:", error);
-      }
-    };
-
-    fetchLayouts();
-  }, [auth.token, isTokenExpired]);
-
-  useEffect(() => {
     if (!auth.token || isTokenExpired(auth.token) || !selectedLayout) return;
 
     const fetchData = async () => {
       try {
-        const [statsResponse, revenueResponse] = await Promise.all([
+        const [stats, revenueResponse] = await Promise.all([
           apiClient.get(`/plots/stats/${selectedLayout}`),
           apiClient.get(`/invoices/revenue/${selectedLayout}`),
         ]);
 
-        setLayoutStats((prev) => ({
-          ...prev,
-          [selectedLayout]: statsResponse.data,
-        }));
+        setPlotStats(stats.data);
 
         const formattedData = revenueResponse.data.map((item) => ({
           month: new Date(0, item.month - 1).toLocaleString("default", {
@@ -112,29 +94,10 @@ export default function Dashboard({ showLoginModal = false }) {
   }, [auth.token, isTokenExpired, selectedLayout]);
 
   useEffect(() => {
-    if (auth.token && !isTokenExpired(auth.token)) {
-      refetchBuyers();
-    }
-  }, [auth.token, isTokenExpired, refetchBuyers]);
-
-  useEffect(() => {
     if (!selectedLayout) {
       setShowLayoutModal(true);
     }
   }, [selectedLayout, setShowLayoutModal]);
-
-  // Update the buyers cache whenever buyers or layout changes
-  useEffect(() => {
-    if (!Array.isArray(buyers) || !selectedLayout) return;
-
-    const cache = new Set(
-      buyers
-        .filter(buyer => buyer.plot.layoutId === selectedLayout)
-        .map(buyer => dayjs(buyer.bookingDate).format('YYYY-MM-DD'))
-    );
-
-    buyersCache.set(selectedLayout, cache);
-  }, [buyers, selectedLayout]);
 
   const handleDateClick = (date) => {
     if (date && isBuyerPresentOnDate(date)) {
@@ -191,27 +154,36 @@ export default function Dashboard({ showLoginModal = false }) {
     <>
       <div className={`p-6 space-y-6 ${isLoginModalOpen || showLayoutModal ? "blur-sm" : ""}`}>
         <h1 className="text-3xl font-semibold">Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 bg-[#E8E8E8] p-2 rounded-[30px]">
-          <Link
-            to="/new-booking"
-            className="w-full height-[70px] rounded-[30px] font-semibold text-2xl cursor-pointer flex justify-center items-center gap-2 bg-[#E2AF3C] hover:bg-[#b98b2e] text-[#2F304B] font-oxygen shadow-[0px_10px_10px_0px_#00000061]"
-          >
-            Booking
-            <Bookmark />
-          </Link>
-          {selectedLayout &&
-            layoutStats[selectedLayout] &&
-            Object.entries(layoutStats[selectedLayout]).map(([key, value]) => (
-              <Card key={key} className="p-1 shadow-[0px_10px_10px_0px_#00000061] rounded-[30px] height-[70px] text-center text-white bg-[#272b4e] border-[1px] border-[#E2AF3C]">
-                <CardContent>
-                  <h2 className="text-lg capitalize font-oxygen">
-                    {key.replace(/([A-Z])/g, " $1")}
-                  </h2>
-                  <p className="text-3xl font-oxygen">{value}</p>
-                </CardContent>
-              </Card>
-            ))}
+        <div className="grid grid-cols-4 gap-2 lg:text-4xl sm:text-2xl">
+          <div className="col-span-2 row-span-2 quickLinks bookingLink bg-[#1F263E] text-white">
+            <Link to={'/new-booking'}>Booking</Link>
+          </div>
+          <div className="quickLinks bg-[#E9EAEE] text-black">
+            <Link to={'/plot-management'}>Total Plots {plotStats.total}</Link>
+          </div>
+          <div className="quickLinks bg-[#8AC0F6] text-black">
+            <Link to={'/layout-resources'}>Layout Resources</Link>
+          </div>
+          <div className="quickLinks bg-[#D1D8E0] text-black">
+            <Link to={'/enquiries'}>Enquiries</Link>
+          </div>
+          <div className="quickLinks bg-[#727588] text-white">
+            <Link to={'/expenses'}>Expenses</Link>
+          </div>
+          <div className="quickLinks bg-[#01318D] text-white">
+            <Link to={'/invoices'}>Invoices</Link>
+          </div>
+          <div className="quickLinks bg-[#D6E1F5] text-black">
+            <Link to={'/contact-list'}>Buyers</Link>
+          </div>
+          <div className="quickLinks bg-[#485464] text-white">
+            <Link to={'/brokers'}>Advisors</Link>
+          </div>
+          <div className="quickLinks bg-[#3E4C68] text-white">
+            <Link to={'/user-management'}>Manage Users</Link>
+          </div>
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2 p-4">
             <CardContent>
