@@ -122,7 +122,10 @@ router.post("/", authenticate(), (req, res, next) => {
     let brokerId = null;
     if (brokerData) {
       const brokerInfo = typeof brokerData === 'string' ? JSON.parse(brokerData) : brokerData;
-      const broker = new Broker(brokerInfo);
+      const broker = new Broker({
+        ...brokerInfo,
+        date: bookingDate ? new Date(bookingDate) : new Date()
+      });
       await broker.save();
       brokerId = broker._id;
     }
@@ -317,12 +320,16 @@ router.put("/:id", authenticate(), (req, res, next) => {
             name: brokerInfo.name,
             phoneNumber: brokerInfo.phoneNumber,
             address: brokerInfo.address,
-            commission: brokerInfo.commission
+            commission: brokerInfo.commission,
+            date: req.body.bookingDate ? new Date(req.body.bookingDate) : existingBooking.bookingDate
           });
           brokerId = brokerInfo._id;
         } else if (brokerInfo.name) {
           // Create new broker
-          const broker = new Broker(brokerInfo);
+          const broker = new Broker({
+            ...brokerInfo,
+            date: req.body.bookingDate ? new Date(req.body.bookingDate) : existingBooking.bookingDate
+          });
           await broker.save();
           brokerId = broker._id;
         }

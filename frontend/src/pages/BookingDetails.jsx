@@ -173,7 +173,6 @@ export default function BookingDetails() {
         const brokerData = {
           name: formData.broker.name || "",
           phoneNumber: formData.broker.phoneNumber || "",
-          address: formData.broker.address || "",
           commission: Number(formData.broker.commission) || 0,
           _id: formData.broker._id
         };
@@ -296,85 +295,87 @@ export default function BookingDetails() {
         <>
           <div className="flex items-center justify-center mb-4 gap-2">
             <CircleUserRound size={60} color="#1F263E" />
-            <h2 className="text-4xl font-100 text-center text-[#1F263E]">{bookingDetails.buyerName.split(' ')[0] + (bookingDetails.buyerName.split(' ').length > 1 ? ' ' + bookingDetails.buyerName.split(' ').reverse()[0] : '')}</h2>
+            <h2 className="text-4xl font-100 text-center text-[#1F263E]">
+              {bookingDetails.buyerName.split(' ')[0] + (bookingDetails.buyerName.split(' ').length > 1 ? ' ' + bookingDetails.buyerName.split(' ').reverse()[0] : '')}
+            </h2>
           </div>
-          <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-y-4 gap-x-0.5">
             {/* Personal Details Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">
+            <div className="bg-white rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
                 Personal Details
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-gray-500">Full Name</h3>
-                  <p className="text-lg break-words">{bookingDetails.buyerName}</p>
+              <div className="space-y-4 w-[70%] mx-auto p-2">
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Full Name</span>
+                  <p className="break-words flex-1 text-sm">{bookingDetails.buyerName}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Email</h3>
-                  <p className="text-lg break-words">{bookingDetails.email || 'Not provided'}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Email</span>
+                  <p className="break-words flex-1 text-sm">{bookingDetails.email || 'Not provided'}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Phone Number</h3>
-                  <p className="text-lg break-words">{bookingDetails.phoneNumber}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Phone Number</span>
+                  <p className="break-words flex-1 text-sm">{bookingDetails.phoneNumber}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Gender</h3>
-                  <p className="text-lg">{bookingDetails.gender}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Gender</span>
+                  <p className="flex-1 text-sm">{bookingDetails.gender}</p>
                 </div>
-                <div className="col-span-2">
-                  <h3 className="font-medium text-gray-500">Address</h3>
-                  <p className="text-lg break-words">{bookingDetails.address}</p>
+                <div className="flex items-start">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Address</span>
+                  <p className="break-words flex-1 text-sm">{bookingDetails.address}</p>
                 </div>
               </div>
             </div>
 
             {/* Plot Details Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">
+            <div className="bg-white rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
                 Plot Details
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-gray-500">Plot Number</h3>
-                  <p className="text-lg">{bookingDetails.plot?.plotNumber}</p>
+              <div className="space-y-4 w-[40%] mx-auto p-2">
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Plot Number</span>
+                  <p className="flex-1 text-sm">{bookingDetails.plot?.plotNumber}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Area (sq ft)</h3>
-                  <p className="text-lg">{bookingDetails.plot?.areaSqFt}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Area (sq ft)</span>
+                  <p className="flex-1 text-sm">{bookingDetails.plot?.areaSqFt}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Area (sq mt)</h3>
-                  <p className="text-lg">{bookingDetails.plot?.areaSqMt}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Area (sq mt)</span>
+                  <p className="flex-1 text-sm">{bookingDetails.plot?.areaSqMt}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Total Cost (Rs.)</h3>
-                  <p className="text-lg capitalize">{bookingDetails.totalCost}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Total Cost</span>
+                  <p className="capitalize flex-1 text-sm">₹{bookingDetails.totalCost}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Rate per sq ft</h3>
-                  <p className="text-lg">₹{bookingDetails.ratePerSqFt}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Rate per sq ft</span>
+                  <p className="flex-1 text-sm">₹{bookingDetails.ratePerSqFt}</p>
                 </div>
               </div>
             </div>
 
             {/* Payment Details Section */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">
+            <div className="bg-white rounded-lg shadow-md col-span-2">
+              <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
                 Payment Details
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-gray-500">Booking Payment</h3>
-                  <p className="text-lg">₹{bookingDetails.firstPayment}</p>
+              <div className="space-y-4 w-[60%] mx-auto p-2">
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Booking Payment</span>
+                  <p className="flex-1 text-sm">₹{bookingDetails.firstPayment}</p>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-500">Payment Type</h3>
-                  <p className="text-lg">{bookingDetails.paymentType}</p>
+                <div className="flex items-center">
+                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Payment Type</span>
+                  <p className="flex-1 text-sm">{bookingDetails.paymentType}</p>
                 </div>
                 {bookingDetails.narration && (
-                  <div className="col-span-2">
-                    <h3 className="font-medium text-gray-500">Narration</h3>
-                    <p className="text-lg">{bookingDetails.narration}</p>
+                  <div className="flex items-center">
+                    <span className="min-w-[120px] font-medium text-gray-500 text-sm">Narration</span>
+                    <p className="flex-1 text-sm">{bookingDetails.narration}</p>
                   </div>
                 )}
               </div>
@@ -382,51 +383,63 @@ export default function BookingDetails() {
 
             {/* Broker Details Section */}
             {bookingDetails.broker && (
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Broker Details</h2>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-lg shadow-md col-span-2">
+                <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
+                  Broker Details
+                </h2>
+                <div className="space-y-4 w-[50%] mx-auto p-2">
                   {bookingDetails.broker.name && (
-                    <div>
-                      <h3 className="font-medium text-gray-500">Broker Name</h3>
-                      <p className="text-lg">{bookingDetails.broker.name}</p>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Broker Name</span>
+                      <p className="flex-1 text-sm">{bookingDetails.broker.name}</p>
                     </div>
                   )}
                   {bookingDetails.broker.phoneNumber && (
-                    <div>
-                      <h3 className="font-medium text-gray-500">Phone Number</h3>
-                      <p className="text-lg">{bookingDetails.broker.phoneNumber}</p>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Phone Number</span>
+                      <p className="flex-1 text-sm">{bookingDetails.broker.phoneNumber}</p>
                     </div>
                   )}
                   {bookingDetails.broker.commission > 0 && (
-                    <div>
-                      <h3 className="font-medium text-gray-500">Commission</h3>
-                      <p className="text-lg">{bookingDetails.broker.commission}%</p>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Commission</span>
+                      <p className="flex-1 text-sm">{bookingDetails.broker.commission}%</p>
                     </div>
                   )}
-                  {bookingDetails.broker.address && (
-                    <div>
-                      <h3 className="font-medium text-gray-500">Address</h3>
-                      <p className="text-lg">{bookingDetails.broker.address}</p>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Label className="min-w-[120px] text-sm">Date</Label>
+                    <Input
+                      name="brokerDate"
+                      type="date"
+                      value={formData?.broker?.date ? new Date(formData?.broker?.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        broker: { ...prev.broker, date: e.target.value }
+                      }))}
+                      className="flex-1 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Documents Section */}
             {bookingDetails.documents?.length > 0 && (
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Uploaded Documents</h2>
-                <div className="grid grid-cols-1 gap-4">
+              <div className="bg-white rounded-lg shadow-md col-span-2">
+                <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
+                  Uploaded Documents
+                </h2>
+                <div className="space-y-4 p-4">
                   {bookingDetails.documents.map((doc, index) => (
                     <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-[#f7f7f7]">
                       <div className="flex items-center gap-3">
                         <FileText className="w-6 h-6 text-[#1F263E]" />
                         <div>
-                          <p className="font-medium capitalize">
-                            {doc.type === 'aadharCardFront' ? 'Aadhar Card Front Side' : doc.type === 'aadharCardBack' ? 'Aadhar Card Back Side' : 'PAN Card'}
+                          <p className="font-medium capitalize text-sm">
+                            {doc.type === 'aadharCardFront' ? 'Aadhar Card Front Side' : 
+                             doc.type === 'aadharCardBack' ? 'Aadhar Card Back Side' : 'PAN Card'}
                           </p>
-                          <p className="text-sm text-gray-500">{doc.originalName}</p>
+                          <p className="text-xs text-gray-500">{doc.originalName}</p>
                         </div>
                       </div>
                       <Button
@@ -595,135 +608,145 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Personal Details</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Personal Details</h2>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="mb-2">Full Name *</Label>
-            <Input
-              name="buyerName"
-              value={formData.buyerName}
-              onChange={handleChange}
-              className={errors.buyerName ? "border-red-500" : ""}
-            />
-            {errors.buyerName && <p className="text-red-500 text-sm mt-1">{errors.buyerName}</p>}
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Full Name *</Label>
+            <div className="flex-1">
+              <Input
+                name="buyerName"
+                value={formData.buyerName}
+                onChange={handleChange}
+                className={`text-sm ${errors.buyerName ? "border-red-500" : ""}`}
+              />
+              {errors.buyerName && <p className="text-red-500 text-xs mt-1">{errors.buyerName}</p>}
+            </div>
           </div>
-          <div>
-            <Label className="mb-2">Email</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Email</Label>
             <Input
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
+              className="flex-1"
             />
           </div>
-          <div>
-            <Label className="mb-2">Phone Number *</Label>
-            <Input
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className={errors['phoneNumber'] ? "border-red-500" : ""}
-            />
-            {errors['phoneNumber'] && <p className="text-red-500 text-sm mt-1">{errors['phoneNumber']}</p>}
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Phone Number *</Label>
+            <div className="flex-1">
+              <Input
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                className={errors['phoneNumber'] ? "border-red-500" : ""}
+              />
+              {errors['phoneNumber'] && <p className="text-red-500 text-xs mt-1">{errors['phoneNumber']}</p>}
+            </div>
           </div>
-          <div>
-            <Label className="mb-2">Date of Birth</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Date of Birth</Label>
             <Input
               name="dateOfBirth"
               type="date"
               value={formData.dateOfBirth}
               onChange={handleChange}
+              className="flex-1"
             />
           </div>
-          <div className="col-span-2">
-            <Label className="mb-2">Gender</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Gender</Label>
             <Select
               value={formData.gender}
               onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
+              className="flex-1 text-sm"
             >
-              <SelectTrigger>
+              <SelectTrigger className="text-sm">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Male">Male</SelectItem>
-                <SelectItem value="Female">Female</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="Male" className="text-sm">Male</SelectItem>
+                <SelectItem value="Female" className="text-sm">Female</SelectItem>
+                <SelectItem value="Other" className="text-sm">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2">
-            <Label className="mb-2">Address *</Label>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className={`w-full p-2 border rounded ${errors.address ? "border-red-500" : ""}`}
-              rows={3}
-            />
-            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+          <div className="flex items-center gap-2 col-span-2">
+            <Label className="min-w-[120px] text-sm">Address *</Label>
+            <div className="flex-1">
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded text-sm ${errors.address ? "border-red-500" : ""}`}
+                rows={3}
+              />
+              {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Plot Details section */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Plot Details</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Plot Details</h2>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="mb-2">Plot Number</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Plot Number</Label>
             <Input
               name="plotNumber"
               value={formData.plot?.plotNumber || ""}
               readOnly
               disabled
-              className="bg-[#f7f7f7]"
+              className="flex-1 bg-[#f7f7f7] text-sm"
             />
           </div>
-          <div>
-            <Label className="mb-2">Area (sq ft)</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Area (sq ft)</Label>
             <Input
               name="areaSqFt"
               value={formData.plot?.areaSqFt || ""}
               readOnly
               disabled
-              className="bg-[#f7f7f7]"
+              className="flex-1 bg-[#f7f7f7] text-sm"
             />
           </div>
-          <div>
-            <Label className="mb-2">Rate per sq ft *</Label>
-            <Input
-              name="ratePerSqFt"
-              type="number"
-              value={formData.ratePerSqFt || ""}
-              onChange={handleChange}
-              className={errors.ratePerSqFt ? "border-red-500" : ""}
-            />
-            {errors.ratePerSqFt && <p className="text-red-500 text-sm mt-1">{errors.ratePerSqFt}</p>}
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Rate per sq ft *</Label>
+            <div className="flex-1">
+              <Input
+                name="ratePerSqFt"
+                type="number"
+                value={formData.ratePerSqFt || ""}
+                onChange={handleChange}
+                className={errors.ratePerSqFt ? "border-red-500" : ""}
+              />
+              {errors.ratePerSqFt && <p className="text-red-500 text-sm mt-1">{errors.ratePerSqFt}</p>}
+            </div>
           </div>
-          <div>
-            <Label className="mb-2">Total Cost (Rs.)</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Total Cost (Rs.)</Label>
             <Input
               name="totalCost"
               type="number"
               value={formData.totalCost || ""}
               onChange={handleChange}
-              className="bg-white"
+              className="flex-1"
             />
           </div>
         </div>
       </div>
 
-      {/* Payment Details section */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Payment Details</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Payment Details</h2>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="mb-2">Payment Type</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Payment Type</Label>
             <Select
               value={formData.paymentType}
               onValueChange={(value) => setFormData(prev => ({ ...prev, paymentType: value }))}
+              className="flex-1 text-sm"
             >
-              <SelectTrigger className="bg-white">
+              <SelectTrigger>
                 <SelectValue placeholder="Select payment type" />
               </SelectTrigger>
               <SelectContent>
@@ -733,34 +756,34 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label className="mb-2">Booking Payment (Rs.)</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Booking Payment</Label>
             <Input
               name="firstPayment"
               type="number"
               value={formData.firstPayment}
               onChange={handleChange}
-              className="bg-white"
+              className="flex-1"
             />
           </div>
-          <div className="col-span-2">
-            <Label className="mb-2">Narration</Label>
+          <div className="flex items-center gap-2 col-span-2">
+            <Label className="min-w-[120px] text-sm">Narration</Label>
             <Input
               name="narration"
               value={formData.narration}
               onChange={handleChange}
               placeholder={formData.paymentType !== "Cash" ? "Enter payment details (e.g., Cheque number, Transaction ID)" : "Optional"}
-              className="bg-white"
+              className="flex-1"
             />
           </div>
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Broker Details</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Broker Details</h2>
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="mb-2">Broker Name</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Broker Name</Label>
             <Input
               name="brokerName"
               value={formData.broker?.name || ""}
@@ -768,10 +791,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 ...prev,
                 broker: { ...prev.broker, name: e.target.value }
               }))}
+              className="flex-1 text-sm"
             />
           </div>
-          <div>
-            <Label className="mb-2">Phone Number</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Phone Number</Label>
             <Input
               name="brokerPhone"
               value={formData.broker?.phoneNumber || ""}
@@ -779,21 +803,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 ...prev,
                 broker: { ...prev.broker, phoneNumber: e.target.value }
               }))}
+              className="flex-1 text-sm"
             />
           </div>
-          <div>
-            <Label className="mb-2">Address</Label>
-            <Input
-              name="brokerAddress"
-              value={formData.broker?.address || ""}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                broker: { ...prev.broker, address: e.target.value }
-              }))}
-            />
-          </div>
-          <div>
-            <Label className="mb-2">Commission (%)</Label>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Commission (%)</Label>
             <Input
               name="brokerCommission"
               type="number"
@@ -802,6 +816,20 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 ...prev,
                 broker: { ...prev.broker, commission: e.target.value }
               }))}
+              className="flex-1 text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="min-w-[120px] text-sm">Date</Label>
+            <Input
+              name="brokerDate"
+              type="date"
+              value={formData.broker?.date ? new Date(formData.broker.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                broker: { ...prev.broker, date: e.target.value }
+              }))}
+              className="flex-1 text-sm"
             />
           </div>
         </div>
@@ -809,11 +837,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
 
       {/* Documents section - Updated version */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-[#1F263E]">Documents</h2>
+        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Documents</h2>
         {/* File upload inputs */}
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <Label className="mb-2">Aadhar Card (Front)</Label>
+            <Label className="mb-2 text-sm">Aadhar Card (Front)</Label>
             <Input
               ref={fileInputRefs.aadharCardFront}
               type="file"
@@ -822,11 +850,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 const file = e.target.files?.[0];
                 if (file) handleTempDocumentUpload(file, 'aadharCardFront');
               }}
-              className="bg-white"
+              className="bg-white text-sm"
             />
           </div>
           <div>
-            <Label className="mb-2">Aadhar Card (Back)</Label>
+            <Label className="mb-2 text-sm">Aadhar Card (Back)</Label>
             <Input
               ref={fileInputRefs.aadharCardBack}
               type="file"
@@ -835,11 +863,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 const file = e.target.files?.[0];
                 if (file) handleTempDocumentUpload(file, 'aadharCardBack');
               }}
-              className="bg-white"
+              className="bg-white text-sm"
             />
           </div>
           <div>
-            <Label className="mb-2">PAN Card</Label>
+            <Label className="mb-2 text-sm">PAN Card</Label>
             <Input
               ref={fileInputRefs.panCard}
               type="file"
@@ -848,7 +876,7 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 const file = e.target.files?.[0];
                 if (file) handleTempDocumentUpload(file, 'panCard');
               }}
-              className="bg-white"
+              className="bg-white text-sm"
             />
           </div>
         </div>

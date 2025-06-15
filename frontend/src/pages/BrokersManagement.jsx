@@ -30,37 +30,45 @@ export default function BrokersManagement() {
   const { auth } = useAuth();
   const { selectedLayout } = useLayout();
 
+  const calculateBrokerFinancials = (broker) => {
+    const plots = broker.plots || [];
+    const amount = plots.reduce((sum, plot) => {
+      const plotCommission = (plot.totalCost * (broker.commission || 0)) / 100;
+      return sum + plotCommission;
+    }, 0);
+    const tdsPercentage = broker.tdsPercentage || 5;
+    const tdsAmount = (amount * tdsPercentage) / 100;
+    const netAmount = amount - tdsAmount;
+
+    return {
+      amount: Math.round(amount),
+      tdsAmount: Math.round(tdsAmount),
+      netAmount: Math.round(netAmount),
+      tdsPercentage
+    };
+  };
+
   useEffect(() => {
+    const fetchBrokers = async () => {
+      try {
+        const { data } = await apiClient.get("/brokers");
+        if (!Array.isArray(data)) {
+          toast.error("Invalid data format received from server");
+          setBrokers([]);
+          return;
+        }
+        const formattedBrokers = data.map(broker => ({
+          ...broker,
+          ...calculateBrokerFinancials(broker)
+        }));
+        setBrokers(formattedBrokers);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to fetch brokers");
+        setBrokers([]);
+      }
+    };
     fetchBrokers();
   }, []);
-
-  const fetchBrokers = async () => {
-    try {
-      const { data } = await apiClient.get("/brokers");
-      if (!Array.isArray(data)) {
-        console.error("Invalid data format received:", data);
-        toast.error("Invalid data format received from server");
-        setBrokers([]);
-        return;
-      }
-      
-      // Format the data
-      const formattedBrokers = data.map(broker => ({
-        _id: broker._id,
-        name: broker.name || '',
-        phoneNumber: broker.phoneNumber || '',
-        address: broker.address || '',
-        commission: broker.commission || 0,
-        plots: Array.isArray(broker.plots) ? broker.plots : []
-      }));
-
-      setBrokers(formattedBrokers);
-    } catch (error) {
-      console.error("Failed to fetch brokers:", error);
-      toast.error(error.response?.data?.message || "Failed to fetch brokers");
-      setBrokers([]);
-    }
-  };
 
   const validateField = (name, value) => {
     let error = "";
@@ -76,6 +84,10 @@ export default function BrokersManagement() {
     } else if (name === "commission") {
       if (value < 0) {
         error = "Commission cannot be negative.";
+      }
+    } else if (name === "tdsPercentage") {
+      if (value < 0) {
+        error = "TDS percentage cannot be negative.";
       }
     }
     setErrors((prev) => ({ ...prev, [name]: error }));
@@ -95,7 +107,13 @@ export default function BrokersManagement() {
 
   const handleEdit = (broker) => {
     setEditingBroker(broker._id);
-    setEditedData(broker);
+    setEditedData({
+      name: broker.name,
+      phoneNumber: broker.phoneNumber,
+      commission: broker.commission,
+      tdsPercentage: broker.tdsPercentage,
+      date: broker.date
+    });
   };
 
   const handleEditChange = (field, value) => {
@@ -113,24 +131,24 @@ export default function BrokersManagement() {
     }
 
     try {
-      // Only send required fields
       const brokerData = {
         name: editedData.name,
         phoneNumber: editedData.phoneNumber,
-        address: editedData.address || '',
-        commission: editedData.commission || 0
+        commission: editedData.commission || 0,
+        tdsPercentage: editedData.tdsPercentage || 5,
+        date: editedData.date
       };
 
       const { data } = await apiClient.put(`/brokers/${brokerId}`, brokerData);
-      
+
       setBrokers(prev =>
         prev.map(broker =>
           broker._id === brokerId
-            ? { ...data, plots: broker.plots }
+            ? { ...data, plots: broker.plots, ...calculateBrokerFinancials(data) }
             : broker
         )
       );
-      
+
       setEditingBroker(null);
       setEditedData({});
       toast.success("Broker updated successfully");
@@ -168,7 +186,7 @@ export default function BrokersManagement() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-semibold">Brokers List</h1>
+        <h1 className="text-3xl font-semibold">Advisors</h1>
         <Button
           variant="outline"
           onClick={handleDownloadPDF}
@@ -180,7 +198,7 @@ export default function BrokersManagement() {
       </div>
 
       <SearchInput
-        placeholder="Search brokers by name"
+        placeholder="Search advisors by name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -190,9 +208,12 @@ export default function BrokersManagement() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead>Commission (%)</TableHead>
-            <TableHead>Plots</TableHead>
+            <TableHead>Amount (₹)</TableHead>
+            <TableHead>TDS (%)</TableHead>
+            <TableHead>TDS Amount (₹)</TableHead>
+            <TableHead>Net Amount (₹)</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -226,17 +247,6 @@ export default function BrokersManagement() {
               <TableCell>
                 {editingBroker === broker._id ? (
                   <Input
-                    value={editedData.address}
-                    onChange={(e) => handleEditChange("address", e.target.value)}
-                    className="max-w-[200px]"
-                  />
-                ) : (
-                  broker.address ? broker.address : "-"
-                )}
-              </TableCell>
-              <TableCell>
-                {editingBroker === broker._id ? (
-                  <Input
                     type="number"
                     value={editedData.commission || ''}
                     onChange={(e) =>
@@ -249,16 +259,38 @@ export default function BrokersManagement() {
                 )}
               </TableCell>
               <TableCell>
-                {broker.plots?.length > 0 ? (
-                  <div className="flex flex-col gap-1">
-                    {broker.plots.map((plot, index) => (
-                      <span key={index} className="text-sm">
-                        Plot {plot.plotNumber} ({plot.layoutId === 'layout1' ? 'Krishnam Nagar 1' : 'Krishnam Nagar 2'})
-                      </span>
-                    ))}
-                  </div>
+                ₹{broker.amount || 0}
+              </TableCell>
+              <TableCell>
+                {editingBroker === broker._id ? (
+                  <Input
+                    type="number"
+                    value={editedData.tdsPercentage || ''}
+                    onChange={(e) =>
+                      handleEditChange("tdsPercentage", Number(e.target.value))
+                    }
+                    className="max-w-[80px]"
+                  />
                 ) : (
-                  '-'
+                  `${broker.tdsPercentage || 5}%`
+                )}
+              </TableCell>
+              <TableCell>
+                ₹{broker.tdsAmount || 0}
+              </TableCell>
+              <TableCell>
+                ₹{broker.netAmount || 0}
+              </TableCell>
+              <TableCell>
+                {editingBroker === broker._id ? (
+                  <Input
+                    type="date"
+                    value={editedData.date ? new Date(editedData.date).toISOString().split('T')[0] : ''}
+                    onChange={(e) => handleEditChange("date", e.target.value)}
+                    className="max-w-[200px]"
+                  />
+                ) : (
+                  broker.date ? new Date(broker.date).toLocaleDateString() : "-"
                 )}
               </TableCell>
               <TableCell>

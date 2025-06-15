@@ -21,7 +21,7 @@ function TableHeader({ className, ...props }) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b [&_tr:hover]:bg-[#1F263E] bg-[#1F263E] text-white", className)}
+      className={cn("text-white", className)}
       {...props}
     />
   );
@@ -55,7 +55,7 @@ function TableRow({ className, ...props }) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        "bg-[#EFEFEF] border-b transition-colors",
         className
       )}
       {...props}

@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   nameCell: { width: '20%' },
   phoneCell: { width: '15%' },
-  addressCell: { width: '25%' },
+  dateCell: { width: '25%' },
   commissionCell: { width: '15%' },
   plotsCell: { width: '25%' },
  footer: {
@@ -97,6 +97,29 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
     ).join(', ');
   };
 
+  const calculateBrokerFinancials = (broker) => {
+    const plots = broker.plots || [];
+    const amount = plots.reduce((sum, plot) => {
+      const plotCommission = (plot.totalCost * (broker.commission || 0)) / 100;
+      return sum + plotCommission;
+    }, 0);
+    const tdsPercentage = broker.tdsPercentage || 5;
+    const tdsAmount = (amount * tdsPercentage) / 100;
+    const netAmount = amount - tdsAmount;
+
+    return {
+      amount: Math.round(amount),
+      tdsAmount: Math.round(tdsAmount),
+      netAmount: Math.round(netAmount),
+      tdsPercentage
+    };
+  };
+
+  const brokersWithCalculations = brokers.map(broker => ({
+    ...broker,
+    ...calculateBrokerFinancials(broker)
+  }));
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -113,21 +136,35 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
           <View style={[styles.tableRow, styles.tableHeader]}>
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Phone Number</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.addressCell]}>Address</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.dateCell]}>Date</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Commission (%)</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.plotsCell]}>Plots</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Amount</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>TDS</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Net Amount</Text>
           </View>
           
-          {brokers.map((broker, index) => (
+          {brokersWithCalculations.map((broker, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.nameCell]}>{broker.name}</Text>
               <Text style={[styles.tableCell, styles.phoneCell]}>{broker.phoneNumber}</Text>
-              <Text style={[styles.tableCell, styles.addressCell]}>{broker.address || '-'}</Text>
+              <Text style={[styles.tableCell, styles.dateCell]}>
+                {broker.date ? new Date(broker.date).toLocaleDateString() : '-'}
+              </Text>
               <Text style={[styles.tableCell, styles.commissionCell]}>
                 {broker.commission ? `${broker.commission}%` : '-'}
               </Text>
               <Text style={[styles.tableCell, styles.plotsCell]}>
                 {formatPlotList(broker.plots)}
+              </Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}>
+                ₹{broker.amount || 0}
+              </Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}>
+                {broker.tdsAmount ? `₹${broker.tdsAmount} (${broker.tdsPercentage}%)` : '-'}
+              </Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}>
+                ₹{broker.netAmount || 0}
               </Text>
             </View>
           ))}

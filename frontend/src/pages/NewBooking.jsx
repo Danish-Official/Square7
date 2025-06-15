@@ -44,7 +44,6 @@ export default function NewBooking() {
     paymentType: "Cash",
     brokerName: "",
     brokerPhone: "",
-    brokerAddress: "",
     brokerCommission: "",
     firstPayment: 0,
     totalCost: 0,
@@ -239,8 +238,8 @@ export default function NewBooking() {
       ...prev,
       brokerName: broker.name,
       brokerPhone: broker.phoneNumber || "",
-      brokerAddress: broker.address || "",
-      brokerCommission: broker.commission || ""
+      brokerCommission: broker.commission || "",
+      brokerDate: new Date().toISOString().split('T')[0],
     }));
     setShowSuggestions(false);
   };
@@ -305,7 +304,6 @@ export default function NewBooking() {
         const brokerData = {
           name: formData.brokerName.trim(),
           phoneNumber: formData.brokerPhone || "",
-          address: formData.brokerAddress || "",
           commission: Number(formData.brokerCommission) || 0
         };
         formDataToSend.append('brokerData', JSON.stringify(brokerData));
@@ -669,35 +667,49 @@ export default function NewBooking() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brokerName" className="mb-2 block">Reference</Label>
-              <div className="relative">
-                <Input
-                  id="brokerName"
-                  name="brokerName"
-                  value={formData.brokerName}
-                  onChange={(e) => {
-                    handleChange(e);
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  placeholder="Enter reference"
-                  className="bg-white text-black"
-                  autoComplete="off"
-                />
-                {showSuggestions && formData.brokerName && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                    {getUniqueBrokerSuggestions(brokerSuggestions, formData.brokerName)
-                      .map(broker => (
-                        <div
-                          key={broker._id}
-                          className="px-4 py-2 hover:bg-[#f7f7f7] cursor-pointer text-black"
-                          onClick={() => handleBrokerSelect(broker)}
-                        >
-                          <div className="font-medium">{broker.name}</div>
-                        </div>
-                      ))}
-                  </div>
-                )}
+              <Label htmlFor="brokerName" className="mb-2 block">Advisor</Label>
+              <div className="flex gap-4">
+                <div className="flex-1 relative">
+                  <Input
+                    id="brokerName"
+                    name="brokerName"
+                    value={formData.brokerName}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    placeholder="Enter advisor"
+                    className="bg-white text-black"
+                    autoComplete="off"
+                  />
+                  {showSuggestions && formData.brokerName && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                      {getUniqueBrokerSuggestions(brokerSuggestions, formData.brokerName)
+                        .map(broker => (
+                          <div
+                            key={broker._id}
+                            className="px-4 py-2 hover:bg-[#f7f7f7] cursor-pointer text-black"
+                            onClick={() => handleBrokerSelect(broker)}
+                          >
+                            <div className="font-medium">{broker.name}</div>
+                            {broker.commission && <div className="text-sm text-gray-600">Commission: {broker.commission}%</div>}
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                <div className="w-50">
+                  <Input
+                    id="brokerCommission"
+                    name="brokerCommission"
+                    type="number"
+                    value={formData.brokerCommission}
+                    onChange={handleChange}
+                    placeholder="Commission %"
+                    className="bg-white text-black"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1034,3 +1046,4 @@ const DocumentUploader = ({ label, type, formData, isUploading, handleDocumentUp
     </div>
   );
 };
+
