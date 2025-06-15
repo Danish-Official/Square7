@@ -20,7 +20,7 @@ import InvoiceDetails from "./pages/InvoiceDetails";
 import DeletedContacts from "./pages/DeletedContacts"; // Add this import at the top
 import OthersPage from "./pages/OthersPage";
 
-import './app.css'
+import './App.css'
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { auth, isTokenExpired } = useAuth();
