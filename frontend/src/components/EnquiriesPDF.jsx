@@ -71,10 +71,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
   },
-  nameCell: { width: '20%' },
-  phoneCell: { width: '20%' },
-  dateCell: { width: '20%' },
-  messageCell: { width: '40%' },
+  nameCell: { width: '15%' },
+  phoneCell: { width: '15%' },
+  addressCell: { width: '20%' }, // Add address cell style
+  dateCell: { width: '15%' },
+  messageCell: { width: '35%' },
  footer: {
     position: 'absolute',
     bottom: 20,
@@ -106,6 +107,7 @@ const EnquiriesPDF = ({ enquiries, selectedLayout }) => {
           <View style={[styles.tableRow, styles.tableHeader]}>
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Phone Number</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.addressCell]}>Address</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.dateCell]}>Date</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.messageCell]}>Message</Text>
           </View>
@@ -114,6 +116,7 @@ const EnquiriesPDF = ({ enquiries, selectedLayout }) => {
             <View key={index} style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.nameCell]}>{enquiry.name}</Text>
               <Text style={[styles.tableCell, styles.phoneCell]}>{enquiry.phoneNumber}</Text>
+              <Text style={[styles.tableCell, styles.addressCell]}>{enquiry.address || 'N/A'}</Text>
               <Text style={[styles.tableCell, styles.dateCell]}>{new Date(enquiry.date).toLocaleDateString()}</Text>
               <Text style={[styles.tableCell, styles.messageCell]}>{enquiry.message}</Text>
             </View>

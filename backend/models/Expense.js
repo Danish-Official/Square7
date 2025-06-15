@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const expenseSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: true,
-    trim: true
-  },
   amount: {
     type: Number,
     required: true
@@ -27,6 +22,11 @@ const expenseSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  receivedBy: {
+    type: String,
+    required: true,
+    trim: true
+  },
   date: {
     type: Date,
     required: true,
@@ -35,11 +35,6 @@ const expenseSchema = new mongoose.Schema({
   layoutId: {
     type: String,
     required: true
-  },
-  occupation: {
-    type: String,
-    required: false,
-    trim: true
   }
 }, { timestamps: true });
 

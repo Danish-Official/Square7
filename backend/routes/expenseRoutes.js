@@ -17,18 +17,25 @@ router.get('/layout/:layoutId', authenticate(), async (req, res) => {
 // Add new expense
 router.post('/', authenticate(), async (req, res) => {
   try {
-    const { amount, tds, ...otherFields } = req.body;
-    
+    const { amount, tds, name, receivedBy, date, layoutId } = req.body;
+
+    if (!name || !receivedBy || !amount || !layoutId) {
+      return res.status(400).json({ message: "Name, Received By, Amount, and Layout are required" });
+    }
+
     // Calculate net amount
     const netAmount = amount - (amount * (tds || 0) / 100);
-    
+
     const expense = new Expense({
       amount,
       tds,
       netAmount,
-      ...otherFields
+      name,
+      receivedBy,
+      date,
+      layoutId
     });
-    
+
     await expense.save();
     res.status(201).json(expense);
   } catch (error) {
@@ -40,22 +47,29 @@ router.post('/', authenticate(), async (req, res) => {
 // Update expense
 router.put('/:id', authenticate(), async (req, res) => {
   try {
-    const { amount, tds, ...otherFields } = req.body;
-    
+    const { amount, tds, name, receivedBy, date, layoutId } = req.body;
+
+    if (!name || !receivedBy || !amount || !layoutId) {
+      return res.status(400).json({ message: "Name, Received By, Amount, and Layout are required" });
+    }
+
     // Calculate net amount
     const netAmount = amount - (amount * (tds || 0) / 100);
-    
+
     const expense = await Expense.findByIdAndUpdate(
       req.params.id,
       {
         amount,
         tds,
         netAmount,
-        ...otherFields
+        name,
+        receivedBy,
+        date,
+        layoutId
       },
       { new: true, runValidators: true }
     );
-    
+
     if (!expense) {
       return res.status(404).json({ message: "Expense not found" });
     }

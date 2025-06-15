@@ -38,11 +38,10 @@ export default function Expenses() {
   const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
-    description: "",
     amount: "",
     name: "",
+    receivedBy: "",
     date: new Date().toISOString().split('T')[0],
-    occupation: "", // Add occupation field
     tds: ""
   });
 
@@ -67,9 +66,12 @@ export default function Expenses() {
 
     try {
       const expenseData = {
-        ...formData,
-        layoutId: selectedLayout,
-        amount: Number(formData.amount)
+        amount: Number(formData.amount),
+        name: formData.name,
+        receivedBy: formData.receivedBy,
+        date: formData.date,
+        tds: formData.tds,
+        layoutId: selectedLayout
       };
 
       if (isEditMode && currentExpense) {
@@ -90,11 +92,10 @@ export default function Expenses() {
   const handleEdit = (expense) => {
     setCurrentExpense(expense);
     setFormData({
-      description: expense.description,
       amount: expense.amount,
       name: expense.name,
+      receivedBy: expense.receivedBy,
       date: new Date(expense.date).toISOString().split('T')[0],
-      occupation: expense.occupation || "", // Add occupation field
       tds: expense.tds || ""
     });
     setIsEditMode(true);
@@ -118,11 +119,10 @@ export default function Expenses() {
     setIsEditMode(false);
     setCurrentExpense(null);
     setFormData({
-      description: "",
       amount: "",
       name: "",
+      receivedBy: "",
       date: new Date().toISOString().split('T')[0],
-      occupation: "", // Add occupation field
       tds: ""
     });
   };
@@ -151,9 +151,8 @@ export default function Expenses() {
   };
 
   const filteredExpenses = expenses.filter(expense =>
-    expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (expense.occupation && expense.occupation.toLowerCase().includes(searchTerm.toLowerCase()))
+    (expense.receivedBy && expense.receivedBy.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
@@ -186,15 +185,15 @@ export default function Expenses() {
       </div>
 
       <SearchInput
-        placeholder="Search by name, description or occupation"
+        placeholder="Search by name or received by"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
-          <DialogHeader className="space-y-3 mb-6">
-            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
+        <DialogContent className="max-w-[600px] p-6 bg-[#1F263E] rounded-xl">
+          <DialogHeader className="space-y-3 mb-6 text-white">
+            <DialogTitle className="text-2xl font-semibold">
               {isEditMode ? 'Edit Expense' : 'Add New Expense'}
             </DialogTitle>
           </DialogHeader>
@@ -203,13 +202,6 @@ export default function Expenses() {
               placeholder="Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              placeholder="Description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
@@ -232,32 +224,33 @@ export default function Expenses() {
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
             <Input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              placeholder="Received By"
+              value={formData.receivedBy}
+              onChange={(e) => setFormData({ ...formData, receivedBy: e.target.value })}
               required
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
             <Input
-              placeholder="Occupation (optional)"
-              value={formData.occupation}
-              onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              required
+            className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
             <div className="flex justify-end gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCloseDialog}
-                className="bg-white hover:bg-[#f7f7f7]"
+                className="bg-white hover:bg-[#f7f7f7] text-[#1F263E]"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
+                className="bg-white hover:bg-[#f7f7f7] text-[#1F263E]"
               >
-                {isEditMode ? 'Update' : 'Add'} Expense
+                {isEditMode ? 'Update' : 'Create'}
               </Button>
             </div>
           </form>
@@ -268,12 +261,11 @@ export default function Expenses() {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>TDS</TableHead>
             <TableHead>Net Amount</TableHead>
+            <TableHead>Received By</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Occupation</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -281,12 +273,11 @@ export default function Expenses() {
           {paginatedExpenses.map((expense) => (
             <TableRow key={expense._id}>
               <TableCell>{expense.name}</TableCell>
-              <TableCell>{expense.description}</TableCell>
               <TableCell>{expense.amount}</TableCell>
               <TableCell>{expense.tds}%</TableCell>
               <TableCell>₹{expense.netAmount}</TableCell>
+              <TableCell>{expense.receivedBy}</TableCell>
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-              <TableCell>{expense.occupation || '-'}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Edit2

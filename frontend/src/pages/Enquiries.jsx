@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2, Edit2, Download } from "lucide-react";
+import { Trash2, Edit2, Download, CircleUser } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import { toast } from "react-toastify";
@@ -31,17 +31,19 @@ export default function Enquiries() {
   const [enquiries, setEnquiries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEnquiry, setNewEnquiry] = useState({
+  const [editingEnquiry, setEditingEnquiry] = useState(null);
+  const [formData, setFormData] = useState({
     name: "",
     phoneNumber: "",
     message: "",
-    date: "",
+    date: new Date().toISOString().split('T')[0],
+    address: "", // Add address field
   });
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingEnquiry, setEditingEnquiry] = useState(null);
+  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEnquiries = async () => {
@@ -79,30 +81,39 @@ export default function Enquiries() {
     return error === "";
   };
 
-  const handleCreateEnquiry = async () => {
-    const isValid = Object.keys(newEnquiry).every((key) =>
-      validateField(key, newEnquiry[key])
+  const handleSubmit = async () => {
+    const isValid = Object.keys(formData).every((key) =>
+      validateField(key, formData[key])
     );
     if (!isValid) return;
 
     try {
-      const { data } = await apiClient.post("/enquiries", {
-        ...newEnquiry,
-        layoutId: selectedLayout,
-      });
-      setEnquiries((prev) => [...prev, data]);
-      setIsDialogOpen(false);
-      setNewEnquiry({ name: "", phoneNumber: "", message: "" });
-      setErrors({});
-      toast.success("Enquiry created successfully");
+      if (editingEnquiry) {
+        const { data } = await apiClient.put(`/enquiries/${editingEnquiry._id}`, {
+          ...formData,
+          layoutId: selectedLayout,
+        });
+        setEnquiries(prev => prev.map(item =>
+          item._id === data._id ? data : item
+        ));
+        toast.success("Enquiry updated successfully");
+      } else {
+        const { data } = await apiClient.post("/enquiries", {
+          ...formData,
+          layoutId: selectedLayout,
+        });
+        setEnquiries(prev => [...prev, data]);
+        toast.success("Enquiry created successfully");
+      }
+      handleCloseDialog();
     } catch (error) {
-      toast.error("Failed to create enquiry");
+      toast.error(editingEnquiry ? "Failed to update enquiry" : "Failed to create enquiry");
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewEnquiry((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     validateField(name, value);
   };
 
@@ -118,31 +129,28 @@ export default function Enquiries() {
   };
 
   const handleEdit = (enquiry) => {
+    setFormData({
+      name: enquiry.name,
+      phoneNumber: enquiry.phoneNumber,
+      message: enquiry.message,
+      date: new Date(enquiry.date).toISOString().split('T')[0],
+      address: enquiry.address || "", // Set address for editing
+    });
     setEditingEnquiry(enquiry);
-    setIsEditDialogOpen(true);
+    setIsDialogOpen(true);
   };
 
-  const handleUpdateEnquiry = async () => {
-    const isValid = Object.keys(editingEnquiry).every((key) =>
-      validateField(key, editingEnquiry[key])
-    );
-    if (!isValid) return;
-
-    try {
-      const { data } = await apiClient.put(
-        `/enquiries/${editingEnquiry._id}`,
-        editingEnquiry
-      );
-      setEnquiries((prev) =>
-        prev.map((item) => (item._id === data._id ? data : item))
-      );
-      setIsEditDialogOpen(false);
-      setEditingEnquiry(null);
-      setErrors({});
-      toast.success("Enquiry updated successfully");
-    } catch (error) {
-      toast.error("Failed to update enquiry");
-    }
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingEnquiry(null);
+    setFormData({
+      name: "",
+      phoneNumber: "",
+      message: "",
+      date: new Date().toISOString().split('T')[0],
+      address: "",
+    });
+    setErrors({});
   };
 
   const handleDownloadStatement = async () => {
@@ -181,6 +189,11 @@ export default function Enquiries() {
     setCurrentPage(page);
   };
 
+  const handleNameClick = (enquiry) => {
+    setSelectedEnquiry(enquiry);
+    setDetailsModalOpen(true);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -207,14 +220,14 @@ export default function Enquiries() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
-          <DialogHeader className="space-y-3 mb-6">
-            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
-              Add Enquiry
+      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+        <DialogContent className="max-w-[600px] p-6 bg-[#1F263E] rounded-xl">
+          <DialogHeader className="space-y-3 mb-6 text-white">
+            <DialogTitle className="text-2xl font-semibold">
+              {editingEnquiry ? 'Edit Enquiry' : 'Add Enquiry'}
             </DialogTitle>
-            <p className="text-gray-500 text-sm font-normal">
-              Fill in the details to create a new enquiry
+            <p className="text-sm font-normal">
+              Fill in the details to {editingEnquiry ? 'update' : 'create'} an enquiry
             </p>
           </DialogHeader>
           <div className="space-y-6">
@@ -222,7 +235,7 @@ export default function Enquiries() {
               <Input
                 name="name"
                 placeholder="Name"
-                value={newEnquiry.name}
+                value={formData.name}
                 onChange={handleChange}
                 className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
@@ -234,7 +247,7 @@ export default function Enquiries() {
               <Input
                 name="phoneNumber"
                 placeholder="Phone Number"
-                value={newEnquiry.phoneNumber}
+                value={formData.phoneNumber}
                 onChange={handleChange}
                 className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
@@ -245,19 +258,28 @@ export default function Enquiries() {
               )}
             </div>
             <div>
+              <Input
+                name="address"
+                placeholder="Address"
+                value={formData.address}
+                onChange={handleChange}
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+            </div>
+            <div>
               <textarea
                 name="message"
                 placeholder="Message"
-                value={newEnquiry.message}
+                value={formData.message}
                 onChange={(e) => {
                   if (e.target.value.split(" ").length <= 120) {
                     handleChange(e);
                   }
                 }}
-                className="w-full p-3 bg-[#f7f7f7] border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                rows="4"
+                className="w-full p-2 bg-[#f7f7f7] border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                rows="2"
               />
-              <p className="text-gray-500 text-sm mt-1">
+              <p className=" text-white text-sm mt-1">
                 Max 120 words allowed.
               </p>
               {errors.message && (
@@ -267,8 +289,9 @@ export default function Enquiries() {
             <div>
               <Input
                 type="date"
-                value={newEnquiry.date}
-                onChange={(e) => setNewEnquiry({ ...newEnquiry, date: e.target.value })}
+                value={formData.date}
+                onChange={(e) => handleChange({ target: { name: 'date', value: e.target.value } })
+                }
                 required
                 className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
@@ -279,99 +302,17 @@ export default function Enquiries() {
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 variant="outline"
-                onClick={() => setIsDialogOpen(false)}
+                onClick={handleCloseDialog}
                 className="bg-white hover:bg-[#f7f7f7]"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleCreateEnquiry}
-                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-              >
-                Create
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[600px] p-6 bg-white rounded-xl">
-          <DialogHeader className="space-y-3 mb-6">
-            <DialogTitle className="text-2xl font-semibold text-[#1F263E]">
-              Edit Enquiry
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div>
-              <Input
-                name="name"
-                placeholder="Name"
-                value={editingEnquiry?.name || ""}
-                onChange={(e) =>
-                  setEditingEnquiry((prev) => ({
-                    ...prev,
-                    name: e.target.value,
-                  }))
-                }
-                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
-            </div>
-            <div>
-              <Input
-                name="phoneNumber"
-                placeholder="Phone Number"
-                value={editingEnquiry?.phoneNumber || ""}
-                onChange={(e) =>
-                  setEditingEnquiry((prev) => ({
-                    ...prev,
-                    phoneNumber: e.target.value,
-                  }))
-                }
-                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-              />
-              {errors.phoneNumber && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.phoneNumber}
-                </p>
-              )}
-            </div>
-            <div>
-              <textarea
-                name="message"
-                placeholder="Message"
-                value={editingEnquiry?.message || ""}
-                onChange={(e) => {
-                  if (e.target.value.split(" ").length <= 120) {
-                    setEditingEnquiry((prev) => ({
-                      ...prev,
-                      message: e.target.value,
-                    }));
-                  }
-                }}
-                className="w-full p-3 bg-[#f7f7f7] border border-gray-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                rows="4"
-              />
-              {errors.message && (
-                <p className="text-red-500 text-sm mt-1">{errors.message}</p>
-              )}
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
               <Button
                 variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
+                onClick={handleSubmit}
                 className="bg-white hover:bg-[#f7f7f7]"
               >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateEnquiry}
-                className="bg-[#1F263E] hover:bg-[#2A324D] text-white"
-              >
-                Update
+                {editingEnquiry ? 'Update' : 'Create'}
               </Button>
             </div>
           </div>
@@ -383,6 +324,7 @@ export default function Enquiries() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
+            <TableHead>Address</TableHead>
             <TableHead>Message</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Actions</TableHead>
@@ -391,8 +333,16 @@ export default function Enquiries() {
         <TableBody>
           {paginatedEnquiries.map((enquiry) => (
             <TableRow key={enquiry._id}>
-              <TableCell>{enquiry.name}</TableCell>
+              <TableCell>
+                <button
+                  onClick={() => handleNameClick(enquiry)}
+                  className="text-left hover:underline text-blue-600"
+                >
+                  {enquiry.name}
+                </button>
+              </TableCell>
               <TableCell>{enquiry.phoneNumber}</TableCell>
+              <TableCell>{enquiry.address || 'N/A'}</TableCell>
               <TableCell>
                 <ul>
                   {enquiry.message.match(/.{1,50}/g).map((chunk, index) => (
@@ -419,6 +369,42 @@ export default function Enquiries() {
           ))}
         </TableBody>
       </Table>
+
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        {selectedEnquiry && (
+          <DialogContent className="max-w-[500px] p-6 bg-[#1F263E] text-white rounded-xl">
+            <DialogHeader>
+              <DialogTitle className="text-4xl font-light uppercase mb-6 flex justify-center items-center gap-1"><CircleUser size={80} strokeWidth={1} /> {selectedEnquiry?.name?.split(" ")[0]}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 ms-6">
+              <h2>Personal Details</h2>
+              <div className="flex items-center">
+                <label className="text-sm text-gray-400 w-1/3">Name:</label>
+                <p className="font-medium flex-1">{selectedEnquiry.name}</p>
+              </div>
+              <div className="flex items-center">
+                <label className="text-sm text-gray-400 w-1/3">Phone Number:</label>
+                <p className="font-medium flex-1">{selectedEnquiry.phoneNumber}</p>
+              </div>
+              <div className="flex items-center">
+                <label className="text-sm text-gray-400 w-1/3">Date:</label>
+                <p className="font-medium flex-1">
+                  {new Date(selectedEnquiry.date).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center">
+                <label className="text-sm text-gray-400 w-1/3">Address:</label>
+                <p className="font-medium flex-1">{selectedEnquiry.address || 'Not provided'}</p>
+              </div>
+              <div className="flex">
+                <label className="text-sm text-gray-400 w-1/3">Message:</label>
+                <p className="font-medium flex-1 whitespace-pre-wrap">{selectedEnquiry.message}</p>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}

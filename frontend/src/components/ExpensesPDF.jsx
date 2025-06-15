@@ -74,13 +74,12 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     padding: 4,
   },
-  nameCell: { width: '15%' },
-  descCell: { width: '20%' },
+  nameCell: { width: '18%' },
+  receivedByCell: { width: '18%' },
   amountCell: { width: '12%' },
   tdsCell: { width: '8%' },
   netAmountCell: { width: '17%' },
   dateCell: { width: '15%' },
-  occupationCell: { width: '13%' },
   headerCell: {
     color: '#ffffff',
     fontWeight: 'bold',
@@ -142,23 +141,21 @@ const ExpensesPDF = ({ expenses, selectedLayout }) => {
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.descCell]}>Description</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.receivedByCell]}>Received By</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.amountCell]}>Amount (Rs.)</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.tdsCell]}>TDS</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.netAmountCell]}>Net Amount (Rs.)</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.dateCell]}>Date</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.occupationCell]}>Occupation</Text>
           </View>
           
           {expenses.map((expense, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.nameCell]}>{expense.name}</Text>
-              <Text style={[styles.tableCell, styles.descCell]}>{expense.description}</Text>
+              <Text style={[styles.tableCell, styles.receivedByCell]}>{expense.receivedBy}</Text>
               <Text style={[styles.tableCell, styles.amountCell]}>{expense.amount.toLocaleString('en-IN')}</Text>
               <Text style={[styles.tableCell, styles.tdsCell]}>{expense.tds}%</Text>
               <Text style={[styles.tableCell, styles.netAmountCell]}>{expense.netAmount.toLocaleString('en-IN')}</Text>
               <Text style={[styles.tableCell, styles.dateCell]}>{new Date(expense.date).toLocaleDateString()}</Text>
-              <Text style={[styles.tableCell, styles.occupationCell]}>{expense.occupation || '-'}</Text>
             </View>
           ))}
         </View>
