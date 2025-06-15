@@ -1,25 +1,31 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiClient } from "@/lib/utils";
 import { useLayout } from "./LayoutContext";
+import { useAuth } from "./AuthContext"; // Import useAuth
 
 const BuyersContext = createContext();
 
 export function BuyersProvider({ children }) {
   const [buyers, setBuyers] = useState([]);
-  const { selectedLayout } = useLayout("layout1");
+  const { selectedLayout } = useLayout();
+  const { auth } = useAuth(); // Add this line to get auth context
 
   useEffect(() => {
-    if (selectedLayout) {
+    if (selectedLayout && auth.token) {
       fetchBuyers();
     }
-  }, [selectedLayout]);
+  }, [selectedLayout, auth.token]); // Add auth.token as dependency
 
   async function fetchBuyers() {
     try {
+      if (!auth.token) return; // Add early return if no token
       const { data } = await apiClient.get(`/bookings/layout/${selectedLayout}`);
       setBuyers(data);
     } catch (error) {
-      setBuyers([]); // Set empty array on error
+      if (error.response?.status === 401) {
+        setBuyers([]); // Clear buyers on auth error
+      }
+      console.error("Error fetching buyers:", error);
     }
   }
 
