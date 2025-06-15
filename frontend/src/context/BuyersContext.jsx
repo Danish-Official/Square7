@@ -6,7 +6,7 @@ const BuyersContext = createContext();
 
 export function BuyersProvider({ children }) {
   const [buyers, setBuyers] = useState([]);
-  const { selectedLayout } = useLayout();
+  const { selectedLayout } = useLayout("layout1");
 
   useEffect(() => {
     if (selectedLayout) {
