@@ -265,4 +265,26 @@ router.delete(
   }
 );
 
+// Get invoice by booking ID
+router.get("/booking/:bookingId", authenticate(), async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const invoice = await Invoice.findOne({ booking: bookingId })
+      .populate({
+        path: 'booking',
+        populate: { path: 'plot' }
+      });
+
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found for this booking" });
+    }
+
+    res.status(200).json(invoice);
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 module.exports = router;

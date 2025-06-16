@@ -1,21 +1,40 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { pdf } from '@react-pdf/renderer';
-import { FileText, Download, File, Receipt, CircleUserRound, X } from "lucide-react";
+import { FileText, Download, Receipt, CircleUserRound, X, Edit2, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import BookingDetailsPDF from '@/components/BookingDetailsPDF';
 import { apiClient } from "@/lib/utils";
-import { toast } from "react-toastify";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PaymentsTable from "@/components/PaymentsTable";
+import PaymentModal from "@/components/PaymentModal";
+import BrokerEditModal from "@/components/BrokerEditModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function BookingDetails() {
+  const { auth } = useAuth();
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [bookingDetails, setBookingDetails] = useState(null);
-  const [error, setError] = useState(null);
+  const [invoice, setInvoice] = useState(null);
+  const [broker, setBroker] = useState(null);
+  const [editingBroker, setEditingBroker] = useState(null); // Add this
+  const [editedBrokerData, setEditedBrokerData] = useState({}); // Add this
+  const [subsequentPayment, setSubsequentPayment] = useState(null);
+  const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const [isUploading, setIsUploading] = useState(false); // New state for upload status
@@ -23,24 +42,49 @@ export default function BookingDetails() {
   const [hasValidationErrors, setHasValidationErrors] = useState(false); // Add new state for tracking validation
 
   useEffect(() => {
-    async function fetchBookingDetails() {
+    async function fetchData() {
       try {
         setLoading(true);
-        const { data } = await apiClient.get(`/bookings/${bookingId}`);
-        setBookingDetails(data);
+        const [bookingRes, invoiceRes, brokerRes] = await Promise.all([
+          apiClient.get(`/bookings/${bookingId}`),
+          apiClient.get(`/invoices/booking/${bookingId}`),
+          apiClient.get(`/brokers/booking/${bookingId}`)
+        ]);
+        setBookingDetails(bookingRes.data);
+        setInvoice(invoiceRes.data);
+        setBroker(brokerRes.data)
       } catch (error) {
-        console.error("Error fetching booking details:", error);
+        console.error("Error fetching details:", error);
+        toast.error("Failed to fetch details");
       } finally {
         setLoading(false);
       }
     }
 
     if (bookingId) {
-      fetchBookingDetails();
+      fetchData();
     } else {
       navigate("/new-booking");
     }
   }, [bookingId, navigate]);
+
+  const calculateBrokerFinancials = (broker, totalCost) => {
+    if (!broker || !totalCost) return null;
+
+    const commission = broker.commission || 0;
+    const tdsPercentage = broker.tdsPercentage || 5;
+    const amount = (totalCost * commission) / 100;
+    const tdsAmount = (amount * tdsPercentage) / 100;
+    const netAmount = amount - tdsAmount;
+
+    return {
+      amount: Math.round(amount),
+      tdsAmount: Math.round(tdsAmount),
+      netAmount: Math.round(netAmount),
+      commission,
+      tdsPercentage
+    };
+  };
 
   useEffect(() => {
     if (bookingDetails && !formData) {
@@ -97,8 +141,7 @@ export default function BookingDetails() {
           amount: bookingDetails.firstPayment,
           paymentType: bookingDetails.paymentType,
           narration: bookingDetails.narration
-        }],
-        broker: bookingDetails.broker
+        }]
       };
 
       const blob = await pdf(<BookingDetailsPDF data={pdfData} />).toBlob();
@@ -168,17 +211,6 @@ export default function BookingDetails() {
         }
       });
 
-      // Handle broker data
-      if (formData.broker) {
-        const brokerData = {
-          name: formData.broker.name || "",
-          phoneNumber: formData.broker.phoneNumber || "",
-          commission: Number(formData.broker.commission) || 0,
-          _id: formData.broker._id
-        };
-        formDataToSend.append('brokerData', JSON.stringify(brokerData));
-      }
-
       // Handle deleted documents
       tempDocuments.forEach(doc => {
         if (doc.isDeleted) {
@@ -235,7 +267,7 @@ export default function BookingDetails() {
       broker: bookingDetails.broker || {},
       ratePerSqFt: bookingDetails.plot?.ratePerSqFt || bookingDetails.ratePerSqFt || 0,
     });
-    
+
     // Clear temp documents
     tempDocuments.forEach(doc => {
       if (doc.previewUrl) {
@@ -243,219 +275,367 @@ export default function BookingDetails() {
       }
     });
     setTempDocuments([]);
-    
+
     // Reset validation state
     setHasValidationErrors(false);
-    
+
     setIsEditing(false);
+  };
+
+  const handleAddOrEditPayment = async (paymentData) => {
+    try {
+      if (editingPaymentIndex !== null) {
+        // Editing an existing payment
+        const updatedPayments = [...invoice.payments];
+        updatedPayments[editingPaymentIndex] = paymentData;
+
+        const response = await apiClient.post(
+          `/invoices/${invoice._id}/add-payment`,
+          { ...paymentData, paymentIndex: editingPaymentIndex }
+        );
+
+        setInvoice(response.data);
+        toast.success("Payment updated successfully");
+      } else {
+        // Adding a new payment
+        const response = await apiClient.post(
+          `/invoices/${invoice._id}/add-payment`,
+          paymentData
+        );
+        setInvoice(response.data);
+        toast.success("Payment added successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to save payment");
+    } finally {
+      setIsPaymentDialogOpen(false);
+      setEditingPaymentIndex(null);
+      setSubsequentPayment(null);
+    }
+  };
+
+  const handleEditPayment = (index) => {
+    const payment = invoice?.payments?.[index];
+    if (payment) {
+      const formattedDate = new Date(payment.paymentDate).toISOString().split('T')[0];
+      setSubsequentPayment({
+        amount: payment.amount,
+        paymentDate: formattedDate,
+        paymentType: payment.paymentType,
+        narration: payment.narration || ""
+      });
+      setEditingPaymentIndex(index);
+      setIsPaymentDialogOpen(true);
+    }
+  };
+
+  const handleDeletePayment = async (index) => {
+    if (!confirm("Are you sure you want to delete this payment?")) return;
+
+    try {
+      const response = await apiClient.delete(`/invoices/${invoice._id}/payments/${index}`);
+      setInvoice(response.data);
+      toast.success("Payment deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete payment");
+    }
+  };
+
+  const handleDownloadPaymentReceipt = async (payment) => {
+    try {
+      const response = await fetch(payment.receiptUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `receipt_${payment._id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Receipt Download Error:', error);
+      toast.error("Failed to download receipt");
+    }
+  };
+
+  // Add this helper function
+  const isAdmin = auth.user?.role === "superadmin";
+
+  const handleEdit = (broker) => {
+    setEditingBroker(broker._id);
+    setEditedBrokerData({
+      name: broker.name,
+      phoneNumber: broker.phoneNumber,
+      commission: broker.commission,
+      tdsPercentage: broker.tdsPercentage,
+      date: broker.date
+    });
+  };
+
+  const handleBrokerEditCancel = () => {
+    setEditingBroker(null);
+    setEditedBrokerData({});
+  };
+
+  const handleBrokerEditChange = (field, value) => {
+    setEditedBrokerData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleBrokerSave = async () => {
+    try {
+      const response = await apiClient.put(`/bookings/${bookingId}/broker`, editedBrokerData);
+      setBroker(response.data);
+      setEditingBroker(null);
+      setEditedBrokerData({});
+      toast.success("Broker updated successfully");
+    } catch (error) {
+      console.error('Error updating broker:', error);
+      toast.error(error.response?.data?.message || "Failed to update broker");
+    }
   };
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold">Booking Details</h1>
-        <div className="flex gap-4">
+      {bookingDetails && (
+        <>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-semibold">Booking Details</h1>
+            <div className="flex gap-4">
+              {isEditing ? (
+                <>
+                  <Button onClick={resetForm} variant="outline">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdate}
+                    className="bg-[#1F263E] text-white"
+                    disabled={hasValidationErrors}
+                  >
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={() => setIsEditing(true)} variant="outline">
+                    Edit
+                  </Button>
+                  <Button onClick={handleDownloadDocument} className="bg-[#1F263E] text-white">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Replace the display sections with form fields when editing */}
           {isEditing ? (
-            <>
-              <Button onClick={resetForm} variant="outline">
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleUpdate} 
-                className="bg-[#1F263E] text-white"
-                disabled={hasValidationErrors}
-              >
-                Save Changes
-              </Button>
-            </>
+            <EditForm
+              formData={formData}
+              setFormData={setFormData}
+              tempDocuments={tempDocuments}
+              setTempDocuments={setTempDocuments}
+              setHasValidationErrors={setHasValidationErrors}
+            />
           ) : (
             <>
-              <Button onClick={() => setIsEditing(true)} variant="outline">
-                Edit
-              </Button>
-              <Button onClick={handleDownloadDocument} className="bg-[#1F263E] text-white">
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Replace the display sections with form fields when editing */}
-      {isEditing ? (
-        <EditForm
-          formData={formData}
-          setFormData={setFormData}
-          tempDocuments={tempDocuments}
-          setTempDocuments={setTempDocuments}
-          setHasValidationErrors={setHasValidationErrors}
-        />
-      ) : (
-        <>
-          <div className="flex items-center justify-center mb-4 gap-2">
-            <CircleUserRound size={60} color="#1F263E" />
-            <h2 className="text-4xl font-100 text-center text-[#1F263E]">
-              {bookingDetails.buyerName.split(' ')[0] + (bookingDetails.buyerName.split(' ').length > 1 ? ' ' + bookingDetails.buyerName.split(' ').reverse()[0] : '')}
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-y-4 gap-x-0.5">
-            {/* Personal Details Section */}
-            <div className="bg-white rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
-                Personal Details
-              </h2>
-              <div className="space-y-4 w-[70%] mx-auto p-2">
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Full Name</span>
-                  <p className="break-words flex-1 text-sm">{bookingDetails.buyerName}</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Email</span>
-                  <p className="break-words flex-1 text-sm">{bookingDetails.email || 'Not provided'}</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Phone Number</span>
-                  <p className="break-words flex-1 text-sm">{bookingDetails.phoneNumber}</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Gender</span>
-                  <p className="flex-1 text-sm">{bookingDetails.gender}</p>
-                </div>
-                <div className="flex items-start">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Address</span>
-                  <p className="break-words flex-1 text-sm">{bookingDetails.address}</p>
-                </div>
+              <div className="flex items-center justify-center mb-4 gap-2">
+                <CircleUserRound size={60} color="#1F263E" />
+                <h2 className="text-4xl font-100 text-center text-[#1F263E]">
+                  {bookingDetails.buyerName.split(' ')[0] + (bookingDetails.buyerName.split(' ').length > 1 ? ' ' + bookingDetails.buyerName.split(' ').reverse()[0] : '')}
+                </h2>
               </div>
-            </div>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-0.5">
+                {/* Personal Details Section */}
+                <div className="bg-white rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
+                    Personal Details
+                  </h2>
+                  <div className="space-y-4 w-[70%] mx-auto p-2">
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Full Name</span>
+                      <p className="break-words flex-1 text-sm">{bookingDetails.buyerName}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Email</span>
+                      <p className="break-words flex-1 text-sm">{bookingDetails.email || 'Not provided'}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Phone Number</span>
+                      <p className="break-words flex-1 text-sm">{bookingDetails.phoneNumber}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Gender</span>
+                      <p className="flex-1 text-sm">{bookingDetails.gender}</p>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Address</span>
+                      <p className="break-words flex-1 text-sm">{bookingDetails.address}</p>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Plot Details Section */}
-            <div className="bg-white rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
-                Plot Details
-              </h2>
-              <div className="space-y-4 w-[40%] mx-auto p-2">
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Plot Number</span>
-                  <p className="flex-1 text-sm">{bookingDetails.plot?.plotNumber}</p>
+                {/* Plot Details Section */}
+                <div className="bg-white rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
+                    Plot Details
+                  </h2>
+                  <div className="space-y-4 w-[40%] mx-auto p-2">
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Plot Number</span>
+                      <p className="flex-1 text-sm">{bookingDetails.plot?.plotNumber}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Area (sq ft)</span>
+                      <p className="flex-1 text-sm">{bookingDetails.plot?.areaSqFt}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Area (sq mt)</span>
+                      <p className="flex-1 text-sm">{bookingDetails.plot?.areaSqMt}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Total Cost</span>
+                      <p className="capitalize flex-1 text-sm">₹{bookingDetails.totalCost}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Rate per sq ft</span>
+                      <p className="flex-1 text-sm">₹{bookingDetails.ratePerSqFt}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Area (sq ft)</span>
-                  <p className="flex-1 text-sm">{bookingDetails.plot?.areaSqFt}</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Area (sq mt)</span>
-                  <p className="flex-1 text-sm">{bookingDetails.plot?.areaSqMt}</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Total Cost</span>
-                  <p className="capitalize flex-1 text-sm">₹{bookingDetails.totalCost}</p>
-                </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Rate per sq ft</span>
-                  <p className="flex-1 text-sm">₹{bookingDetails.ratePerSqFt}</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Payment Details Section */}
-            <div className="bg-white rounded-lg shadow-md col-span-2">
-              <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
-                Payment Details
-              </h2>
-              <div className="space-y-4 w-[60%] mx-auto p-2">
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Booking Payment</span>
-                  <p className="flex-1 text-sm">₹{bookingDetails.firstPayment}</p>
+                {/* Payment Details Section */}
+                <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-[#1F263E]">Payment History</h3>
+                    <Button
+                      onClick={() => setIsPaymentDialogOpen(true)}
+                      className="bg-[#1F263E] text-white"
+                    >
+                      Add Payment
+                    </Button>
+                  </div>
+
+                  <PaymentsTable
+                    payments={invoice?.payments || []}
+                    onEditPayment={handleEditPayment}
+                    onDeletePayment={handleDeletePayment}
+                    onDownloadReceipt={handleDownloadPaymentReceipt}
+                  />
                 </div>
-                <div className="flex items-center">
-                  <span className="min-w-[120px] font-medium text-gray-500 text-sm">Payment Type</span>
-                  <p className="flex-1 text-sm">{bookingDetails.paymentType}</p>
-                </div>
-                {bookingDetails.narration && (
-                  <div className="flex items-center">
-                    <span className="min-w-[120px] font-medium text-gray-500 text-sm">Narration</span>
-                    <p className="flex-1 text-sm">{bookingDetails.narration}</p>
+
+                {broker && (
+                  <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Phone Number</TableHead>
+                          <TableHead>Commission (%)</TableHead>
+                          <TableHead>Amount (₹)</TableHead>
+                          <TableHead>TDS (%)</TableHead>
+                          <TableHead>TDS Amount (₹)</TableHead>
+                          <TableHead>Net Amount (₹)</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(() => {
+                          const financials = calculateBrokerFinancials(broker, bookingDetails.totalCost);
+                          return (
+                            <TableRow>
+                              <TableCell>{broker.name}</TableCell>
+                              <TableCell>{broker.phoneNumber}</TableCell>
+                              <TableCell>{broker.commission}%</TableCell>
+                              <TableCell>₹{financials?.amount || 0}</TableCell>
+                              <TableCell>{financials?.tdsPercentage}%</TableCell>
+                              <TableCell>₹{financials?.tdsAmount || 0}</TableCell>
+                              <TableCell>₹{financials?.netAmount || 0}</TableCell>
+                              <TableCell>
+                                {broker.date ? new Date(broker.date).toLocaleDateString() : "-"}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Edit2
+                                    size={20}
+                                    className="cursor-pointer mt-0.5"
+                                    onClick={() => handleEdit(broker)}
+                                  />
+                                  {isAdmin && (
+                                    <Trash2
+                                      color="#f00505"
+                                      className="cursor-pointer"
+                                      onClick={() => handleDelete(broker._id)}
+                                    />
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })()}
+                      </TableBody>
+                    </Table>
+
+                    <BrokerEditModal
+                      isOpen={editingBroker !== null}
+                      onClose={handleBrokerEditCancel}
+                      editedData={editedBrokerData}
+                      handleEditChange={handleBrokerEditChange}
+                      handleSave={handleBrokerSave}
+                      errors={{}}
+                      isAdmin={isAdmin}
+                    />
+                  </div>
+                )}
+
+                {/* Documents Section */}
+                {bookingDetails.documents?.length > 0 && (
+                  <div className="bg-white rounded-lg shadow-md col-span-2">
+                    <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
+                      Uploaded Documents
+                    </h2>
+                    <div className="space-y-4 p-4">
+                      {bookingDetails.documents.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-[#f7f7f7]">
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-6 h-6 text-[#1F263E]" />
+                            <div>
+                              <p className="font-medium capitalize text-sm">
+                                {doc.type === 'aadharCardFront' ? 'Aadhar Card Front Side' :
+                                  doc.type === 'aadharCardBack' ? 'Aadhar Card Back Side' : 'PAN Card'}
+                              </p>
+                              <p className="text-xs text-gray-500">{doc.originalName}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[#1F263E]"
+                            onClick={() => handleDocumentDownload(doc)}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Broker Details Section */}
-            {bookingDetails.broker && (
-              <div className="bg-white rounded-lg shadow-md col-span-2">
-                <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
-                  Broker Details
-                </h2>
-                <div className="space-y-4 w-[50%] mx-auto p-2">
-                  {bookingDetails.broker.name && (
-                    <div className="flex items-center">
-                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Broker Name</span>
-                      <p className="flex-1 text-sm">{bookingDetails.broker.name}</p>
-                    </div>
-                  )}
-                  {bookingDetails.broker.phoneNumber && (
-                    <div className="flex items-center">
-                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Phone Number</span>
-                      <p className="flex-1 text-sm">{bookingDetails.broker.phoneNumber}</p>
-                    </div>
-                  )}
-                  {bookingDetails.broker.commission > 0 && (
-                    <div className="flex items-center">
-                      <span className="min-w-[120px] font-medium text-gray-500 text-sm">Commission</span>
-                      <p className="flex-1 text-sm">{bookingDetails.broker.commission}%</p>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Label className="min-w-[120px] text-sm">Date</Label>
-                    <Input
-                      name="brokerDate"
-                      type="date"
-                      value={formData?.broker?.date ? new Date(formData?.broker?.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        broker: { ...prev.broker, date: e.target.value }
-                      }))}
-                      className="flex-1 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Documents Section */}
-            {bookingDetails.documents?.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md col-span-2">
-                <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
-                  Uploaded Documents
-                </h2>
-                <div className="space-y-4 p-4">
-                  {bookingDetails.documents.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-[#f7f7f7]">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-[#1F263E]" />
-                        <div>
-                          <p className="font-medium capitalize text-sm">
-                            {doc.type === 'aadharCardFront' ? 'Aadhar Card Front Side' : 
-                             doc.type === 'aadharCardBack' ? 'Aadhar Card Back Side' : 'PAN Card'}
-                          </p>
-                          <p className="text-xs text-gray-500">{doc.originalName}</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[#1F263E]"
-                        onClick={() => handleDocumentDownload(doc)}
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+              <PaymentModal
+                isOpen={isPaymentDialogOpen}
+                onClose={() => {
+                  setIsPaymentDialogOpen(false);
+                  resetForm();
+                }}
+                payment={subsequentPayment}
+                onSave={handleAddOrEditPayment}
+                isEditing={editingPaymentIndex !== null}
+              />
+            </>
+          )}
         </>
       )}
     </div>
@@ -474,9 +654,9 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
   // Add validation check effect
   useEffect(() => {
     const requiredFields = ['buyerName', 'phoneNumber', 'address', 'ratePerSqFt', 'totalCost', 'firstPayment'];
-    const hasErrors = Object.keys(errors).some(key => errors[key]) || 
-                     requiredFields.some(field => !formData[field]);
-    
+    const hasErrors = Object.keys(errors).some(key => errors[key]) ||
+      requiredFields.some(field => !formData[field]);
+
     setHasValidationErrors(hasErrors);
   }, [errors, formData, setHasValidationErrors]);
 
@@ -489,13 +669,13 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
         return '';
 
       case 'email':
-        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) 
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
           return 'Invalid email format';
         return '';
 
       case 'phoneNumber':
         if (!value) return 'Phone number is required';
-        if (!/^[0-9]{10}$/.test(value)) 
+        if (!/^[0-9]{10}$/.test(value))
           return 'Phone number must be 10 digits';
         return '';
 
@@ -512,23 +692,13 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
       case 'firstPayment':
         if (!value) return 'Booking payment is required';
         if (value <= 0) return 'Booking payment must be greater than 0';
-        if (value > formData.totalCost) 
+        if (value > formData.totalCost)
           return 'Booking payment cannot exceed total cost';
         return '';
 
       case 'ratePerSqFt':
         if (!value) return 'Rate per sq ft is required';
         if (value <= 0) return 'Rate must be greater than 0';
-        return '';
-
-      case 'broker.phoneNumber':
-        if (value && !/^[0-9]{10}$/.test(value)) 
-          return 'Phone number must be 10 digits';
-        return '';
-
-      case 'broker.commission':
-        if (value && (value < 0 || value > 100)) 
-          return 'Commission must be between 0 and 100';
         return '';
 
       default:
@@ -547,7 +717,7 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
       if (name === "ratePerSqFt" && formData.plot?.areaSqFt) {
         const newTotalCost = Math.ceil(formData.plot.areaSqFt * Number(value));
         setFormData(prev => ({ ...prev, totalCost: newTotalCost }));
-        
+
         // Validate totalCost
         const totalCostError = validateInput('totalCost', newTotalCost);
         setErrors(prev => ({ ...prev, totalCost: totalCostError }));
@@ -560,17 +730,6 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
     setErrors(prev => ({ ...prev, [name]: error }));
 
     setFormData(prev => ({ ...prev, [name]: newValue }));
-  };
-
-  const handleBrokerChange = (e) => {
-    const { name, value } = e.target;
-    const error = validateInput(`broker.${name}`, value);
-    setErrors(prev => ({ ...prev, [`broker.${name}`]: error }));
-
-    setFormData(prev => ({
-      ...prev,
-      broker: { ...prev.broker, [name]: value }
-    }));
   };
 
   const clearFileInput = (type) => {
@@ -736,105 +895,6 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Payment Details</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <Label className="min-w-[120px] text-sm">Payment Type</Label>
-            <Select
-              value={formData.paymentType}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, paymentType: value }))}
-              className="flex-1 text-sm"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select payment type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Cash">Cash</SelectItem>
-                <SelectItem value="Cheque">Cheque</SelectItem>
-                <SelectItem value="Online">Online</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="min-w-[120px] text-sm">Booking Payment</Label>
-            <Input
-              name="firstPayment"
-              type="number"
-              value={formData.firstPayment}
-              onChange={handleChange}
-              className="flex-1"
-            />
-          </div>
-          <div className="flex items-center gap-2 col-span-2">
-            <Label className="min-w-[120px] text-sm">Narration</Label>
-            <Input
-              name="narration"
-              value={formData.narration}
-              onChange={handleChange}
-              placeholder={formData.paymentType !== "Cash" ? "Enter payment details (e.g., Cheque number, Transaction ID)" : "Optional"}
-              className="flex-1"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Broker Details</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <Label className="min-w-[120px] text-sm">Broker Name</Label>
-            <Input
-              name="brokerName"
-              value={formData.broker?.name || ""}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                broker: { ...prev.broker, name: e.target.value }
-              }))}
-              className="flex-1 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="min-w-[120px] text-sm">Phone Number</Label>
-            <Input
-              name="brokerPhone"
-              value={formData.broker?.phoneNumber || ""}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                broker: { ...prev.broker, phoneNumber: e.target.value }
-              }))}
-              className="flex-1 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="min-w-[120px] text-sm">Commission (%)</Label>
-            <Input
-              name="brokerCommission"
-              type="number"
-              value={formData.broker?.commission || ""}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                broker: { ...prev.broker, commission: e.target.value }
-              }))}
-              className="flex-1 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="min-w-[120px] text-sm">Date</Label>
-            <Input
-              name="brokerDate"
-              type="date"
-              value={formData.broker?.date ? new Date(formData.broker.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                broker: { ...prev.broker, date: e.target.value }
-              }))}
-              className="flex-1 text-sm"
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Documents section - Updated version */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-md">Documents</h2>
@@ -933,8 +993,8 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
                 <div key={index} className="flex items-center justify-between p-2 bg-[#f7f7f7] rounded">
                   <span className="capitalize text-sm">
                     {doc.type === 'aadharCardFront' ? 'Aadhar Front' :
-                     doc.type === 'aadharCardBack' ? 'Aadhar Back' :
-                     'PAN Card'}
+                      doc.type === 'aadharCardBack' ? 'Aadhar Back' :
+                        'PAN Card'}
                   </span>
                   <div className="flex gap-2">
                     <Button

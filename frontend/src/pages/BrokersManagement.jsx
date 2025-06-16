@@ -1,23 +1,15 @@
 import { useEffect, useState } from "react";
-import { Edit2, Trash2, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "react-toastify";
-import { useAuth } from "@/context/AuthContext";
+import {apiClient} from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { apiClient } from "@/lib/utils";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
 import { generateBrokersPDF } from "@/utils/pdfUtils";
 import { useLayout } from "@/context/LayoutContext";
+import BrokersTable from "@/components/BrokersTable";
+import { useAuth } from "@/context/AuthContext";
 
 export default function BrokersManagement() {
   const [brokers, setBrokers] = useState([]);
@@ -114,6 +106,7 @@ export default function BrokersManagement() {
       tdsPercentage: broker.tdsPercentage,
       date: broker.date
     });
+    setErrors({});
   };
 
   const handleEditChange = (field, value) => {
@@ -131,26 +124,31 @@ export default function BrokersManagement() {
     }
 
     try {
+      // Find existing broker data
+      const existingBroker = brokers.find(b => b._id === brokerId);
+
+      // Merge existing data with edited data
       const brokerData = {
+        ...existingBroker,
         name: editedData.name,
         phoneNumber: editedData.phoneNumber,
-        commission: editedData.commission || 0,
-        tdsPercentage: editedData.tdsPercentage || 5,
-        date: editedData.date
+        commission: editedData.commission ?? existingBroker.commission,
+        tdsPercentage: editedData.tdsPercentage ?? existingBroker.tdsPercentage,
+        date: editedData.date ?? existingBroker.date
       };
 
       const { data } = await apiClient.put(`/brokers/${brokerId}`, brokerData);
 
+      // Update local state immediately
       setBrokers(prev =>
         prev.map(broker =>
           broker._id === brokerId
-            ? { ...data, plots: broker.plots, ...calculateBrokerFinancials(data) }
+            ? { ...broker, ...data, plots: broker.plots }
             : broker
         )
       );
 
-      setEditingBroker(null);
-      setEditedData({});
+      handleCancelEdit();
       toast.success("Broker updated successfully");
     } catch (error) {
       console.error("Error updating broker:", error);
@@ -203,139 +201,18 @@ export default function BrokersManagement() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Phone Number</TableHead>
-            <TableHead>Commission (%)</TableHead>
-            <TableHead>Amount (₹)</TableHead>
-            <TableHead>TDS (%)</TableHead>
-            <TableHead>TDS Amount (₹)</TableHead>
-            <TableHead>Net Amount (₹)</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedBrokers.map((broker) => (
-            <TableRow key={broker._id}>
-              <TableCell>
-                {editingBroker === broker._id ? (
-                  <Input
-                    value={editedData.name}
-                    onChange={(e) => handleEditChange("name", e.target.value)}
-                    className="max-w-[200px]"
-                  />
-                ) : (
-                  broker.name
-                )}
-              </TableCell>
-              <TableCell>
-                {editingBroker === broker._id ? (
-                  <Input
-                    value={editedData.phoneNumber}
-                    onChange={(e) =>
-                      handleEditChange("phoneNumber", e.target.value)
-                    }
-                    className="max-w-[150px]"
-                  />
-                ) : (
-                  broker.phoneNumber
-                )}
-              </TableCell>
-              <TableCell>
-                {editingBroker === broker._id ? (
-                  <Input
-                    type="number"
-                    value={editedData.commission || ''}
-                    onChange={(e) =>
-                      handleEditChange("commission", Number(e.target.value))
-                    }
-                    className="max-w-[100px]"
-                  />
-                ) : (
-                  broker.commission ? `${broker.commission}%` : '-'
-                )}
-              </TableCell>
-              <TableCell>
-                ₹{broker.amount || 0}
-              </TableCell>
-              <TableCell>
-                {editingBroker === broker._id ? (
-                  <Input
-                    type="number"
-                    value={editedData.tdsPercentage || ''}
-                    onChange={(e) =>
-                      handleEditChange("tdsPercentage", Number(e.target.value))
-                    }
-                    className="max-w-[80px]"
-                  />
-                ) : (
-                  `${broker.tdsPercentage || 5}%`
-                )}
-              </TableCell>
-              <TableCell>
-                ₹{broker.tdsAmount || 0}
-              </TableCell>
-              <TableCell>
-                ₹{broker.netAmount || 0}
-              </TableCell>
-              <TableCell>
-                {editingBroker === broker._id ? (
-                  <Input
-                    type="date"
-                    value={editedData.date ? new Date(editedData.date).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleEditChange("date", e.target.value)}
-                    className="max-w-[200px]"
-                  />
-                ) : (
-                  broker.date ? new Date(broker.date).toLocaleDateString() : "-"
-                )}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  {editingBroker === broker._id ? (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleSave(broker._id)}
-                        className="h-8 px-2 lg:px-3"
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCancelEdit}
-                        className="h-8 px-2 lg:px-3"
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Edit2
-                        size={20}
-                        className="cursor-pointer mt-0.5"
-                        onClick={() => handleEdit(broker)}
-                      />
-                      {auth.user?.role === "superadmin" && (
-                        <Trash2
-                          color="#f00505"
-                          className="cursor-pointer"
-                          onClick={() => handleDelete(broker._id)}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <BrokersTable
+        brokers={paginatedBrokers}
+        editingBroker={editingBroker}
+        editedData={editedData}
+        handleEditChange={handleEditChange}
+        handleSave={handleSave}
+        handleCancelEdit={handleCancelEdit}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        isAdmin={auth.user?.role === "superadmin"}
+      />
+
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}

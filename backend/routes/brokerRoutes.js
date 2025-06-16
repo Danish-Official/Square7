@@ -120,4 +120,22 @@ router.delete('/:id', authenticate(), async (req, res) => {
   }
 });
 
+// Get broker details by booking ID
+router.get('/booking/:bookingId', authenticate(), async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.bookingId)
+      .populate('broker')
+      .lean();
+
+    if (!booking || !booking.broker) {
+      return res.status(404).json({ message: 'Broker not found for this booking' });
+    }
+
+    res.status(200).json(booking.broker);
+  } catch (error) {
+    console.error('Error in /brokers/booking route:', error);
+    res.status(500).json({ message: 'Failed to fetch broker details' });
+  }
+});
+
 module.exports = router;

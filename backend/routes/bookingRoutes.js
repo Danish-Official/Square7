@@ -375,6 +375,78 @@ router.put("/:id", authenticate(), (req, res, next) => {
   });
 });
 
+// Update broker for a booking
+router.put("/:id/broker", authenticate(), async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const {
+      name,
+      phoneNumber,
+      commission,
+      tdsPercentage,
+      date
+    } = req.body;
+
+    // Validate broker data
+    if (!name || typeof name !== 'string' || !/^[A-Za-z\s]+$/.test(name)) {
+      return res.status(400).json({ message: "Invalid broker name" });
+    }
+
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: "Phone number must be 10 digits" });
+    }
+
+    const parsedCommission = parseFloat(commission);
+    if (isNaN(parsedCommission) || parsedCommission < 0 || parsedCommission > 100) {
+      return res.status(400).json({ message: "Commission must be between 0 and 100" });
+    }
+
+    const parsedTDS = parseFloat(tdsPercentage);
+    if (isNaN(parsedTDS) || parsedTDS < 0 || parsedTDS > 100) {
+      return res.status(400).json({ message: "TDS percentage must be between 0 and 100" });
+    }
+
+    // Update or create broker
+    let broker;
+    if (booking.broker) {
+      broker = await Broker.findByIdAndUpdate(
+        booking.broker,
+        {
+          name,
+          phoneNumber,
+          commission: parsedCommission,
+          tdsPercentage: parsedTDS,
+          date: date || new Date()
+        },
+        { new: true, runValidators: true }
+      );
+    } else {
+      broker = new Broker({
+        name,
+        phoneNumber,
+        commission: parsedCommission,
+        tdsPercentage: parsedTDS,
+        date: date || new Date()
+      });
+      await broker.save();
+      booking.broker = broker._id;
+      await booking.save();
+    }
+
+    res.status(200).json(broker);
+  } catch (error) {
+    console.error("Error updating broker:", error);
+    res.status(500).json({ 
+      message: "Failed to update broker",
+      error: error.message 
+    });
+  }
+});
+
 // Delete Booking
 router.delete("/:id", authenticate('superadmin'), async (req, res) => {
   try {
@@ -422,6 +494,47 @@ router.get("/documents/:filename", authenticate(), (req, res) => {
   // Set content disposition to force download
   res.setHeader('Content-Disposition', 'attachment');
   res.sendFile(filePath);
+});
+
+// Get broker details by booking ID
+router.get("/:id/broker", authenticate(), async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate({
+        path: 'broker',
+        select: 'name phoneNumber commission tdsPercentage date'
+      })
+      .lean();
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (!booking.broker) {
+      return res.status(404).json({ message: "No broker associated with this booking" });
+    }
+
+    // Calculate broker's commission for this booking
+    const commission = booking.broker.commission || 0;
+    const tdsPercentage = booking.broker.tdsPercentage || 5;
+    const totalCost = booking.totalCost || 0;
+    const amount = (totalCost * commission) / 100;
+    const tdsAmount = (amount * tdsPercentage) / 100;
+    const netAmount = amount - tdsAmount;
+
+    const brokerDetails = {
+      ...booking.broker,
+      bookingAmount: totalCost,
+      commissionAmount: Math.round(amount),
+      tdsAmount: Math.round(tdsAmount),
+      netAmount: Math.round(netAmount)
+    };
+
+    res.status(200).json(brokerDetails);
+  } catch (error) {
+    console.error("Error fetching broker details:", error.message);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
 });
 
 module.exports = router;
