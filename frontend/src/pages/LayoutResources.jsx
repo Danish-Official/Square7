@@ -13,6 +13,15 @@ export default function LayoutResources() {
   const { selectedLayout } = useLayout();
   const { auth } = useAuth(); // Add this line
 
+  // Add this near the start of the component
+  if (auth.user?.role !== "superadmin") {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <p className="text-red-500">You don't have permission to access this page</p>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (selectedLayout) {
       fetchResources();

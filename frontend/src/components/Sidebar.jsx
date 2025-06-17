@@ -83,7 +83,7 @@ const Sidebar = () => {
           <NavItem
             to="/brokers"
             icon={<Handshake size={20} />}
-            label="Brokers"
+            label="Advisors"
           />
           {auth.user?.role === "superadmin" &&
             <>

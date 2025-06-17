@@ -4,7 +4,7 @@ const Expense = require('../models/Expense');
 const authenticate = require('../middleware/authenticate');
 
 // Get all expenses for a layout
-router.get('/layout/:layoutId', authenticate(), async (req, res) => {
+router.get('/layout/:layoutId', authenticate('superadmin'), async (req, res) => {
   try {
     const { layoutId } = req.params;
     const expenses = await Expense.find({ layoutId }).sort({ createdAt: -1 });
@@ -15,7 +15,7 @@ router.get('/layout/:layoutId', authenticate(), async (req, res) => {
 });
 
 // Add new expense
-router.post('/', authenticate(), async (req, res) => {
+router.post('/', authenticate('superadmin'), async (req, res) => {
   try {
     const { amount, tds, name, receivedBy, date, layoutId } = req.body;
 
@@ -45,7 +45,7 @@ router.post('/', authenticate(), async (req, res) => {
 });
 
 // Update expense
-router.put('/:id', authenticate(), async (req, res) => {
+router.put('/:id', authenticate('superadmin'), async (req, res) => {
   try {
     const { amount, tds, name, receivedBy, date, layoutId } = req.body;
 
@@ -81,7 +81,7 @@ router.put('/:id', authenticate(), async (req, res) => {
 });
 
 // Delete expense
-router.delete('/:id', authenticate(), async (req, res) => {
+router.delete('/:id', authenticate('superadmin'), async (req, res) => {
   try {
     const expense = await Expense.findByIdAndDelete(req.params.id);
     if (!expense) {

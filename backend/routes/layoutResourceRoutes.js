@@ -34,7 +34,7 @@ const upload = multer({
 });
 
 // Upload file
-router.post('/upload', authenticate(), upload.single('file'), async (req, res) => {
+router.post('/upload', authenticate('superadmin'), upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -60,7 +60,7 @@ router.post('/upload', authenticate(), upload.single('file'), async (req, res) =
 });
 
 // Get files by layout
-router.get('/layout/:layoutId', authenticate(), async (req, res) => {
+router.get('/layout/:layoutId', authenticate('superadmin'), async (req, res) => {
     try {
         const resources = await LayoutResource.find({ layoutId: req.params.layoutId })
             .sort({ uploadDate: -1 });
@@ -71,7 +71,7 @@ router.get('/layout/:layoutId', authenticate(), async (req, res) => {
 });
 
 // Delete file
-router.delete('/:id', authenticate(), async (req, res) => {
+router.delete('/:id', authenticate('superadmin'), async (req, res) => {
     try {
         const resource = await LayoutResource.findById(req.params.id);
         if (!resource) {

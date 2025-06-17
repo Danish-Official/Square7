@@ -18,7 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function BuyersManagement() {
-  const { buyers, deleteBuyer } = useBuyers();
+  const { buyers, deleteBuyer, fetchBuyers } = useBuyers();
   const { auth } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,6 +60,10 @@ export default function BuyersManagement() {
     setCurrentPage(page);
   };
 
+  useEffect(() => {
+    fetchBuyers();
+  }, []);
+  
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-semibold">Contact List</h1>
