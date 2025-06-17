@@ -322,6 +322,7 @@ export default function Enquiries() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Sr. No.</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Address</TableHead>
@@ -331,8 +332,9 @@ export default function Enquiries() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedEnquiries.map((enquiry) => (
+          {paginatedEnquiries.map((enquiry, index) => (
             <TableRow key={enquiry._id}>
+              <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
               <TableCell>
                 <button
                   onClick={() => handleNameClick(enquiry)}

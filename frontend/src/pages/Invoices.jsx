@@ -102,6 +102,7 @@ export default function Invoices() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Sr. No.</TableHead>
                     <TableHead>Buyer Name</TableHead>
                     <TableHead>Phone Number</TableHead>
                     <TableHead>Address</TableHead>
@@ -109,8 +110,9 @@ export default function Invoices() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedInvoices?.map((invoice) => (
+                  {paginatedInvoices?.map((invoice, index) => (
                     <TableRow key={invoice?._id}>
+                      <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
                       <TableCell>{invoice?.booking?.buyerName}</TableCell>
                       <TableCell>{invoice?.booking?.phoneNumber}</TableCell>
                       <TableCell className="max-w-[350px] whitespace-normal break-words">

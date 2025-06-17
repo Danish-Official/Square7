@@ -61,6 +61,7 @@ export default function DeletedContacts() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Sr. No.</TableHead>
             <TableHead>Buyer Name</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Plot Number</TableHead>
@@ -68,8 +69,9 @@ export default function DeletedContacts() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedContacts.map((contact) => (
+          {paginatedContacts.map((contact, index) => (
             <TableRow key={contact._id}>
+              <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
               <TableCell>{contact.buyerName}</TableCell>
               <TableCell>{contact.phoneNumber}</TableCell>
               <TableCell>{contact.plot.plotNumber}</TableCell>

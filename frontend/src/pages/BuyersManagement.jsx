@@ -74,6 +74,7 @@ export default function BuyersManagement() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Sr. No.</TableHead>
             <TableHead>Buyer Name</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Plot Number</TableHead>
@@ -82,8 +83,9 @@ export default function BuyersManagement() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedBuyers.map((buyer) => (
+          {paginatedBuyers.map((buyer, index) => (
             <TableRow key={buyer._id}>
+              <TableCell>{index + 1}.</TableCell>
               <TableCell
                 className="cursor-pointer text-blue-500"
                 onClick={() => handleViewDetails(buyer._id)}

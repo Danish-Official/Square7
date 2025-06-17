@@ -67,15 +67,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#2d3748',
   },
-  headerCell: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  nameCell: { width: '15%' },
+  srNoCell: { width: '5%' }, // Add serial number column
+  nameCell: { width: '15%' }, // Adjusted width
   phoneCell: { width: '15%' },
-  addressCell: { width: '20%' }, // Add address cell style
+  addressCell: { width: '20%' },
   dateCell: { width: '15%' },
-  messageCell: { width: '35%' },
+  messageCell: { width: '30%' }, // Adjusted width
  footer: {
     position: 'absolute',
     bottom: 20,
@@ -105,6 +102,7 @@ const EnquiriesPDF = ({ enquiries, selectedLayout }) => {
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Phone Number</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.addressCell]}>Address</Text>
@@ -114,6 +112,7 @@ const EnquiriesPDF = ({ enquiries, selectedLayout }) => {
           
           {enquiries.map((enquiry, index) => (
             <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text>
               <Text style={[styles.tableCell, styles.nameCell]}>{enquiry.name}</Text>
               <Text style={[styles.tableCell, styles.phoneCell]}>{enquiry.phoneNumber}</Text>
               <Text style={[styles.tableCell, styles.addressCell]}>{enquiry.address || 'N/A'}</Text>

@@ -260,6 +260,7 @@ export default function Expenses() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Sr. No.</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>TDS</TableHead>
@@ -270,8 +271,9 @@ export default function Expenses() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedExpenses.map((expense) => (
+          {paginatedExpenses.map((expense, index) => (
             <TableRow key={expense._id}>
+              <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
               <TableCell>{expense.name}</TableCell>
               <TableCell>{expense.amount}</TableCell>
               <TableCell>{expense.tds}%</TableCell>

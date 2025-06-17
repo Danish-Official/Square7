@@ -74,11 +74,12 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     padding: 4,
   },
-  nameCell: { width: '18%' },
-  receivedByCell: { width: '18%' },
+  srNoCell: { width: '5%' }, // Add serial number column
+  nameCell: { width: '17%' }, // Adjusted width
+  receivedByCell: { width: '17%' },
   amountCell: { width: '12%' },
   tdsCell: { width: '8%' },
-  netAmountCell: { width: '17%' },
+  netAmountCell: { width: '16%' }, // Adjusted width
   dateCell: { width: '15%' },
   headerCell: {
     color: '#ffffff',
@@ -140,6 +141,7 @@ const ExpensesPDF = ({ expenses, selectedLayout }) => {
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
+            <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.receivedByCell]}>Received By</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.amountCell]}>Amount (Rs.)</Text>
@@ -150,6 +152,7 @@ const ExpensesPDF = ({ expenses, selectedLayout }) => {
           
           {expenses.map((expense, index) => (
             <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text>
               <Text style={[styles.tableCell, styles.nameCell]}>{expense.name}</Text>
               <Text style={[styles.tableCell, styles.receivedByCell]}>{expense.receivedBy}</Text>
               <Text style={[styles.tableCell, styles.amountCell]}>{expense.amount.toLocaleString('en-IN')}</Text>

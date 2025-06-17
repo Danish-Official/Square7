@@ -527,6 +527,7 @@ export default function BookingDetails() {
 
                 {broker && (
                   <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
+                    <h2 className="font-semibold text-[#1F263E] mb-4">Advisor Details</h2>
                     <Table>
                       <TableHeader>
                         <TableRow>
