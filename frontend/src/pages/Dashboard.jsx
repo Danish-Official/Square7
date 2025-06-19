@@ -54,6 +54,7 @@ export default function Dashboard({ showLoginModal = false }) {
   const [visibleDate, setVisibleDate] = useState(() => dayjs());
   const [_selectedMonth, setSelectedMonth] = useState(() => dayjs().month());
   const [plotStats, setPlotStats] = useState({ total: 0, sold: 0, available: 0 });
+  const [bookedDatesSet, setBookedDatesSet] = useState(new Set());
 
   useEffect(() => {
     if (!auth.token || auth.token === "" || isTokenExpired(auth.token)) {
@@ -98,6 +99,20 @@ export default function Dashboard({ showLoginModal = false }) {
       setShowLayoutModal(true);
     }
   }, [selectedLayout, setShowLayoutModal]);
+
+  useEffect(() => {
+    // Build a set of booked date strings (YYYY-MM-DD) for the selected layout
+    if (buyers && selectedLayout) {
+      const bookedSet = new Set(
+        buyers
+          .filter(buyer => buyer.plot.layoutId === selectedLayout && buyer.bookingDate)
+          .map(buyer => dayjs(buyer.bookingDate).format('YYYY-MM-DD'))
+      );
+      setBookedDatesSet(bookedSet);
+      // Optionally update buyersCache for isBuyerPresentOnDate
+      buyersCache.set(selectedLayout, bookedSet);
+    }
+  }, [buyers, selectedLayout]);
 
   const handleDateClick = (date) => {
     if (date && isBuyerPresentOnDate(date)) {
@@ -149,6 +164,14 @@ export default function Dashboard({ showLoginModal = false }) {
     setSelectedMonth(date.month());
     setVisibleDate(date);
   };
+
+  // --- Add: shouldHighlightDate function for Calendar ---
+  const shouldHighlightDate = (date) => {
+    if (!date || !selectedLayout) return false;
+    const dateStr = dayjs(date).format('YYYY-MM-DD');
+    return bookedDatesSet.has(dateStr);
+  };
+  // --- End add ---
 
   return (
     <>
@@ -216,6 +239,7 @@ export default function Dashboard({ showLoginModal = false }) {
               value={visibleDate}
               onChange={(date) => handleDateClick(date.toDate())}
               shouldDisableDate={(date) => !isBuyerPresentOnDate(date)}
+              shouldHighlightDate={shouldHighlightDate} // <-- pass highlight function
               minDate={dayjs('2010-01-01')}
               maxDate={dayjs('2040-12-31')}
               onMonthChange={handleMonthChange}
