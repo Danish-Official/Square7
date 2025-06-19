@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Download, Edit2, Trash2 } from "lucide-react";
@@ -21,6 +20,14 @@ export default function PaymentsTable({
     );
   }
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount).replace(/^(\D+)/, '₹');
+  };
+
   return (
     <Table className={className}>
       <TableHeader>
@@ -37,7 +44,7 @@ export default function PaymentsTable({
         {payments.map((payment, index) => (
           <TableRow key={index}>
             <TableCell>{index + 1}.</TableCell>
-            <TableCell>₹{payment.amount}</TableCell>
+            <TableCell>{formatCurrency(payment.amount)}</TableCell>
             <TableCell>{payment.paymentType}</TableCell>
             <TableCell>{payment.narration || '-'}</TableCell>
             <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
@@ -46,7 +53,7 @@ export default function PaymentsTable({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onEditPayment(index)}
+                  onClick={() => onEditPayment && onEditPayment(index)}
                   className="h-8 px-2 lg:px-3"
                 >
                   <Edit2 size={16} />
@@ -54,7 +61,7 @@ export default function PaymentsTable({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onDownloadReceipt(payment, index)}
+                  onClick={() => onDownloadReceipt && onDownloadReceipt(payment)}
                   className="h-8 px-2 lg:px-3"
                 >
                   <Download size={16} />
@@ -63,7 +70,7 @@ export default function PaymentsTable({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onDeletePayment(index)}
+                    onClick={() => onDeletePayment && onDeletePayment(index)}
                     className="h-8 px-2 lg:px-3 text-red-500 hover:text-red-700"
                   >
                     <Trash2 size={16} />

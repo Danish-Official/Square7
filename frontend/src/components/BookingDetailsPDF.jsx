@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import logoPath from "@/assets/logo.png";
-import Layout from "@/assets/Layout.png";
+import Layout1 from "@/assets/layouts/layoutblue1.png";
+import Layout2 from "@/assets/layouts/layoutblue2.png";
 
 const styles = StyleSheet.create({
   page: {
@@ -86,7 +87,7 @@ const BookingDetailsPDF = ({ data }) => {
         {/* Header Section */}
         <View style={styles.header}>
           <Image src={logoPath} style={styles.logo} />
-          <Image src={Layout} style={styles.layoutLogo} />
+          <Image src={selectedLayout === "layout1" ? Layout1 : Layout2} style={styles.layoutLogo} />
           <View style={styles.address}>
             <Text>HINGNA NAGPUR 441110</Text>
             <Text>Contact: +91 XXXXXXXXXX</Text>

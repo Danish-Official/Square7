@@ -21,6 +21,8 @@ import { pdf } from "@react-pdf/renderer";
 import InvoicePDF from "@/components/InvoicePDF";
 import StatementPDF from "@/components/StatementPDF";
 import { useAuth } from "@/context/AuthContext"; // Add this import
+import { useLayout } from "@/context/LayoutContext";
+import { generatePaymentReceiptPDF } from "@/utils/pdfUtils";
 
 export default function InvoiceDetailsModal({
   isOpen,
@@ -38,6 +40,8 @@ export default function InvoiceDetailsModal({
   const [editingPaymentIndex, setEditingPaymentIndex] = useState(null);
   const [errors, setErrors] = useState({});
   const { auth } = useAuth(); // Add this line
+  const { selectedLayout } = useLayout();
+
 
   useEffect(() => {
     setLocalInvoice(invoice);
@@ -140,23 +144,16 @@ export default function InvoiceDetailsModal({
     }
   };
 
-  const handleDownloadPayment = async (payment, index) => {
-    const blob = await pdf(
-      <InvoicePDF
-        data={{
-          payment,
-          paymentIndex: index,
-          buyerName: localInvoice?.booking?.buyerName,
-          plotNumber: localInvoice?.booking?.plot?.plotNumber
-        }}
-      />
-    ).toBlob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Payment_${index + 1}_${localInvoice?.booking?.buyerName}.pdf`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadPayment = async (payment) => {
+    try {
+      await generatePaymentReceiptPDF(
+        payment,
+        localInvoice,
+        selectedLayout
+      );
+    } catch (error) {
+      toast.error("Failed to download payment receipt");
+    }
   };
 
   const handleDownloadInvoice = async () => {
@@ -265,7 +262,7 @@ export default function InvoiceDetailsModal({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDownloadPayment(payment, index)}
+                          onClick={() => handleDownloadPayment(payment)}
                           className="bg-white hover:bg-[#f7f7f7]"
                         >
                           <Download size={16} />

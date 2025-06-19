@@ -341,21 +341,16 @@ export default function BookingDetails() {
     }
   };
 
-  const handleDownloadPaymentReceipt = async (payment) => {
+  const handleDownloadPaymentReceipt = async (payment, index) => {
     try {
-      const response = await fetch(payment.receiptUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `receipt_${payment._id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await generatePaymentReceiptPDF(
+        payment,
+        invoice,
+        `payment-receipt-${invoice.invoiceNumber}-${payment.id}.pdf`,
+        selectedLayout
+      );
     } catch (error) {
-      console.error('Receipt Download Error:', error);
-      toast.error("Failed to download receipt");
+      toast.error("Failed to download payment receipt");
     }
   };
 

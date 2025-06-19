@@ -115,6 +115,7 @@ export default function InvoiceDetails() {
       setIsPaymentDialogOpen(true);
     }
   };
+
   const handleDeletePayment = async (index) => {
     if (!confirm("Are you sure you want to delete this payment?")) return;
 
@@ -140,7 +141,6 @@ export default function InvoiceDetails() {
       await generatePaymentReceiptPDF(
         payment,
         invoice,
-        `payment-receipt-${invoice.invoiceNumber}-${payment.id}.pdf`,
         selectedLayout
       );
     } catch (error) {

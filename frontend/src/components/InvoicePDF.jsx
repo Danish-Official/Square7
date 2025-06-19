@@ -67,6 +67,32 @@ const styles = StyleSheet.create({
   },
   dateGroup: {
     marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentLabel: {
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  paymentValue: {
+    fontSize: 11,
+    color: '#2d3748',
+  },
+  dateLabel: {
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  dateValue: {
+    fontSize: 11,
+    color: '#2d3748',
   },
   table: {
     marginVertical: 5,
@@ -98,17 +124,18 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   value: {
+    marginTop: 5,
     fontSize: 11,
     color: '#2d3748',
   },
   plotLabel: {
-    width: '60%',
+    width: '40%',
     fontSize: 10,
     color: '#4a5568',
     fontWeight: 'bold',
   },
   plotValue: {
-    width: '40%',
+    width: '60%',
     fontSize: 11,
     color: '#2d3748',
     paddingLeft: 10,
@@ -200,13 +227,16 @@ const InvoicePDF = ({ data, selectedLayout }) => {
           <View>
             <Text style={styles.label}>Billed To:</Text>
             <Text style={styles.value}>{data.buyerName || 'N/A'}</Text>
+            <Text style={styles.value}>{data.value || 'N/A'}</Text>
           </View>
           <View>
-            <Text style={styles.label}>Payment No:</Text>
-            <Text style={styles.value}>PMT-{(data.paymentIndex || 0) + 1}</Text>
+            <View style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>Invoice No:</Text>
+              <Text style={styles.paymentValue}>INV-{data.invoiceNumber  || 0}</Text>
+            </View>
             <View style={styles.dateGroup}>
-              <Text style={styles.label}>Date:</Text>
-              <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
+              <Text style={styles.dateLabel}>Date:</Text>
+              <Text style={styles.dateValue}>{new Date().toLocaleDateString()}</Text>
             </View>
           </View>
         </View>
@@ -219,7 +249,7 @@ const InvoicePDF = ({ data, selectedLayout }) => {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.plotLabel}>Area:</Text>
-            <Text style={styles.plotValue}>{data.areaSqFt || 'N/A'}</Text>
+            <Text style={styles.plotValue}>{data.areaSqFt || 'N/A'} sq. ft.</Text>
           </View>
         </View>
 
