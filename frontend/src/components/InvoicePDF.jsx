@@ -227,7 +227,7 @@ const InvoicePDF = ({ data, selectedLayout }) => {
           <View>
             <Text style={styles.label}>Billed To:</Text>
             <Text style={styles.value}>{data.buyerName || 'N/A'}</Text>
-            <Text style={styles.value}>{data.value || 'N/A'}</Text>
+            <Text style={styles.value}>{data.address || 'N/A'}</Text>
           </View>
           <View>
             <View style={styles.paymentRow}>

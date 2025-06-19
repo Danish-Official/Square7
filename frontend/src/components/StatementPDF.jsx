@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 11,
     color: '#2d3748',
+    marginBottom: 5,
   },
   dateGroup: {
     marginTop: 8,
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     padding: 10,
     borderRadius: 4,
-    width: '300px',
+    width: '250px',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -101,16 +102,45 @@ const styles = StyleSheet.create({
     gap: 2
   },
   plotLabel: {
-    width: '40%',
+    width: '50%',
     fontSize: 10,
     color: '#4a5568',
     fontWeight: 'bold',
   },
   plotValue: {
-    width: '60%',
+    width: '50%',
     fontSize: 11,
     color: '#2d3748',
     paddingLeft: 10,
+  },
+   dateGroup: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  paymentLabel: {
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  paymentValue: {
+    fontSize: 11,
+    color: '#2d3748',
+  },
+  dateLabel: {
+    fontSize: 10,
+    color: '#4a5568',
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  dateValue: {
+    fontSize: 11,
+    color: '#2d3748',
   },
   paymentsSection: {
     marginTop: 10,
@@ -190,11 +220,13 @@ const StatementPDF = ({ data, selectedLayout }) => {
             <Text style={styles.value}>{data.booking.address}</Text>
           </View>
           <View>
-            <Text style={styles.label}>Invoice No:</Text>
-            <Text style={styles.value}>{data._id}</Text>
+            <View style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>Statement No:</Text>
+              <Text style={styles.paymentValue}>{data._id.slice(-6).toUpperCase() || 0}</Text>
+            </View>
             <View style={styles.dateGroup}>
-              <Text style={styles.label}>Date:</Text>
-              <Text style={styles.value}>{new Date().toLocaleDateString()}</Text>
+              <Text style={styles.dateLabel}>Date:</Text>
+              <Text style={styles.dateValue}>{new Date().toLocaleDateString()}</Text>
             </View>
           </View>
         </View>

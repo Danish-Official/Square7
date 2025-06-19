@@ -21,11 +21,14 @@ import PaymentsTable from "@/components/PaymentsTable";
 import PaymentModal from "@/components/PaymentModal";
 import BrokerEditModal from "@/components/BrokerEditModal";
 import { useAuth } from "@/context/AuthContext";
+import { useLayout } from "@/context/LayoutContext";
+import { generatePaymentReceiptPDF } from "@/utils/pdfUtils";
 
 export default function BookingDetails() {
   const { auth } = useAuth();
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  const { selectedLayout } = useLayout();
   const [loading, setLoading] = useState(true);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [invoice, setInvoice] = useState(null);
@@ -123,6 +126,7 @@ export default function BookingDetails() {
         return;
       }
 
+      const financials = calculateBrokerFinancials(broker, bookingDetails.totalCost);
       const pdfData = {
         booking: {
           buyerName: bookingDetails.buyerName,
@@ -141,10 +145,19 @@ export default function BookingDetails() {
           amount: bookingDetails.firstPayment,
           paymentType: bookingDetails.paymentType,
           narration: bookingDetails.narration
-        }]
+        }],
+        broker: broker ? {
+          name: broker.name,
+          phoneNumber: broker.phoneNumber,
+          commission: broker.commission,
+          amount: financials?.amount,
+          tdsAmount: financials?.tdsAmount,
+          netAmount: financials?.netAmount,
+          tdsPercentage: financials?.tdsPercentage
+        } : null
       };
 
-      const blob = await pdf(<BookingDetailsPDF data={pdfData} />).toBlob();
+      const blob = await pdf(<BookingDetailsPDF data={pdfData} selectedLayout={selectedLayout}/>).toBlob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -341,12 +354,11 @@ export default function BookingDetails() {
     }
   };
 
-  const handleDownloadPaymentReceipt = async (payment, index) => {
+  const handleDownloadPaymentReceipt = async (payment) => {
     try {
       await generatePaymentReceiptPDF(
         payment,
         invoice,
-        `payment-receipt-${invoice.invoiceNumber}-${payment.id}.pdf`,
         selectedLayout
       );
     } catch (error) {
@@ -491,11 +503,11 @@ export default function BookingDetails() {
                     </div>
                     <div className="flex items-center">
                       <span className="min-w-[120px] font-medium text-gray-500 text-sm">Total Cost</span>
-                      <p className="capitalize flex-1 text-sm">₹{bookingDetails.totalCost}</p>
+                      <p className="capitalize flex-1 text-sm">Rs. {bookingDetails.totalCost}</p>
                     </div>
                     <div className="flex items-center">
                       <span className="min-w-[120px] font-medium text-gray-500 text-sm">Rate per sq ft</span>
-                      <p className="flex-1 text-sm">₹{bookingDetails.ratePerSqFt}</p>
+                      <p className="flex-1 text-sm">Rs. {bookingDetails.ratePerSqFt}</p>
                     </div>
                   </div>
                 </div>
@@ -529,10 +541,10 @@ export default function BookingDetails() {
                           <TableHead>Name</TableHead>
                           <TableHead>Phone Number</TableHead>
                           <TableHead>Commission (%)</TableHead>
-                          <TableHead>Amount (₹)</TableHead>
+                          <TableHead>Amount (Rs. )</TableHead>
                           <TableHead>TDS (%)</TableHead>
-                          <TableHead>TDS Amount (₹)</TableHead>
-                          <TableHead>Net Amount (₹)</TableHead>
+                          <TableHead>TDS Amount (Rs. )</TableHead>
+                          <TableHead>Net Amount (Rs. )</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
@@ -545,10 +557,10 @@ export default function BookingDetails() {
                               <TableCell>{broker.name}</TableCell>
                               <TableCell>{broker.phoneNumber}</TableCell>
                               <TableCell>{broker.commission}%</TableCell>
-                              <TableCell>₹{financials?.amount || 0}</TableCell>
+                              <TableCell>Rs. {financials?.amount || 0}</TableCell>
                               <TableCell>{financials?.tdsPercentage}%</TableCell>
-                              <TableCell>₹{financials?.tdsAmount || 0}</TableCell>
-                              <TableCell>₹{financials?.netAmount || 0}</TableCell>
+                              <TableCell>Rs. {financials?.tdsAmount || 0}</TableCell>
+                              <TableCell>Rs. {financials?.netAmount || 0}</TableCell>
                               <TableCell>
                                 {broker.date ? new Date(broker.date).toLocaleDateString() : "-"}
                               </TableCell>

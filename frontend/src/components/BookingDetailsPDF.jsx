@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const BookingDetailsPDF = ({ data }) => {
+const BookingDetailsPDF = ({ data, selectedLayout }) => {
   // Add validation
   if (!data || !data.booking || !data.plotDetails || !data.payments) {
     console.error('Invalid data structure:', data);
@@ -88,11 +88,6 @@ const BookingDetailsPDF = ({ data }) => {
         <View style={styles.header}>
           <Image src={logoPath} style={styles.logo} />
           <Image src={selectedLayout === "layout1" ? Layout1 : Layout2} style={styles.layoutLogo} />
-          <View style={styles.address}>
-            <Text>HINGNA NAGPUR 441110</Text>
-            <Text>Contact: +91 XXXXXXXXXX</Text>
-            <Text>Email: info@square7.com</Text>
-          </View>
         </View>
 
         {/* Personal Details */}
@@ -133,7 +128,7 @@ const BookingDetailsPDF = ({ data }) => {
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.label}>Total Cost:</Text>
-            <Text style={styles.value}>₹{data.plotDetails.totalCost || 'N/A'}</Text>
+            <Text style={styles.value}>Rs. {data.plotDetails.totalCost || 'N/A'}</Text>
           </View>
         </View>
 
@@ -142,7 +137,7 @@ const BookingDetailsPDF = ({ data }) => {
           <Text style={styles.sectionTitle}>Payment Details</Text>
           <View style={styles.detailRow}>
             <Text style={styles.label}>Booking Payment:</Text>
-            <Text style={styles.value}>₹{data.payments[0]?.amount || 'N/A'}</Text>
+            <Text style={styles.value}>Rs. {data.payments[0]?.amount || 'N/A'}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.label}>Payment Type:</Text>
@@ -176,25 +171,31 @@ const BookingDetailsPDF = ({ data }) => {
         {/* Broker Details if available */}
         {data.broker && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Broker Details</Text>
-            {data.broker.name && (
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Name:</Text>
-                <Text style={styles.value}>{data.broker.name}</Text>
-              </View>
-            )}
-            {data.broker.phoneNumber && (
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Phone:</Text>
-                <Text style={styles.value}>{data.broker.phoneNumber}</Text>
-              </View>
-            )}
-            {data.broker.commission > 0 && (
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Commission:</Text>
-                <Text style={styles.value}>{data.broker.commission}%</Text>
-              </View>
-            )}
+            <Text style={styles.sectionTitle}>Advisor Details</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Name:</Text>
+              <Text style={styles.value}>{data.broker.name}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Phone Number:</Text>
+              <Text style={styles.value}>{data.broker.phoneNumber}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Commission:</Text>
+              <Text style={styles.value}>{data.broker.commission}%</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Commission Amount:</Text>
+              <Text style={styles.value}>Rs. {data.broker.amount}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>TDS ({data.broker.tdsPercentage}%):</Text>
+              <Text style={styles.value}>Rs. {data.broker.tdsAmount}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Net Amount:</Text>
+              <Text style={styles.value}>Rs. {data.broker.netAmount}</Text>
+            </View>
           </View>
         )}
 

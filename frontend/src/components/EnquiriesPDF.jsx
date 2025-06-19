@@ -60,14 +60,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   tableHeader: {
-    backgroundColor: '#1F263E',
+    backgroundColor: '#1F263E'
   },
   tableCell: {
     padding: 4,
     fontSize: 9,
     color: '#2d3748',
   },
-  srNoCell: { width: '5%' }, // Add serial number column
+  headerCell: {
+    color: 'white'
+  },
+  srNoCell: { width: '8%' }, // Add serial number column
   nameCell: { width: '15%' }, // Adjusted width
   phoneCell: { width: '15%' },
   addressCell: { width: '20%' },

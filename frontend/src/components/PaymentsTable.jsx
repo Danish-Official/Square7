@@ -25,7 +25,7 @@ export default function PaymentsTable({
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(amount).replace(/^(\D+)/, '₹');
+    }).format(amount).replace(/^(\D+)/, 'Rs. ');
   };
 
   return (

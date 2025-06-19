@@ -255,7 +255,7 @@ export default function OthersPage() {
               <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
               <TableCell>{entry.name}</TableCell>
               <TableCell>{entry.description}</TableCell>
-              <TableCell>₹{entry.amount}</TableCell>
+              <TableCell>Rs. {entry.amount}</TableCell>
               <TableCell>{new Date(entry.date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex gap-2">

@@ -11,7 +11,6 @@ import { useLayout } from "@/context/LayoutContext";
 import PaymentsTable from "@/components/PaymentsTable";
 import PaymentModal from "@/components/PaymentModal";
 
-const x = 3;
 export default function InvoiceDetails() {
   const { invoiceId } = useParams();
   const navigate = useNavigate();
@@ -128,11 +127,14 @@ export default function InvoiceDetails() {
     }
   };
 
-  const handleDownloadInvoice = async () => {
+  const handleDownloadStatement = async () => {
     try {
-      await generateStatementPDF(invoice, `invoice-${invoice.invoiceNumber}.pdf`, selectedLayout);
+      await generateStatementPDF(
+        invoice,
+        selectedLayout
+      );
     } catch (error) {
-      toast.error("Failed to download invoice");
+      toast.error("Failed to download statement");
     }
   };
 
@@ -173,7 +175,7 @@ export default function InvoiceDetails() {
             </div>
             <Button
               variant="outline"
-              onClick={handleDownloadInvoice}
+              onClick={handleDownloadStatement}
               className="bg-white hover:bg-[#f7f7f7]"
             >
               <Download className="mr-2 h-4 w-4" />

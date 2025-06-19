@@ -31,10 +31,10 @@ export default function BrokersTable({
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Commission (%)</TableHead>
-            <TableHead>Amount (₹)</TableHead>
+            <TableHead>Amount (Rs. )</TableHead>
             <TableHead>TDS (%)</TableHead>
-            <TableHead>TDS Amount (₹)</TableHead>
-            <TableHead>Net Amount (₹)</TableHead>
+            <TableHead>TDS Amount (Rs. )</TableHead>
+            <TableHead>Net Amount (Rs. )</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -48,10 +48,10 @@ export default function BrokersTable({
               <TableCell>
                 {broker.commission ? `${broker.commission}%` : "-"}
               </TableCell>
-              <TableCell>₹{broker.amount || 0}</TableCell>
+              <TableCell>Rs. {broker.amount || 0}</TableCell>
               <TableCell>{broker.tdsPercentage || 5}%</TableCell>
-              <TableCell>₹{broker.tdsAmount || 0}</TableCell>
-              <TableCell>₹{broker.netAmount || 0}</TableCell>
+              <TableCell>Rs. {broker.tdsAmount || 0}</TableCell>
+              <TableCell>Rs. {broker.netAmount || 0}</TableCell>
               <TableCell>
                 {broker.date ? new Date(broker.date).toLocaleDateString() : "-"}
               </TableCell>

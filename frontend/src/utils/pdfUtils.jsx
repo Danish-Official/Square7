@@ -5,16 +5,16 @@ import ExpensesPDF from '@/components/ExpensesPDF';
 import BrokersPDF from '@/components/BrokersPDF';
 import React from 'react';
 
-export const generateStatementPDF = async (invoice, filename, selectedLayout) => {
+export const generateStatementPDF = async (invoice, selectedLayout) => {
   try {
-    const blob = await pdf(React.createElement(StatementPDF, { data: invoice, selectedLayout })).toBlob();
+    const blob = await pdf(
+      <StatementPDF data={invoice} selectedLayout={selectedLayout} />
+    ).toBlob();
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = filename || `invoice-${invoice.invoiceNumber || 'download'}.pdf`;
-    document.body.appendChild(link);
+    link.download = `Statement_${invoice?._id.slice(-6).toUpperCase()}_${invoice?.booking?.buyerName}.pdf`;
     link.click();
-    document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('PDF Generation Error:', error);
@@ -39,7 +39,7 @@ export const generatePaymentReceiptPDF = async (payment, invoice, selectedLayout
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `Payment_${payment?._id.slice(-6).toUpperCase()}_${invoice?.booking?.buyerName}.pdf`;
+  link.download = `Invoice_${payment?._id.slice(-6).toUpperCase()}_${invoice?.booking?.buyerName}.pdf`;
   link.click();
   URL.revokeObjectURL(url);
 };

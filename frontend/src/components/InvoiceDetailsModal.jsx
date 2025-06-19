@@ -22,7 +22,7 @@ import InvoicePDF from "@/components/InvoicePDF";
 import StatementPDF from "@/components/StatementPDF";
 import { useAuth } from "@/context/AuthContext"; // Add this import
 import { useLayout } from "@/context/LayoutContext";
-import { generatePaymentReceiptPDF } from "@/utils/pdfUtils";
+import { generatePaymentReceiptPDF, generateStatementPDF } from "@/utils/pdfUtils";
 
 export default function InvoiceDetailsModal({
   isOpen,
@@ -156,14 +156,15 @@ export default function InvoiceDetailsModal({
     }
   };
 
-  const handleDownloadInvoice = async () => {
-    const blob = await pdf(<StatementPDF data={localInvoice} />).toBlob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Invoice_${localInvoice?.booking?.buyerName}.pdf`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadStatement = async () => {
+    try {
+      await generateStatementPDF(
+        localInvoice,
+        selectedLayout
+      );
+    } catch (error) {
+      toast.error("Failed to download statement");
+    }
   };
 
   const resetForm = () => {
@@ -206,11 +207,11 @@ export default function InvoiceDetailsModal({
               </div>
               <Button
                 variant="outline"
-                onClick={handleDownloadInvoice}
+                onClick={handleDownloadStatement}
                 className="bg-white hover:bg-[#f7f7f7]"
               >
                 <Download className="mr-2 h-4 w-4" />
-                Download Invoice
+                Download Statement
               </Button>
             </DialogHeader>
             <div className="grid gap-6">
@@ -242,7 +243,7 @@ export default function InvoiceDetailsModal({
                         <span className="font-medium">{`${getOrdinalSuffix(
                           index + 1
                         )} Payment:`}</span>{" "}
-                        <span>₹{payment?.amount}</span> on{" "}
+                        <span>Rs. {payment?.amount}</span> on{" "}
                         <span>
                           {new Date(
                             payment?.paymentDate

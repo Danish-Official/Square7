@@ -158,6 +158,7 @@ export default function Enquiries() {
       const blob = await pdf(
         <EnquiriesPDF
           enquiries={filteredEnquiries}
+          selectedLayout={selectedLayout}
         />
       ).toBlob();
 
@@ -204,7 +205,7 @@ export default function Enquiries() {
             onClick={handleDownloadStatement}
           >
             <Download className="mr-2 h-4 w-4" />
-            Entries
+            Download Enquiries
           </Button>
           <Button
             className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"

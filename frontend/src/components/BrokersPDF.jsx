@@ -66,13 +66,15 @@ const styles = StyleSheet.create({
     padding: 4,
     fontSize: 9,
   },
+  headerCell:{
+    color: 'white'
+  },
   srNoCell: { width: '5%' }, // Add serial number column
   nameCell: { width: '18%' }, // Adjusted width
   phoneCell: { width: '15%' },
-  dateCell: { width: '20%' },
-  commissionCell: { width: '15%' },
-  plotsCell: { width: '27%' }, // Adjusted width
- footer: {
+  dateCell: { width: '15%' },
+  commissionCell: { width: '16%' },
+  footer: {
     position: 'absolute',
     bottom: 20,
     left: 30,
@@ -87,36 +89,6 @@ const styles = StyleSheet.create({
 });
 
 const BrokersPDF = ({ brokers, selectedLayout }) => {
-  const formatPlotList = (plots) => {
-    if (!plots || plots.length === 0) return '-';
-    return plots.map(plot => 
-      `Plot ${plot.plotNumber} (${plot.layoutId === 'layout1' ? 'Krishnam Nagar 1' : 'Krishnam Nagar 2'})`
-    ).join(', ');
-  };
-
-  const calculateBrokerFinancials = (broker) => {
-    const plots = broker.plots || [];
-    const amount = plots.reduce((sum, plot) => {
-      const plotCommission = (plot.totalCost * (broker.commission || 0)) / 100;
-      return sum + plotCommission;
-    }, 0);
-    const tdsPercentage = broker.tdsPercentage || 5;
-    const tdsAmount = (amount * tdsPercentage) / 100;
-    const netAmount = amount - tdsAmount;
-
-    return {
-      amount: Math.round(amount),
-      tdsAmount: Math.round(tdsAmount),
-      netAmount: Math.round(netAmount),
-      tdsPercentage
-    };
-  };
-
-  const brokersWithCalculations = brokers.map(broker => ({
-    ...broker,
-    ...calculateBrokerFinancials(broker)
-  }));
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -127,7 +99,7 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
           <Image src={selectedLayout === "layout1" ? Layout1 : Layout2} style={styles.layoutLogo} />
         </View>
 
-        <Text style={styles.title}>Brokers List</Text>
+        <Text style={styles.title}>Advisors List</Text>
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
@@ -136,13 +108,12 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
             <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Phone Number</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.dateCell]}>Date</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Commission (%)</Text>
-            <Text style={[styles.tableCell, styles.headerCell, styles.plotsCell]}>Plots</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Amount</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>TDS</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Net Amount</Text>
           </View>
           
-          {brokersWithCalculations.map((broker, index) => (
+          {brokers.map((broker, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text>
               <Text style={[styles.tableCell, styles.nameCell]}>{broker.name}</Text>
@@ -153,17 +124,14 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
               <Text style={[styles.tableCell, styles.commissionCell]}>
                 {broker.commission ? `${broker.commission}%` : '-'}
               </Text>
-              <Text style={[styles.tableCell, styles.plotsCell]}>
-                {formatPlotList(broker.plots)}
+              <Text style={[styles.tableCell, styles.commissionCell]}>
+                Rs. {broker.amount || 0}
               </Text>
               <Text style={[styles.tableCell, styles.commissionCell]}>
-                ₹{broker.amount || 0}
+                {broker.tdsAmount ? `Rs. ${broker.tdsAmount} (${broker.tdsPercentage}%)` : '-'}
               </Text>
               <Text style={[styles.tableCell, styles.commissionCell]}>
-                {broker.tdsAmount ? `₹${broker.tdsAmount} (${broker.tdsPercentage}%)` : '-'}
-              </Text>
-              <Text style={[styles.tableCell, styles.commissionCell]}>
-                ₹{broker.netAmount || 0}
+                Rs. {broker.netAmount || 0}
               </Text>
             </View>
           ))}

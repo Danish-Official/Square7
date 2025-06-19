@@ -23,12 +23,11 @@ export default function BrokersManagement() {
   const { selectedLayout } = useLayout();
 
   const calculateBrokerFinancials = (broker) => {
-    const plots = broker.plots || [];
-    const amount = plots.reduce((sum, plot) => {
-      const plotCommission = (plot.totalCost * (broker.commission || 0)) / 100;
-      return sum + plotCommission;
-    }, 0);
+    if (!broker || !broker.totalCost) return null;
+
+    const commission = broker.commission || 0;
     const tdsPercentage = broker.tdsPercentage || 5;
+    const amount = (broker.totalCost * commission) / 100;
     const tdsAmount = (amount * tdsPercentage) / 100;
     const netAmount = amount - tdsAmount;
 
@@ -36,6 +35,7 @@ export default function BrokersManagement() {
       amount: Math.round(amount),
       tdsAmount: Math.round(tdsAmount),
       netAmount: Math.round(netAmount),
+      commission,
       tdsPercentage
     };
   };
@@ -164,7 +164,12 @@ export default function BrokersManagement() {
 
   const handleDownloadPDF = async () => {
     try {
-      await generateBrokersPDF(brokers, selectedLayout);
+      // Pass filtered brokers with their financial calculations
+      const brokersWithFinancials = filteredBrokers.map(broker => ({
+        ...broker,
+        ...calculateBrokerFinancials(broker)
+      }));
+      await generateBrokersPDF(brokersWithFinancials, selectedLayout);
       toast.success("PDF downloaded successfully");
     } catch (error) {
       toast.error("Failed to generate PDF");

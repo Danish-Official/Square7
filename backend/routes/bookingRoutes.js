@@ -514,23 +514,7 @@ router.get("/:id/broker", authenticate(), async (req, res) => {
       return res.status(404).json({ message: "No broker associated with this booking" });
     }
 
-    // Calculate broker's commission for this booking
-    const commission = booking.broker.commission || 0;
-    const tdsPercentage = booking.broker.tdsPercentage || 5;
-    const totalCost = booking.totalCost || 0;
-    const amount = (totalCost * commission) / 100;
-    const tdsAmount = (amount * tdsPercentage) / 100;
-    const netAmount = amount - tdsAmount;
-
-    const brokerDetails = {
-      ...booking.broker,
-      bookingAmount: totalCost,
-      commissionAmount: Math.round(amount),
-      tdsAmount: Math.round(tdsAmount),
-      netAmount: Math.round(netAmount)
-    };
-
-    res.status(200).json(brokerDetails);
+    res.status(200).json(booking.broker);
   } catch (error) {
     console.error("Error fetching broker details:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });

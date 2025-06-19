@@ -4,49 +4,26 @@ const Broker = require('../models/Broker');
 const Booking = require('../models/Booking');
 const authenticate = require('../middleware/authenticate');
 
-// Get all brokers with their plot details and calculated amounts per booking
+// Get all brokers with their plot details
 router.get('/', authenticate(), async (req, res) => {
   try {
     const brokers = await Broker.find().lean().sort({ createdAt: -1 });
 
     const brokersWithPlots = await Promise.all(
       brokers.map(async (broker) => {
-        // Find bookings for this broker (not cancelled)
-        const bookings = await Booking.find({
+        // Find the latest booking for this broker (not cancelled)
+        const booking = await Booking.findOne({
           broker: broker._id,
           status: { $ne: 'cancelled' }
         })
-          .populate('plot', 'plotNumber layoutId') // Only get plotNumber and layoutId from plot
-          .lean();
-
-        // For each booking, calculate commission, tds, netAmount individually
-        const plots = bookings
-          .filter((booking) => booking.plot)
-          .map((booking) => {
-            const commission = broker.commission || 0;
-            const tdsPercentage = broker.tdsPercentage || 5;
-            const totalCost = booking.totalCost || 0;
-            const amount = (totalCost * commission) / 100;
-            const tdsAmount = (amount * tdsPercentage) / 100;
-            const netAmount = amount - tdsAmount;
-            return {
-              _id: booking.plot._id,
-              plotNumber: booking.plot.plotNumber,
-              layoutId: booking.plot.layoutId,
-              totalCost,
-              commission,
-              tdsPercentage,
-              amount: Math.round(amount),
-              tdsAmount: Math.round(tdsAmount),
-              netAmount: Math.round(netAmount),
-              bookingId: booking._id,
-              bookingDate: booking.bookingDate
-            };
-          });
+          .populate('plot', 'plotNumber layoutId')
+          .lean()
+          .sort({ bookingDate: -1 });
 
         return {
           ...broker,
-          plots // each plot/booking has its own calculated values
+          plot: booking?.plot || null,
+          totalCost: booking?.totalCost || 0
         };
       })
     );
@@ -117,6 +94,24 @@ router.delete('/:id', authenticate(), async (req, res) => {
   } catch (error) {
     console.error('Error deleting broker:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get broker details by booking ID
+router.get('/booking/:bookingId', authenticate(), async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.bookingId)
+      .populate('broker')
+      .lean();
+
+    if (!booking || !booking.broker) {
+      return res.status(404).json({ message: 'Broker not found for this booking' });
+    }
+
+    res.status(200).json(booking.broker);
+  } catch (error) {
+    console.error('Error in /brokers/booking route:', error);
+    res.status(500).json({ message: 'Failed to fetch broker details' });
   }
 });
 

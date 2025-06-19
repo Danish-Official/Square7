@@ -285,7 +285,7 @@ export default function Expenses() {
               <TableCell>{expense.name}</TableCell>
               <TableCell>{expense.amount}</TableCell>
               <TableCell>{expense.tds}%</TableCell>
-              <TableCell>₹{expense.netAmount}</TableCell>
+              <TableCell>Rs. {expense.netAmount}</TableCell>
               <TableCell>{expense.receivedBy}</TableCell>
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
               <TableCell>
