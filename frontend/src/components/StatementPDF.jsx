@@ -63,9 +63,6 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     marginBottom: 5,
   },
-  dateGroup: {
-    marginTop: 8,
-  },
   table: {
     marginVertical: 5,
   },
