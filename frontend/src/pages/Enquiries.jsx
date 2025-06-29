@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2, Edit2, Download, CircleUser } from "lucide-react";
+import { Trash2, Edit2, Download, CircleUser, Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import { toast } from "react-toastify";
@@ -326,9 +326,9 @@ export default function Enquiries() {
             <TableHead>Sr. No.</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead>Message</TableHead>
             <TableHead>Date</TableHead>
+            <TableHead>Address</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -336,16 +336,8 @@ export default function Enquiries() {
           {paginatedEnquiries.map((enquiry, index) => (
             <TableRow key={enquiry._id}>
               <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
-              <TableCell>
-                <button
-                  onClick={() => handleNameClick(enquiry)}
-                  className="text-left hover:underline text-blue-600"
-                >
-                  {enquiry.name}
-                </button>
-              </TableCell>
+              <TableCell>{enquiry.name}</TableCell>
               <TableCell>{enquiry.phoneNumber}</TableCell>
-              <TableCell>{enquiry.address || 'N/A'}</TableCell>
               <TableCell>
                 <ul>
                   {enquiry.message.match(/.{1,50}/g).map((chunk, index) => (
@@ -354,12 +346,34 @@ export default function Enquiries() {
                 </ul>
               </TableCell>
               <TableCell>{new Date(enquiry.date).toLocaleDateString()}</TableCell>
+              <TableCell>{enquiry.address}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Edit2
                     className="cursor-pointer"
                     onClick={() => handleEdit(enquiry)}
                   />
+                  <Download
+                    className="cursor-pointer"
+                    onClick={async () => {
+                      try {
+                        const blob = await pdf(
+                          <EnquiriesPDF enquiries={[enquiry]} selectedLayout={selectedLayout} />
+                        ).toBlob();
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `enquiry_${enquiry._id}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                      } catch (error) {
+                        toast.error("Failed to download enquiry PDF");
+                      }
+                    }}
+                  />
+                  <Send className="cursor-pointer" />
                   {auth.user?.role === "superadmin" && (
                     <Trash2
                       color="#f00505"

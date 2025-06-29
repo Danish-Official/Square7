@@ -179,7 +179,7 @@ export default function Dashboard({ showLoginModal = false }) {
         <h1 className="text-3xl font-semibold">Dashboard</h1>
         <div className="grid grid-cols-4 gap-2 lg:text-4xl sm:text-2xl">
           <div className="col-span-2 row-span-2 quickLinks bookingLink bg-[#1F263E] text-white">
-            <Link to={'/new-booking'}>Booking</Link>
+            <Link to={'/plot-management'}>Booking</Link>
           </div>
           <div className="quickLinks bg-[#E9EAEE] text-black">
             <Link to={'/plot-management'}>Total Plots {plotStats.total}</Link>

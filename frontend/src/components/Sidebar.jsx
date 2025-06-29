@@ -71,11 +71,6 @@ const Sidebar = () => {
             label="Contact List"
           />
           <NavItem
-            to="/invoices"
-            icon={<ReceiptIndianRupee size={20} />}
-            label="Invoices"
-          />
-          <NavItem
             to="/enquiries"
             icon={<MessageCircleQuestion size={20} />}
             label="Enquiries"

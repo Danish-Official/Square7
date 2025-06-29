@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Edit2, Trash2 } from "lucide-react";
+import { Download, Edit2, Trash2, Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PaymentsTable({ 
@@ -56,7 +56,7 @@ export default function PaymentsTable({
                   onClick={() => onEditPayment && onEditPayment(index)}
                   className="h-8 px-2 lg:px-3"
                 >
-                  <Edit2 size={16} />
+                  <Edit2 size={16} color="#000" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -64,7 +64,14 @@ export default function PaymentsTable({
                   onClick={() => onDownloadReceipt && onDownloadReceipt(payment)}
                   className="h-8 px-2 lg:px-3"
                 >
-                  <Download size={16} />
+                  <Download size={16} color="#000" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 lg:px-3"
+                >
+                  <Send size={16} color="#000" />
                 </Button>
                 {auth.user?.role === "superadmin" && (
                   <Button
@@ -73,7 +80,7 @@ export default function PaymentsTable({
                     onClick={() => onDeletePayment && onDeletePayment(index)}
                     className="h-8 px-2 lg:px-3 text-red-500 hover:text-red-700"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} color="#f00505" />
                   </Button>
                 )}
               </div>

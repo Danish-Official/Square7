@@ -18,13 +18,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { useLayout } from "@/context/LayoutContext";
 import { apiClient } from "@/lib/utils";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Download, Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { pdf } from "@react-pdf/renderer";
 import ExpensesPDF from "@/components/ExpensesPDF";
-import { Download } from "lucide-react";
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
@@ -290,16 +289,27 @@ export default function Expenses() {
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Edit2
-                    className="cursor-pointer"
-                    onClick={() => handleEdit(expense)}
-                  />
+                  <Edit2 className="cursor-pointer" color="#000" onClick={() => handleEdit(expense)} />
+                  <Download className="cursor-pointer" color="#000" onClick={async () => {
+                    try {
+                      const blob = await pdf(
+                        <ExpensesPDF expenses={[expense]} selectedLayout={selectedLayout} />
+                      ).toBlob();
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `expense_${expense._id}.pdf`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(url);
+                    } catch (error) {
+                      toast.error("Failed to download expense PDF");
+                    }
+                  }} />
+                  <Send className="cursor-pointer" color="#000" />
                   {auth.user?.role === "superadmin" && (
-                    <Trash2
-                      color="#f00505"
-                      className="cursor-pointer"
-                      onClick={() => handleDelete(expense._id)}
-                    />
+                    <Trash2 color="#f00505" className="cursor-pointer" onClick={() => handleDelete(expense._id)} />
                   )}
                 </div>
               </TableCell>

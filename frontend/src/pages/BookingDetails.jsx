@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { pdf } from '@react-pdf/renderer';
-import { FileText, Download, Receipt, CircleUserRound, X, Edit2, Trash2 } from "lucide-react";
+import { FileText, Download, Receipt, CircleUserRound, X, Edit2, Trash2, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   Table,
@@ -11,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import BookingDetailsPDF from '@/components/BookingDetailsPDF';
 import { apiClient } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +20,7 @@ import PaymentModal from "@/components/PaymentModal";
 import BrokerEditModal from "@/components/BrokerEditModal";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
-import { generatePaymentReceiptPDF } from "@/utils/pdfUtils";
+import { generatePaymentReceiptPDF, generateStatementPDF } from "@/utils/pdfUtils";
 
 export default function BookingDetails() {
   const { auth } = useAuth();
@@ -118,61 +116,6 @@ export default function BookingDetails() {
       </div>
     );
   }
-
-  const handleDownloadDocument = async () => {
-    try {
-      if (!bookingDetails) {
-        toast.error("No booking details available");
-        return;
-      }
-
-      const financials = calculateBrokerFinancials(broker, bookingDetails.totalCost);
-      const pdfData = {
-        booking: {
-          buyerName: bookingDetails.buyerName,
-          phoneNumber: bookingDetails.phoneNumber,
-          address: bookingDetails.address,
-          gender: bookingDetails.gender,
-          email: bookingDetails.email
-        },
-        plotDetails: {
-          plotNumber: bookingDetails.plot?.plotNumber,
-          areaSqFt: bookingDetails.plot?.areaSqFt,
-          areaSqMt: bookingDetails.plot?.areaSqMt,
-          totalCost: bookingDetails.totalCost
-        },
-        payments: [{
-          amount: bookingDetails.firstPayment,
-          paymentType: bookingDetails.paymentType,
-          narration: bookingDetails.narration
-        }],
-        broker: broker ? {
-          name: broker.name,
-          phoneNumber: broker.phoneNumber,
-          commission: broker.commission,
-          amount: financials?.amount,
-          tdsAmount: financials?.tdsAmount,
-          netAmount: financials?.netAmount,
-          tdsPercentage: financials?.tdsPercentage
-        } : null
-      };
-
-      const blob = await pdf(<BookingDetailsPDF data={pdfData} selectedLayout={selectedLayout}/>).toBlob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `booking_${bookingDetails.buyerName}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success("PDF generated successfully");
-    } catch (error) {
-      console.error('PDF Generation Error:', error);
-      toast.error("Failed to generate PDF");
-    }
-  };
 
   const handleDocumentDownload = async (doc) => {
     try {
@@ -407,7 +350,7 @@ export default function BookingDetails() {
       {bookingDetails && (
         <>
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-semibold">Booking Details</h1>
+            <h1 className="text-3xl font-semibold">Buyer Details</h1>
             <div className="flex gap-4">
               {isEditing ? (
                 <>
@@ -427,10 +370,16 @@ export default function BookingDetails() {
                   <Button onClick={() => setIsEditing(true)} variant="outline">
                     Edit
                   </Button>
-                  <Button onClick={handleDownloadDocument} className="bg-[#1F263E] text-white">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PDF
-                  </Button>
+                  {invoice && (
+                    <Button
+                      onClick={() => generateStatementPDF(invoice, selectedLayout)}
+                      variant="outline"
+                      className="bg-white hover:bg-[#f7f7f7]"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Statement
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -566,17 +515,20 @@ export default function BookingDetails() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
-                                  <Edit2
-                                    size={20}
-                                    className="cursor-pointer mt-0.5"
-                                    onClick={() => handleEdit(broker)}
-                                  />
+                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(broker)} className="h-8 px-2 lg:px-3"><Edit2 size={16} color="#000" /></Button>
+                                  <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3" onClick={async () => {
+                                    // Generate PDF for advisor (broker) details
+                                    try {
+                                      // You should have a BrokerPDF component or similar, or use a utility to generate PDF
+                                      // For now, just a dummy toast
+                                      toast.info('Download advisor PDF feature coming soon!');
+                                    } catch (error) {
+                                      toast.error('Failed to download advisor PDF');
+                                    }
+                                  }}><Download size={16} color="#000" /></Button>
+                                  <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3"><Send size={16} color="#000" /></Button>
                                   {isAdmin && (
-                                    <Trash2
-                                      color="#f00505"
-                                      className="cursor-pointer"
-                                      onClick={() => handleDelete(broker._id)}
-                                    />
+                                    <Button variant="ghost" size="sm" onClick={() => handleBrokerDelete(broker)} className="h-8 px-2 lg:px-3 text-red-500 hover:text-red-700"><Trash2 size={16} color="#f00505" /></Button>
                                   )}
                                 </div>
                               </TableCell>

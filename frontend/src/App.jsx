@@ -3,7 +3,6 @@ import Dashboard from "./pages/Dashboard";
 import PlotManagement from "./pages/LayoutManagement";
 import BuyersManagement from "./pages/BuyersManagement";
 import UsersManagement from "./pages/UserManagment";
-import Invoices from "./pages/Invoices";
 import NewBooking from "./pages/NewBooking";
 import Enquiries from "./pages/Enquiries";
 import { useAuth } from "@/context/AuthContext"; // Import useAuth
@@ -16,7 +15,6 @@ import AppWrapper from "./pages/AppWrapper";
 import LayoutResources from "./pages/LayoutResources";
 import BrokersManagement from "./pages/BrokersManagement";
 import Expenses from "./pages/Expenses"; // Add this import
-import InvoiceDetails from "./pages/InvoiceDetails";
 import DeletedContacts from "./pages/DeletedContacts"; // Add this import at the top
 import OthersPage from "./pages/OthersPage";
 
@@ -81,14 +79,6 @@ function App() {
             }
           />
           <Route
-            path="invoices"
-            element={
-              <ProtectedRoute>
-                <Invoices />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="brokers"
             element={
               <ProtectedRoute>
@@ -141,14 +131,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <BookingDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="invoices/:invoiceId"
-            element={
-              <ProtectedRoute>
-                <InvoiceDetails />
               </ProtectedRoute>
             }
           />
