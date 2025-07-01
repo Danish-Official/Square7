@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
   headerCell:{
     color: 'white'
   },
-  srNoCell: { width: '5%' }, // Add serial number column
   nameCell: { width: '18%' }, // Adjusted width
   phoneCell: { width: '15%' },
   dateCell: { width: '15%' },
@@ -103,7 +102,7 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text>
+            {/* <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text> Removed Sr. No. */}
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Phone Number</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.dateCell]}>Date</Text>
@@ -115,7 +114,7 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
           
           {brokers.map((broker, index) => (
             <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text>
+              {/* <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text> Removed Sr. No. */}
               <Text style={[styles.tableCell, styles.nameCell]}>{broker.name}</Text>
               <Text style={[styles.tableCell, styles.phoneCell]}>{broker.phoneNumber}</Text>
               <Text style={[styles.tableCell, styles.dateCell]}>

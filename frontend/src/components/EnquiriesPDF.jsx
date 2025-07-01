@@ -70,11 +70,11 @@ const styles = StyleSheet.create({
   headerCell: {
     color: 'white'
   },
-  srNoCell: { width: '8%' }, // Add serial number column
   nameCell: { width: '15%' }, // Adjusted width
   phoneCell: { width: '15%' },
-  addressCell: { width: '20%' },
-  dateCell: { width: '15%' },
+  addressCell: { width: '18%' },
+  referenceCell: { width: '20%' }, // New reference column
+  dateCell: { width: '13%' },
   messageCell: { width: '30%' }, // Adjusted width
  footer: {
     position: 'absolute',
@@ -105,20 +105,22 @@ const EnquiriesPDF = ({ enquiries, selectedLayout }) => {
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text>
+            {/* <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text> Removed Sr. No. */}
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Phone Number</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.addressCell]}>Address</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.referenceCell]}>Reference</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.dateCell]}>Date</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.messageCell]}>Message</Text>
           </View>
           
           {enquiries.map((enquiry, index) => (
             <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text>
+              {/* <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text> Removed Sr. No. */}
               <Text style={[styles.tableCell, styles.nameCell]}>{enquiry.name}</Text>
               <Text style={[styles.tableCell, styles.phoneCell]}>{enquiry.phoneNumber}</Text>
               <Text style={[styles.tableCell, styles.addressCell]}>{enquiry.address || 'N/A'}</Text>
+              <Text style={[styles.tableCell, styles.referenceCell]}>{enquiry.reference || 'N/A'}</Text>
               <Text style={[styles.tableCell, styles.dateCell]}>{new Date(enquiry.date).toLocaleDateString()}</Text>
               <Text style={[styles.tableCell, styles.messageCell]}>{enquiry.message}</Text>
             </View>

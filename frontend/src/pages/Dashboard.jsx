@@ -249,11 +249,12 @@ export default function Dashboard({ showLoginModal = false }) {
 
         <Card className="p-4">
           <CardContent>
-            <h2 className="text-lg font-semibold mb-4">Recent Contacts</h2>
+            <h2 className="text-lg font-semibold mb-4">Recent Buyers</h2>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableCell className="font-bold">Name</TableCell>
+                  <TableCell className="font-bold">Buyer Name</TableCell>
+                  <TableCell className="font-bold">Address</TableCell>
                   <TableCell className="font-bold">Contact No.</TableCell>
                   <TableCell className="font-bold">Plot No.</TableCell>
                   <TableCell className="font-bold">Booking Date</TableCell>
@@ -263,6 +264,7 @@ export default function Dashboard({ showLoginModal = false }) {
                 {recentBuyers.map((buyer) => (
                   <TableRow key={buyer._id}>
                     <TableCell>{buyer.buyerName}</TableCell>
+                    <TableCell>{buyer.address.slice(0, 30)}{buyer.address.length > 30 && "..."}</TableCell>
                     <TableCell>{buyer.phoneNumber}</TableCell>
                     <TableCell>{buyer.plot.plotNumber}</TableCell>
                     <TableCell>

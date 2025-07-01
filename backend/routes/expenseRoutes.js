@@ -17,7 +17,7 @@ router.get('/layout/:layoutId', authenticate('superadmin'), async (req, res) => 
 // Add new expense
 router.post('/', authenticate('superadmin'), async (req, res) => {
   try {
-    const { amount, tds, name, receivedBy, date, layoutId } = req.body;
+    const { amount, tds, name, receivedBy, contactNumber, date, layoutId } = req.body;
 
     if (!name || !receivedBy || !amount || !layoutId) {
       return res.status(400).json({ message: "Name, Received By, Amount, and Layout are required" });
@@ -32,6 +32,7 @@ router.post('/', authenticate('superadmin'), async (req, res) => {
       netAmount,
       name,
       receivedBy,
+      contactNumber,
       date,
       layoutId
     });
@@ -47,7 +48,7 @@ router.post('/', authenticate('superadmin'), async (req, res) => {
 // Update expense
 router.put('/:id', authenticate('superadmin'), async (req, res) => {
   try {
-    const { amount, tds, name, receivedBy, date, layoutId } = req.body;
+    const { amount, tds, name, receivedBy, contactNumber, date, layoutId } = req.body;
 
     if (!name || !receivedBy || !amount || !layoutId) {
       return res.status(400).json({ message: "Name, Received By, Amount, and Layout are required" });
@@ -64,6 +65,7 @@ router.put('/:id', authenticate('superadmin'), async (req, res) => {
         netAmount,
         name,
         receivedBy,
+        contactNumber,
         date,
         layoutId
       },

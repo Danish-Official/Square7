@@ -63,22 +63,22 @@ const Sidebar = () => {
           <NavItem
             to="/plot-management"
             icon={<LayoutDashboard size={20} />}
-            label="Layout Management"
+            label="Plot Management"
           />
           <NavItem
             to="/contact-list"
             icon={<BookUser size={20} />}
-            label="Contact List"
+            label="Buyers"
           />
+            <NavItem
+              to="/brokers"
+              icon={<Handshake size={20} />}
+              label="Advisors"
+            />
           <NavItem
             to="/enquiries"
             icon={<MessageCircleQuestion size={20} />}
             label="Enquiries"
-          />
-          <NavItem
-            to="/brokers"
-            icon={<Handshake size={20} />}
-            label="Advisors"
           />
           {auth.user?.role === "superadmin" &&
             <>
@@ -95,7 +95,7 @@ const Sidebar = () => {
               <NavItem
                 to="/deleted-contacts"
                 icon={<Trash2 size={20} />}
-                label="Deleted Contacts"
+                label="Bin"
               />
               <NavItem
                 to="/user-management"

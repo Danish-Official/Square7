@@ -155,7 +155,7 @@ export default function OthersPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-semibold">Others</h1>
+          <h1 className="text-3xl font-semibold">Inventory</h1>
         </div>
         <div className="flex gap-4">
           <Button
@@ -241,7 +241,6 @@ export default function OthersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sr. No.</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Amount</TableHead>
@@ -252,7 +251,6 @@ export default function OthersPage() {
         <TableBody>
           {paginatedEntries.map((entry, index) => (
             <TableRow key={entry._id}>
-              <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
               <TableCell>{entry.name}</TableCell>
               <TableCell>{entry.description}</TableCell>
               <TableCell>Rs. {entry.amount}</TableCell>

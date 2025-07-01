@@ -27,7 +27,6 @@ export default function BrokersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sr. No.</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Commission (%)</TableHead>
@@ -42,7 +41,6 @@ export default function BrokersTable({
         <TableBody>
           {brokers.map((broker, index) => (
             <TableRow key={broker._id}>
-              <TableCell>{index + 1}.</TableCell>
               <TableCell>{broker.name}</TableCell>
               <TableCell>{broker.phoneNumber}</TableCell>
               <TableCell>

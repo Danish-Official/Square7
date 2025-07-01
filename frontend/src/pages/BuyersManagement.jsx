@@ -78,23 +78,27 @@ export default function BuyersManagement() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sr. No.</TableHead>
             <TableHead>Buyer Name</TableHead>
-            <TableHead>Phone Number</TableHead>
-            <TableHead>Plot Number</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead>Contact No.</TableHead>
+            <TableHead>Plot No.</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedBuyers.map((buyer, index) => (
+          {paginatedBuyers.map((buyer) => (
             <TableRow key={buyer._id}>
-              <TableCell>{index + 1}.</TableCell>
               <TableCell
                 className="cursor-pointer text-blue-500"
                 onClick={() => handleViewDetails(buyer._id)}
               >
                 {buyer.buyerName}
+              </TableCell>
+              <TableCell>
+                {buyer.address.length > 30
+                  ? `${buyer.address.slice(0, 30)}...`
+                  : buyer.address}
               </TableCell>
               <TableCell>{buyer.phoneNumber}</TableCell>
               <TableCell>{buyer.plot.plotNumber}</TableCell>

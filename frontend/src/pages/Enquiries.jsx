@@ -38,6 +38,7 @@ export default function Enquiries() {
     message: "",
     date: new Date().toISOString().split('T')[0],
     address: "", // Add address field
+    reference: "", // Add reference field after address
   });
   const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,6 +136,7 @@ export default function Enquiries() {
       message: enquiry.message,
       date: new Date(enquiry.date).toISOString().split('T')[0],
       address: enquiry.address || "", // Set address for editing
+      reference: enquiry.reference || "", // Set reference for editing
     });
     setEditingEnquiry(enquiry);
     setIsDialogOpen(true);
@@ -149,6 +151,7 @@ export default function Enquiries() {
       message: "",
       date: new Date().toISOString().split('T')[0],
       address: "",
+      reference: "",
     });
     setErrors({});
   };
@@ -268,6 +271,15 @@ export default function Enquiries() {
               />
             </div>
             <div>
+              <Input
+                name="reference"
+                placeholder="Reference"
+                value={formData.reference}
+                onChange={handleChange}
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+            </div>
+            <div>
               <textarea
                 name="message"
                 placeholder="Message"
@@ -323,20 +335,23 @@ export default function Enquiries() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sr. No.</TableHead>
+            {/* <TableHead>Sr. No.</TableHead> Removed Sr. No. */}
             <TableHead>Name</TableHead>
-            <TableHead>Phone Number</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead>Reference</TableHead>
+            <TableHead>Contact No.</TableHead>
             <TableHead>Message</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedEnquiries.map((enquiry, index) => (
             <TableRow key={enquiry._id}>
-              <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
+              {/* <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell> Removed Sr. No. */}
               <TableCell>{enquiry.name}</TableCell>
+              <TableCell>{enquiry.address}</TableCell>
+              <TableCell>{enquiry.reference}</TableCell>
               <TableCell>{enquiry.phoneNumber}</TableCell>
               <TableCell>
                 <ul>
@@ -346,7 +361,6 @@ export default function Enquiries() {
                 </ul>
               </TableCell>
               <TableCell>{new Date(enquiry.date).toLocaleDateString()}</TableCell>
-              <TableCell>{enquiry.address}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Edit2
@@ -412,6 +426,10 @@ export default function Enquiries() {
               <div className="flex items-center">
                 <label className="text-sm text-gray-400 w-1/3">Address:</label>
                 <p className="font-medium flex-1">{selectedEnquiry.address || 'Not provided'}</p>
+              </div>
+              <div className="flex items-center">
+                <label className="text-sm text-gray-400 w-1/3">Reference:</label>
+                <p className="font-medium flex-1">{selectedEnquiry.reference || 'Not provided'}</p>
               </div>
               <div className="flex">
                 <label className="text-sm text-gray-400 w-1/3">Message:</label>

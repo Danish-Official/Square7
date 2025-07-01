@@ -169,7 +169,7 @@ export default function UsersManagement() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sr. No.</TableHead>
+            {/* <TableHead>Sr. No.</TableHead> Removed Sr. No. */}
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
@@ -179,7 +179,7 @@ export default function UsersManagement() {
         <TableBody>
           {filteredUsers.map((user, index) => (
             <TableRow key={user._id}>
-              <TableCell>{index + 1}.</TableCell>
+              {/* <TableCell>{index + 1}.</TableCell> Removed Sr. No. */}
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.role}</TableCell>

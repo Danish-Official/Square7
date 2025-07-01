@@ -6,7 +6,7 @@ const authenticate = require("../middleware/authenticate");
 // Create Enquiry
 router.post("/", authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, message, layoutId, date, address } = req.body;
+    const { name, phoneNumber, message, layoutId, date, address, reference } = req.body;
 
     // Validation
     if (!name || typeof name !== "string" || !/^[A-Za-z\s]+$/.test(name)) {
@@ -22,7 +22,7 @@ router.post("/", authenticate(), async (req, res) => {
       return res.status(400).json({ message: "Invalid date" });
     }
 
-    const enquiry = new Enquiry({ name, phoneNumber, message, layoutId, date, address });
+    const enquiry = new Enquiry({ name, phoneNumber, message, layoutId, date, address, reference });
     await enquiry.save();
     res.status(201).json(enquiry);
   } catch (error) {
@@ -54,7 +54,7 @@ router.get("/layout/:layoutId", authenticate(), async (req, res) => {
 // Update Enquiry
 router.put("/:id", authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, message, date, address } = req.body;
+    const { name, phoneNumber, message, date, address, reference } = req.body;
 
     // Validation
     if (!name || typeof name !== "string" || !/^[A-Za-z\s]+$/.test(name)) {
@@ -72,7 +72,7 @@ router.put("/:id", authenticate(), async (req, res) => {
 
     const updatedEnquiry = await Enquiry.findByIdAndUpdate(
       req.params.id,
-      { name, phoneNumber, message, date, address },
+      { name, phoneNumber, message, date, address, reference },
       { new: true }
     );
 

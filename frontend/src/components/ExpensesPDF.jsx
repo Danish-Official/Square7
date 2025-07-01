@@ -74,12 +74,12 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     padding: 4,
   },
-  srNoCell: { width: '5%' }, // Add serial number column
-  nameCell: { width: '17%' }, // Adjusted width
-  receivedByCell: { width: '17%' },
+  nameCell: { width: '14%' }, // Adjusted width
+  contactCell: { width: '13%' }, // New column for contact no.
+  receivedByCell: { width: '14%' },
   amountCell: { width: '12%' },
   tdsCell: { width: '8%' },
-  netAmountCell: { width: '16%' }, // Adjusted width
+  netAmountCell: { width: '16%' },
   dateCell: { width: '15%' },
   headerCell: {
     color: '#ffffff',
@@ -141,8 +141,8 @@ const ExpensesPDF = ({ expenses, selectedLayout }) => {
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.headerCell, styles.srNoCell]}>Sr. No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.nameCell]}>Name</Text>
+            <Text style={[styles.tableCell, styles.headerCell, styles.contactCell]}>Contact No.</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.receivedByCell]}>Received By</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.amountCell]}>Amount (Rs.)</Text>
             <Text style={[styles.tableCell, styles.headerCell, styles.tdsCell]}>TDS</Text>
@@ -152,8 +152,8 @@ const ExpensesPDF = ({ expenses, selectedLayout }) => {
           
           {expenses.map((expense, index) => (
             <View key={index} style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text>
               <Text style={[styles.tableCell, styles.nameCell]}>{expense.name}</Text>
+              <Text style={[styles.tableCell, styles.contactCell]}>{expense.contactNumber || '-'}</Text>
               <Text style={[styles.tableCell, styles.receivedByCell]}>{expense.receivedBy}</Text>
               <Text style={[styles.tableCell, styles.amountCell]}>{expense.amount.toLocaleString('en-IN')}</Text>
               <Text style={[styles.tableCell, styles.tdsCell]}>{expense.tds}%</Text>

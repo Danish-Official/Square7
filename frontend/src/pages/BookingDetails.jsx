@@ -734,11 +734,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
             <div className="flex-1">
               <Input
                 name="buyerName"
-                value={formData.buyerName}
+                value={formData?.buyerName}
                 onChange={handleChange}
-                className={`text-sm ${errors.buyerName ? "border-red-500" : ""}`}
+                className={`text-sm ${errors?.buyerName ? "border-red-500" : ""}`}
               />
-              {errors.buyerName && <p className="text-red-500 text-xs mt-1">{errors.buyerName}</p>}
+              {errors?.buyerName && <p className="text-red-500 text-xs mt-1">{errors?.buyerName}</p>}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -746,7 +746,7 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
             <Input
               name="email"
               type="email"
-              value={formData.email}
+              value={formData?.email}
               onChange={handleChange}
               className="flex-1"
             />
@@ -756,11 +756,11 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
             <div className="flex-1">
               <Input
                 name="phoneNumber"
-                value={formData.phoneNumber}
+                value={formData?.phoneNumber}
                 onChange={handleChange}
-                className={errors['phoneNumber'] ? "border-red-500" : ""}
+                className={errors?.phoneNumber ? "border-red-500" : ""}
               />
-              {errors['phoneNumber'] && <p className="text-red-500 text-xs mt-1">{errors['phoneNumber']}</p>}
+              {errors?.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors?.phoneNumber}</p>}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -768,7 +768,7 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
             <Input
               name="dateOfBirth"
               type="date"
-              value={formData.dateOfBirth}
+              value={formData?.dateOfBirth}
               onChange={handleChange}
               className="flex-1"
             />
@@ -776,7 +776,7 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
           <div className="flex items-center gap-2">
             <Label className="min-w-[120px] text-sm">Gender</Label>
             <Select
-              value={formData.gender}
+              value={formData?.gender}
               onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
               className="flex-1 text-sm"
             >
@@ -795,12 +795,12 @@ function EditForm({ formData, setFormData, tempDocuments, setTempDocuments, setH
             <div className="flex-1">
               <textarea
                 name="address"
-                value={formData.address}
+                value={formData?.address}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded text-sm ${errors.address ? "border-red-500" : ""}`}
+                className={`w-full p-2 border rounded text-sm ${errors?.address ? "border-red-500" : ""}`}
                 rows={3}
               />
-              {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+              {errors?.address && <p className="text-red-500 text-xs mt-1">{errors?.address}</p>}
             </div>
           </div>
         </div>

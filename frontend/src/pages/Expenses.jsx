@@ -40,6 +40,7 @@ export default function Expenses() {
     amount: "",
     name: "",
     receivedBy: "",
+    contactNumber: "",
     date: new Date().toISOString().split('T')[0],
     tds: ""
   });
@@ -68,6 +69,7 @@ export default function Expenses() {
         amount: Number(formData.amount),
         name: formData.name,
         receivedBy: formData.receivedBy,
+        contactNumber: formData.contactNumber,
         date: formData.date,
         tds: formData.tds,
         layoutId: selectedLayout
@@ -94,6 +96,7 @@ export default function Expenses() {
       amount: expense.amount,
       name: expense.name,
       receivedBy: expense.receivedBy,
+      contactNumber: expense.contactNumber || "",
       date: new Date(expense.date).toISOString().split('T')[0],
       tds: expense.tds || ""
     });
@@ -121,6 +124,7 @@ export default function Expenses() {
       amount: "",
       name: "",
       receivedBy: "",
+      contactNumber: "",
       date: new Date().toISOString().split('T')[0],
       tds: ""
     });
@@ -212,6 +216,13 @@ export default function Expenses() {
               required
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
+              <Input
+                type="text"
+                placeholder="Contact No."
+                value={formData.contactNumber}
+                onChange={e => setFormData({ ...formData, contactNumber: e.target.value })}
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
             <Input
               type="number"
               placeholder="Amount"
@@ -267,8 +278,8 @@ export default function Expenses() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Sr. No.</TableHead>
             <TableHead>Name</TableHead>
+            <TableHead>Contact No.</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>TDS</TableHead>
             <TableHead>Net Amount</TableHead>
@@ -280,8 +291,8 @@ export default function Expenses() {
         <TableBody>
           {paginatedExpenses.map((expense, index) => (
             <TableRow key={expense._id}>
-              <TableCell>{((currentPage - 1) * itemsPerPage) + index + 1}.</TableCell>
               <TableCell>{expense.name}</TableCell>
+              <TableCell>{expense.contactNumber}</TableCell>
               <TableCell>{expense.amount}</TableCell>
               <TableCell>{expense.tds}%</TableCell>
               <TableCell>Rs. {expense.netAmount}</TableCell>

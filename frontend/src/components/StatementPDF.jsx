@@ -254,7 +254,7 @@ const StatementPDF = ({ data, selectedLayout }) => {
           <Text style={styles.sectionTitle}>Payment History</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text>
+              {/* <Text style={[styles.tableCell, styles.headerCell]}>Sr. No.</Text> Removed Sr. No. */}
               <Text style={[styles.tableCell, styles.headerCell]}>Date</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Payment Type</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>Narration</Text>
@@ -262,7 +262,7 @@ const StatementPDF = ({ data, selectedLayout }) => {
             </View>
             {data.payments.map((payment, index) => (
               <View key={index} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{index + 1}</Text>
+                {/* <Text style={styles.tableCell}>{index + 1}</Text> Removed Sr. No. */}
                 <Text style={styles.tableCell}>{new Date(payment.paymentDate).toLocaleDateString()}</Text>
                 <Text style={styles.tableCell}>{payment.paymentType}</Text>
                 <Text style={styles.tableCell}>{payment.narration || '-'}</Text>
