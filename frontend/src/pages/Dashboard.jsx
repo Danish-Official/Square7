@@ -178,17 +178,12 @@ export default function Dashboard({ showLoginModal = false }) {
       <div className={`p-6 space-y-6 ${isLoginModalOpen || showLayoutModal ? "blur-sm" : ""}`}>
         <h1 className="text-3xl font-semibold">Dashboard</h1>
         <div className="grid grid-cols-4 gap-2 lg:text-4xl sm:text-2xl">
-          <div className="col-span-2 row-span-2 quickLinks bookingLink bg-[#1F263E] text-white">
+          <div className="lg:text-6xl col-span-2 row-span-2 quickLinks bookingLink bg-[#1F263E] text-white">
             <Link to={'/plot-management'}>Booking</Link>
           </div>
           <div className="quickLinks bg-[#E9EAEE] text-black">
             <Link to={'/plot-management'}>Total Plots {plotStats.total}</Link>
           </div>
-          {auth.user?.role === "superadmin" && (
-            <div className="quickLinks bg-[#8AC0F6] text-black">
-              <Link to={'/layout-resources'}>Layout Resources</Link>
-            </div>
-          )}
           <div className="quickLinks bg-[#D1D8E0] text-black">
             <Link to={'/enquiries'}>Enquiries</Link>
           </div>
@@ -197,9 +192,6 @@ export default function Dashboard({ showLoginModal = false }) {
               <Link to={'/expenses'}>Expenses</Link>
             </div>
           )}
-          <div className="quickLinks bg-[#01318D] text-white">
-            <Link to={'/invoices'}>Invoices</Link>
-          </div>
           <div className="quickLinks bg-[#D6E1F5] text-black">
             <Link to={'/contact-list'}>Buyers</Link>
           </div>
@@ -207,9 +199,17 @@ export default function Dashboard({ showLoginModal = false }) {
             <Link to={'/brokers'}>Advisors</Link>
           </div>
           {auth.user?.role === "superadmin" && (
-            <div className="quickLinks bg-[#3E4C68] text-white">
-              <Link to={'/user-management'}>Manage Users</Link>
-            </div>
+            <>
+              <div className="quickLinks bg-[#8AC0F6] text-black">
+                <Link to={'/layout-resources'}>Layout Resources</Link>
+              </div>
+              <div className="quickLinks bg-[#01318D] text-white">
+                <Link to={'/deleted-contacts'}>Bin</Link>
+              </div>
+              <div className="quickLinks bg-[#3E4C68] text-white">
+                <Link to={'/user-management'}>Manage Users</Link>
+              </div>
+            </>
           )}
         </div>
 
