@@ -10,6 +10,22 @@ const Broker = require("../models/Broker");
 const DeletedContact = require("../models/DeletedContact");
 const authenticate = require("../middleware/authenticate");
 
+// Get all bookings for a specific broker
+router.get("/by-broker/:brokerId", authenticate(), async (req, res) => {
+  try {
+    const { brokerId } = req.params;
+    const bookings = await Booking.find({ broker: brokerId })
+      .populate("plot")
+      .populate("broker")
+      .sort({ createdAt: -1 })
+      .lean();
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error("Error fetching bookings for broker:", error.message);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
 // Configure multer for document upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -84,11 +100,11 @@ router.post("/", authenticate(), (req, res, next) => {
       bookingDate,
       email,
       brokerData,
-      documentType,
       ratePerSqFt, // Add this field
+      commissionRate,
     } = req.body;
     // Validate required fields
-    if (!buyerName || !address || !phoneNumber || !plotId || !totalCost || !firstPayment || !ratePerSqFt) {
+    if (!buyerName || !address || !phoneNumber || !plotId || !totalCost || !firstPayment || !ratePerSqFt || commissionRate === undefined) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -118,9 +134,13 @@ router.post("/", authenticate(), (req, res, next) => {
       return res.status(400).json({ message: "Plot is already sold" });
     }
 
-    // Handle broker if provided
+    // Handle broker: use existing broker if broker ID is provided, otherwise create new
     let brokerId = null;
-    if (brokerData) {
+    if (req.body.broker) {
+      // Use existing broker
+      brokerId = req.body.broker;
+    } else if (brokerData) {
+      // Create new broker
       const brokerInfo = typeof brokerData === 'string' ? JSON.parse(brokerData) : brokerData;
       const broker = new Broker({
         ...brokerInfo,
@@ -180,6 +200,7 @@ router.post("/", authenticate(), (req, res, next) => {
       bookingDate: bookingDate ? new Date(bookingDate) : new Date(),
       email: email || undefined,
       broker: brokerId,
+      commissionRate: Number(commissionRate),
       documents: documents
     });
 
@@ -502,7 +523,7 @@ router.get("/:id/broker", authenticate(), async (req, res) => {
     const booking = await Booking.findById(req.params.id)
       .populate({
         path: 'broker',
-        select: 'name phoneNumber commission tdsPercentage date'
+        select: 'name phoneNumber commission date'
       })
       .lean();
 

@@ -9,6 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import BrokerEditModal from "./BrokerEditModal";
+import BrokerBookingsModal from "./BrokerBookingsModal";
+import { useState } from "react";
 
 export default function BrokersTable({
   brokers,
@@ -22,6 +24,19 @@ export default function BrokersTable({
   isAdmin,
   errors,
 }) {
+  const [selectedBroker, setSelectedBroker] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleBrokerNameClick = (broker) => {
+    setSelectedBroker(broker);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedBroker(null);
+  };
+
   return (
     <>
       <Table>
@@ -29,34 +44,27 @@ export default function BrokersTable({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Phone Number</TableHead>
-            <TableHead>Commission (%)</TableHead>
-            <TableHead>Amount (Rs. )</TableHead>
-            <TableHead>TDS (%)</TableHead>
-            <TableHead>TDS Amount (Rs. )</TableHead>
-            <TableHead>Net Amount (Rs. )</TableHead>
-            <TableHead>Date</TableHead>
+            <TableHead>Address</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {brokers.map((broker, index) => (
             <TableRow key={broker._id}>
-              <TableCell>{broker.name}</TableCell>
+              <TableCell>
+                <span
+                  className="text-blue-600 cursor-pointer hover:underline"
+                  onClick={() => handleBrokerNameClick(broker)}
+                >
+                  {broker.name}
+                </span>
+              </TableCell>
               <TableCell>{broker.phoneNumber}</TableCell>
+              <TableCell>{broker.address || '-'}</TableCell>
               <TableCell>
-                {broker.commission ? `${broker.commission}%` : "-"}
-              </TableCell>
-              <TableCell>Rs. {broker.amount || 0}</TableCell>
-              <TableCell>{broker.tdsPercentage || 5}%</TableCell>
-              <TableCell>Rs. {broker.tdsAmount || 0}</TableCell>
-              <TableCell>Rs. {broker.netAmount || 0}</TableCell>
-              <TableCell>
-                {broker.date ? new Date(broker.date).toLocaleDateString() : "-"}
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Edit2
-                    size={20}
+                    size={16}
                     className="cursor-pointer mt-0.5"
                     onClick={() => handleEdit(broker)}
                   />
@@ -65,6 +73,7 @@ export default function BrokersTable({
                       color="#f00505"
                       className="cursor-pointer"
                       onClick={() => handleDelete(broker._id)}
+                      size={16}
                     />
                   )}
                 </div>
@@ -81,6 +90,12 @@ export default function BrokersTable({
         handleEditChange={handleEditChange}
         handleSave={() => handleSave(editingBroker)}
         errors={errors}
+      />
+
+      <BrokerBookingsModal
+        broker={selectedBroker}
+        open={modalOpen}
+        onClose={handleCloseModal}
       />
     </>
   );

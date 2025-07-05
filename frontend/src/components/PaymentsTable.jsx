@@ -49,7 +49,7 @@ export default function PaymentsTable({
             <TableCell>{payment.narration || '-'}</TableCell>
             <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
             <TableCell>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="sm"

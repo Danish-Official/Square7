@@ -299,9 +299,9 @@ export default function Expenses() {
               <TableCell>{expense.receivedBy}</TableCell>
               <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
-                  <Edit2 className="cursor-pointer" color="#000" onClick={() => handleEdit(expense)} />
-                  <Download className="cursor-pointer" color="#000" onClick={async () => {
+                <div className="flex gap-1">
+                  <Edit2 className="cursor-pointer" size={16} color="#000" onClick={() => handleEdit(expense)} />
+                  <Download className="cursor-pointer" size={16} color="#000" onClick={async () => {
                     try {
                       const blob = await pdf(
                         <ExpensesPDF expenses={[expense]} selectedLayout={selectedLayout} />
@@ -318,9 +318,9 @@ export default function Expenses() {
                       toast.error("Failed to download expense PDF");
                     }
                   }} />
-                  <Send className="cursor-pointer" color="#000" />
+                  <Send className="cursor-pointer" size={16} color="#000" />
                   {auth.user?.role === "superadmin" && (
-                    <Trash2 color="#f00505" className="cursor-pointer" onClick={() => handleDelete(expense._id)} />
+                    <Trash2 color="#f00505" className="cursor-pointer" size={16} onClick={() => handleDelete(expense._id)} />
                   )}
                 </div>
               </TableCell>

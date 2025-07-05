@@ -15,6 +15,7 @@ const bookingSchema = new mongoose.Schema(
     ratePerSqFt: { type: Number, required: true },
     bookingDate: { type: Date, required: true, default: Date.now },
     broker: { type: mongoose.Schema.Types.ObjectId, ref: "Broker" },
+    commissionRate: { type: Number, required: true }, // Per booking commission rate
     documents: [{
       type: {
         type: String,

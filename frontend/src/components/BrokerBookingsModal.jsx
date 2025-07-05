@@ -50,12 +50,11 @@ export default function BrokerBookingsModal({ broker, open, onClose }) {
             <TableBody>
               {bookings.map((booking) => {
                 // Use booking.broker if available, else fallback to modal broker
-                const brokerForCalc = booking.broker || broker;
-                const commissionRate = booking.broker?.commissionRate || 0;
+                const commissionRate = booking.commissionRate || 0; // now from booking
                 const areaSqFt = booking.plot?.areaSqFt || 0;
-                const amount = commissionRate * areaSqFt;
-                const tdsPercentage = brokerForCalc.tdsPercentage || 5;
-                const tdsAmount = (amount * tdsPercentage) / 100;
+                const amount = Math.round(commissionRate * areaSqFt);
+                const tdsPercentage = booking.tdsPercentage || 5; // now from booking
+                const tdsAmount = Math.round((amount * tdsPercentage) / 100);
                 const netAmount = amount - tdsAmount;
                 return (
                   <TableRow key={booking._id}>

@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import BrokerFinancialsModal from "@/components/BrokerFinancialsModal";
 import { apiClient } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +22,11 @@ import BrokerEditModal from "@/components/BrokerEditModal";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import { generatePaymentReceiptPDF, generateStatementPDF } from "@/utils/pdfUtils";
+import { BrokerAndFinancialEditModal } from "@/components/Broker&FinancialEditModal";
 
 export default function BookingDetails() {
+  // State for advisor modal
+  const [brokerFinancialsModalOpen, setBrokerFinancialsModalOpen] = useState(false);
   const { auth } = useAuth();
   const { bookingId } = useParams();
   const navigate = useNavigate();
@@ -68,24 +72,6 @@ export default function BookingDetails() {
       navigate("/new-booking");
     }
   }, [bookingId, navigate]);
-
-  const calculateBrokerFinancials = (broker, totalCost) => {
-    if (!broker || !totalCost) return null;
-
-    const commission = broker.commission || 0;
-    const tdsPercentage = broker.tdsPercentage || 5;
-    const amount = (totalCost * commission) / 100;
-    const tdsAmount = (amount * tdsPercentage) / 100;
-    const netAmount = amount - tdsAmount;
-
-    return {
-      amount: Math.round(amount),
-      tdsAmount: Math.round(tdsAmount),
-      netAmount: Math.round(netAmount),
-      commission,
-      tdsPercentage
-    };
-  };
 
   useEffect(() => {
     if (bookingDetails && !formData) {
@@ -312,14 +298,17 @@ export default function BookingDetails() {
   // Add this helper function
   const isAdmin = auth.user?.role === "superadmin";
 
+  // --- Broker Edit Logic ---
   const handleEdit = (broker) => {
     setEditingBroker(broker._id);
     setEditedBrokerData({
       name: broker.name,
       phoneNumber: broker.phoneNumber,
-      commission: broker.commission,
-      tdsPercentage: broker.tdsPercentage,
-      date: broker.date
+      address: broker.address,
+      commissionRate: bookingDetails.commissionRate,
+      tdsPercentage: bookingDetails.tdsPercentage,
+      date: broker.date,
+      bookingId: bookingDetails._id
     });
   };
 
@@ -329,18 +318,23 @@ export default function BookingDetails() {
   };
 
   const handleBrokerEditChange = (field, value) => {
-    setEditedBrokerData(prev => ({ ...prev, [field]: value }));
+    setEditedBrokerData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleBrokerSave = async () => {
     try {
-      const response = await apiClient.put(`/bookings/${bookingId}/broker`, editedBrokerData);
-      setBroker(response.data);
+      const { data } = await apiClient.put(`/brokers/${editingBroker}`, editedBrokerData);
+      // Refetch booking and broker details to update UI
+      const [bookingRes, brokerRes] = await Promise.all([
+        apiClient.get(`/bookings/${bookingId}`),
+        apiClient.get(`/brokers/booking/${bookingId}`)
+      ]);
+      setBookingDetails(bookingRes.data);
+      setBroker(brokerRes.data);
       setEditingBroker(null);
       setEditedBrokerData({});
       toast.success("Broker updated successfully");
     } catch (error) {
-      console.error('Error updating broker:', error);
       toast.error(error.response?.data?.message || "Failed to update broker");
     }
   };
@@ -465,12 +459,6 @@ export default function BookingDetails() {
                 <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-[#1F263E]">Payment History</h3>
-                    <Button
-                      onClick={() => setIsPaymentDialogOpen(true)}
-                      className="bg-[#1F263E] text-white"
-                    >
-                      Add Payment
-                    </Button>
                   </div>
 
                   <PaymentsTable
@@ -489,56 +477,46 @@ export default function BookingDetails() {
                         <TableRow>
                           <TableHead>Name</TableHead>
                           <TableHead>Phone Number</TableHead>
-                          <TableHead>Commission (%)</TableHead>
-                          <TableHead>Amount (Rs. )</TableHead>
-                          <TableHead>TDS (%)</TableHead>
-                          <TableHead>TDS Amount (Rs. )</TableHead>
-                          <TableHead>Net Amount (Rs. )</TableHead>
-                          <TableHead>Date</TableHead>
+                          <TableHead>Address</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {(() => {
-                          const financials = calculateBrokerFinancials(broker, bookingDetails.totalCost);
-                          return (
-                            <TableRow>
-                              <TableCell>{broker.name}</TableCell>
-                              <TableCell>{broker.phoneNumber}</TableCell>
-                              <TableCell>{broker.commission}%</TableCell>
-                              <TableCell>Rs. {financials?.amount || 0}</TableCell>
-                              <TableCell>{financials?.tdsPercentage}%</TableCell>
-                              <TableCell>Rs. {financials?.tdsAmount || 0}</TableCell>
-                              <TableCell>Rs. {financials?.netAmount || 0}</TableCell>
-                              <TableCell>
-                                {broker.date ? new Date(broker.date).toLocaleDateString() : "-"}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(broker)} className="h-8 px-2 lg:px-3"><Edit2 size={16} color="#000" /></Button>
-                                  <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3" onClick={async () => {
-                                    // Generate PDF for advisor (broker) details
-                                    try {
-                                      // You should have a BrokerPDF component or similar, or use a utility to generate PDF
-                                      // For now, just a dummy toast
-                                      toast.info('Download advisor PDF feature coming soon!');
-                                    } catch (error) {
-                                      toast.error('Failed to download advisor PDF');
-                                    }
-                                  }}><Download size={16} color="#000" /></Button>
-                                  <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3"><Send size={16} color="#000" /></Button>
-                                  {isAdmin && (
-                                    <Button variant="ghost" size="sm" onClick={() => handleBrokerDelete(broker)} className="h-8 px-2 lg:px-3 text-red-500 hover:text-red-700"><Trash2 size={16} color="#f00505" /></Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })()}
+                        <TableRow>
+                          <TableCell>
+                            <button
+                              onClick={() => setBrokerFinancialsModalOpen(true)}
+                              className="text-blue-600 hover:underline"
+                            >
+                              {bookingDetails.broker.name}
+                            </button>
+                          </TableCell>
+                          <TableCell>{broker.phoneNumber}</TableCell>
+                          <TableCell>{broker.address}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(broker)} className="h-8 px-2 lg:px-3"><Edit2 size={16} color="#000" /></Button>
+                              <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3" onClick={async () => {
+                                // Generate PDF for advisor (broker) details
+                                try {
+                                  // You should have a BrokerPDF component or similar, or use a utility to generate PDF
+                                  // For now, just a dummy toast
+                                  toast.info('Download advisor PDF feature coming soon!');
+                                } catch (error) {
+                                  toast.error('Failed to download advisor PDF');
+                                }
+                              }}><Download size={16} color="#000" /></Button>
+                              <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3"><Send size={16} color="#000" /></Button>
+                              {isAdmin && (
+                                <Button variant="ghost" size="sm" onClick={() => handleBrokerDelete(broker)} className="h-8 px-2 lg:px-3 text-red-500 hover:text-red-700"><Trash2 size={16} color="#f00505" /></Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
 
-                    <BrokerEditModal
+                    <BrokerAndFinancialEditModal
                       isOpen={editingBroker !== null}
                       onClose={handleBrokerEditCancel}
                       editedData={editedBrokerData}
@@ -546,6 +524,13 @@ export default function BookingDetails() {
                       handleSave={handleBrokerSave}
                       errors={{}}
                       isAdmin={isAdmin}
+                    />
+
+                    {/* Advisor Modal */}
+                    <BrokerFinancialsModal
+                      open={brokerFinancialsModalOpen}
+                      onClose={() => setBrokerFinancialsModalOpen(false)}
+                      bookingDetails={bookingDetails}
                     />
                   </div>
                 )}

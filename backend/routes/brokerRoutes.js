@@ -38,7 +38,7 @@ router.get('/', authenticate(), async (req, res) => {
 // Update broker
 router.put('/:id', authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, commission, tdsPercentage, date } = req.body;
+    const { name, phoneNumber, address, commissionRate, tdsPercentage, bookingId } = req.body;
 
     if (name && (typeof name !== 'string' || !/^[A-Za-z\s]+$/.test(name))) {
       return res.status(400).json({ message: 'Invalid broker name' });
@@ -48,24 +48,16 @@ router.put('/:id', authenticate(), async (req, res) => {
       return res.status(400).json({ message: 'Phone number must be 10 digits' });
     }
 
-    if (commission && (isNaN(commission) || commission < 0 || commission > 100)) {
-      return res.status(400).json({ message: 'Commission must be 0–100' });
+    if (address && typeof address !== 'string') {
+      return res.status(400).json({ message: 'Invalid address' });
     }
 
-    if (
-      tdsPercentage !== undefined &&
-      (isNaN(tdsPercentage) || tdsPercentage < 0 || tdsPercentage > 100)
-    ) {
-      return res.status(400).json({ message: 'TDS must be 0–100' });
-    }
+    const booking = await Booking.findByIdAndUpdate(bookingId, { commissionRate, tdsPercentage }, { new: true, runValidators: true })
 
-    if (date && isNaN(Date.parse(date))) {
-      return res.status(400).json({ message: 'Invalid date format' });
-    }
 
     const broker = await Broker.findByIdAndUpdate(
       req.params.id,
-      { name, phoneNumber, commission, tdsPercentage, date },
+      { name, phoneNumber, address },
       { new: true, runValidators: true }
     );
 

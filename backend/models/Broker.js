@@ -8,17 +8,11 @@ const brokerSchema = new mongoose.Schema({
   phoneNumber: {
     type: String
   },
-  commission: {
-    type: Number,
-    default: 0
+  address: {
+    type: String,
+    default: ''
   },
-  tdsPercentage: {
-    type: Number,
-    default: 5
-  },
-  date: {
-    type: Date
-  }
+  // commissionRate, tdsPercentage, and date removed: now handled per booking
 }, { timestamps: true });
 
 module.exports = mongoose.model('Broker', brokerSchema);

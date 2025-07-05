@@ -362,10 +362,11 @@ export default function Enquiries() {
               </TableCell>
               <TableCell>{new Date(enquiry.date).toLocaleDateString()}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Edit2
                     className="cursor-pointer"
                     onClick={() => handleEdit(enquiry)}
+                    size={16}
                   />
                   <Download
                     className="cursor-pointer"
@@ -386,13 +387,15 @@ export default function Enquiries() {
                         toast.error("Failed to download enquiry PDF");
                       }
                     }}
+                    size={16}
                   />
-                  <Send className="cursor-pointer" />
+                  <Send className="cursor-pointer" size={16} />
                   {auth.user?.role === "superadmin" && (
                     <Trash2
                       color="#f00505"
                       className="cursor-pointer"
                       onClick={() => handleDelete(enquiry._id)}
+                      size={16}
                     />)}
                 </div>
               </TableCell>

@@ -44,7 +44,9 @@ export default function NewBooking() {
     paymentType: "Cash",
     brokerName: "",
     brokerPhone: "",
-    brokerCommission: "",
+    commissionRate: "", // This is the field for new broker commission (per sq ft)
+    brokerRatePerSqFt: "", // Used for existing broker selection
+    brokerId: "", // Used for existing broker selection
     firstPayment: 0,
     totalCost: 0,
     bookingDate: new Date().toISOString().split('T')[0],
@@ -238,8 +240,9 @@ export default function NewBooking() {
       ...prev,
       brokerName: broker.name,
       brokerPhone: broker.phoneNumber || "",
-      brokerCommission: broker.commission || "",
+      brokerId: broker._id, // Store broker ID if existing
       brokerDate: new Date().toISOString().split('T')[0],
+      // commissionRate is set per booking, not from broker
     }));
     setShowSuggestions(false);
   };
@@ -272,6 +275,7 @@ export default function NewBooking() {
       return;
     }
 
+
     try {
       const formDataToSend = new FormData();
 
@@ -289,7 +293,8 @@ export default function NewBooking() {
         firstPayment: Number(formData.firstPayment),
         bookingDate: new Date(formData.bookingDate).toISOString(),
         email: formData.email || undefined,
-        ratePerSqFt: Number(formData.ratePerSqFt)
+        ratePerSqFt: Number(formData.ratePerSqFt),
+        commissionRate: Number(formData.commissionRate) || 0
       };
 
       // Append each booking field to FormData
@@ -300,11 +305,14 @@ export default function NewBooking() {
       });
 
       // Handle broker data
-      if (formData.brokerName?.trim()) {
+      if (formData.brokerId) {
+        // Existing broker, just send the ID
+        formDataToSend.append('broker', formData.brokerId);
+      } else if (formData.brokerName?.trim()) {
+        // New broker, send brokerData
         const brokerData = {
           name: formData.brokerName.trim(),
-          phoneNumber: formData.brokerPhone || "",
-          commission: Number(formData.brokerCommission) || 0
+          phoneNumber: formData.brokerPhone || ""
         };
         formDataToSend.append('brokerData', JSON.stringify(brokerData));
       }
@@ -377,6 +385,7 @@ export default function NewBooking() {
       });
   };
 
+  // Remove brokerId from formData before rendering fields
   const renderSection = () => {
     switch (currentSection) {
       case 1:
@@ -693,7 +702,7 @@ export default function NewBooking() {
                             onClick={() => handleBrokerSelect(broker)}
                           >
                             <div className="font-medium">{broker.name}</div>
-                            {broker.commission && <div className="text-sm text-gray-600">Commission: {broker.commission}%</div>}
+                            {broker.ratePerSqFt && <div className="text-sm text-gray-600">Rate: Rs. {broker.ratePerSqFt}/sq.ft.</div>}
                           </div>
                         ))}
                     </div>
@@ -701,14 +710,18 @@ export default function NewBooking() {
                 </div>
                 <div className="w-50">
                   <Input
-                    id="brokerCommission"
-                    name="brokerCommission"
+                    id="brokerRatePerSqFt"
+                    name="commissionRate"
                     type="number"
-                    value={formData.brokerCommission}
+                    value={formData.commissionRate || ''}
                     onChange={handleChange}
-                    placeholder="Commission %"
+                    placeholder="Rate per Sq.Ft."
                     className="bg-white text-black"
                   />
+                  {/* Hidden field for brokerId if present */}
+                  {formData.brokerId && (
+                    <input type="hidden" name="brokerId" value={formData.brokerId} />
+                  )}
                 </div>
               </div>
             </div>

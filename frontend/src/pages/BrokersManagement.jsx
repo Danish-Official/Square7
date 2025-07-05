@@ -22,24 +22,6 @@ export default function BrokersManagement() {
   const { auth } = useAuth();
   const { selectedLayout } = useLayout();
 
-  const calculateBrokerFinancials = (broker) => {
-    if (!broker || !broker.totalCost) return null;
-
-    const commission = broker.commission || 0;
-    const tdsPercentage = broker.tdsPercentage || 5;
-    const amount = (broker.totalCost * commission) / 100;
-    const tdsAmount = (amount * tdsPercentage) / 100;
-    const netAmount = amount - tdsAmount;
-
-    return {
-      amount: Math.round(amount),
-      tdsAmount: Math.round(tdsAmount),
-      netAmount: Math.round(netAmount),
-      commission,
-      tdsPercentage
-    };
-  };
-
   useEffect(() => {
     const fetchBrokers = async () => {
       try {
@@ -49,11 +31,7 @@ export default function BrokersManagement() {
           setBrokers([]);
           return;
         }
-        const formattedBrokers = data.map(broker => ({
-          ...broker,
-          ...calculateBrokerFinancials(broker)
-        }));
-        setBrokers(formattedBrokers);
+        setBrokers(data);
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to fetch brokers");
         setBrokers([]);
@@ -73,14 +51,8 @@ export default function BrokersManagement() {
       if (value && !/^\d{10}$/.test(value)) {
         error = "Phone number should be exactly 10 digits.";
       }
-    } else if (name === "commission") {
-      if (value < 0) {
-        error = "Commission cannot be negative.";
-      }
-    } else if (name === "tdsPercentage") {
-      if (value < 0) {
-        error = "TDS percentage cannot be negative.";
-      }
+    // commissionRate validation removed (now per booking)
+    // tdsPercentage validation removed (now per booking)
     }
     setErrors((prev) => ({ ...prev, [name]: error }));
     return error === "";
@@ -102,9 +74,7 @@ export default function BrokersManagement() {
     setEditedData({
       name: broker.name,
       phoneNumber: broker.phoneNumber,
-      commission: broker.commission,
-      tdsPercentage: broker.tdsPercentage,
-      date: broker.date
+      address: broker.address
     });
     setErrors({});
   };
@@ -124,22 +94,21 @@ export default function BrokersManagement() {
     }
 
     try {
+
       // Find existing broker data
       const existingBroker = brokers.find(b => b._id === brokerId);
 
-      // Merge existing data with edited data
+      // Merge all editable fields (commissionRate removed)
       const brokerData = {
         ...existingBroker,
         name: editedData.name,
         phoneNumber: editedData.phoneNumber,
-        commission: editedData.commission ?? existingBroker.commission,
-        tdsPercentage: editedData.tdsPercentage ?? existingBroker.tdsPercentage,
-        date: editedData.date ?? existingBroker.date
+        address: editedData.address
       };
 
       const { data } = await apiClient.put(`/brokers/${brokerId}`, brokerData);
 
-      // Update local state immediately
+      // Update local state immediately with all returned fields
       setBrokers(prev =>
         prev.map(broker =>
           broker._id === brokerId
@@ -164,12 +133,7 @@ export default function BrokersManagement() {
 
   const handleDownloadPDF = async () => {
     try {
-      // Pass filtered brokers with their financial calculations
-      const brokersWithFinancials = filteredBrokers.map(broker => ({
-        ...broker,
-        ...calculateBrokerFinancials(broker)
-      }));
-      await generateBrokersPDF(brokersWithFinancials, selectedLayout);
+      await generateBrokersPDF(filteredBrokers, selectedLayout);
       toast.success("PDF downloaded successfully");
     } catch (error) {
       toast.error("Failed to generate PDF");
@@ -216,6 +180,7 @@ export default function BrokersManagement() {
         handleEdit={handleEdit}
         handleDelete={handleDelete}
         isAdmin={auth.user?.role === "superadmin"}
+        errors={errors}
       />
 
       <Pagination

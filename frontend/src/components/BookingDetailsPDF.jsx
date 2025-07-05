@@ -189,7 +189,7 @@ const BookingDetailsPDF = ({ data, selectedLayout }) => {
               <Text style={styles.value}>Rs. {data.broker.amount}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.label}>TDS ({data.broker.tdsPercentage}%):</Text>
+              <Text style={styles.label}>TDS ({data.booking.tdsPercentage}%):</Text>
               <Text style={styles.value}>Rs. {data.broker.tdsAmount}</Text>
             </View>
             <View style={styles.detailRow}>

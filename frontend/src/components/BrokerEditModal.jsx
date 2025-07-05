@@ -34,7 +34,6 @@ export default function BrokerEditModal({
               <span className="text-red-500 text-sm">{errors.name}</span>
             )}
           </div>
-          
           <div className="space-y-2">
             <label htmlFor="phoneNumber">Phone Number</label>
             <Input
@@ -47,26 +46,19 @@ export default function BrokerEditModal({
               <span className="text-red-500 text-sm">{errors.phoneNumber}</span>
             )}
           </div>
-
           <div className="space-y-2">
-            <label htmlFor="commission">Commission (%)</label>
+            <label htmlFor="address">Address</label>
             <Input
-              id="commission"
-              type="number"
-              value={editedData.commission || ""}
-              onChange={(e) => handleEditChange("commission", Number(e.target.value))}
+              id="address"
+              value={editedData.address || ""}
+              onChange={(e) => handleEditChange("address", e.target.value)}
+              className={errors?.address ? "border-red-500" : ""}
             />
+            {errors?.address && (
+              <span className="text-red-500 text-sm">{errors.address}</span>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="tdsPercentage">TDS (%)</label>
-            <Input
-              id="tdsPercentage"
-              type="number"
-              value={editedData.tdsPercentage || ""}
-              onChange={(e) => handleEditChange("tdsPercentage", Number(e.target.value))}
-            />
-          </div>
 
           <div className="space-y-2">
             <label htmlFor="date">Date</label>

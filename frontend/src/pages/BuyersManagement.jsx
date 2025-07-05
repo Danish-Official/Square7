@@ -111,6 +111,7 @@ export default function BuyersManagement() {
                     color="#f00505"
                     className="cursor-pointer"
                     onClick={() => handleDelete(buyer._id)}
+                    size={16}
                   />
                 )}
               </TableCell>
