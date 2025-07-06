@@ -6,7 +6,7 @@ import {apiClient} from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
-import { generateBrokersPDF } from "@/utils/pdfUtils";
+import { generateBrokersPDF, generateBrokersManagementPDF } from "@/utils/pdfUtils";
 import { useLayout } from "@/context/LayoutContext";
 import BrokersTable from "@/components/BrokersTable";
 import { useAuth } from "@/context/AuthContext";
@@ -133,7 +133,7 @@ export default function BrokersManagement() {
 
   const handleDownloadPDF = async () => {
     try {
-      await generateBrokersPDF(filteredBrokers, selectedLayout);
+      await generateBrokersManagementPDF(filteredBrokers);
       toast.success("PDF downloaded successfully");
     } catch (error) {
       toast.error("Failed to generate PDF");

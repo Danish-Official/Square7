@@ -3,6 +3,23 @@ import StatementPDF from '@/components/StatementPDF';
 import InvoicePDF from '@/components/InvoicePDF';
 import ExpensesPDF from '@/components/ExpensesPDF';
 import BrokersPDF from '@/components/BrokersPDF';
+import BrokersManagementPDF from '@/components/BrokersManagementPDF';
+export const generateBrokersManagementPDF = async (brokers) => {
+  try {
+    const blob = await pdf(React.createElement(BrokersManagementPDF, { brokers })).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Brokers_Management_List_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error generating Brokers Management PDF:', error);
+    throw error;
+  }
+};
 import React from 'react';
 
 export const generateStatementPDF = async (invoice, selectedLayout) => {
