@@ -1,5 +1,8 @@
-import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function BrokerFinancialsModal({ bookingDetails, open, onClose }) {
   // Calculate financials based on the broker data
@@ -24,44 +27,40 @@ export default function BrokerFinancialsModal({ bookingDetails, open, onClose })
   const financials = calculateFinancials();
 
   return (
-    <Dialog open={open} onOpenChange={onClose} modal={true}>
-      <DialogOverlay className="fixed inset-0 bg-black/50" />
-      <DialogContent className="sm:max-w-[800px] p-6 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] shadow-xl">
-        <h2 className="text-2xl font-semibold mb-4 text-center">
-          Financial Details for {bookingDetails?.broker?.name}
-        </h2>
-
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Commission Rate</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>TDS %</TableHead>
-                <TableHead>TDS Amount</TableHead>
-                <TableHead>Net Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-                <TableRow>
-                  <TableCell>{financials.commissionRate}</TableCell>
-                  <TableCell>{financials.amount}</TableCell>
-                  <TableCell>{financials.tdsPercentage}</TableCell>
-                  <TableCell>{financials.tdsAmount}</TableCell>
-                  <TableCell className="font-medium">{financials.netAmount}</TableCell>
-                </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button 
-            className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
-            onClick={onClose}
-          >
-            Close
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-xl p-0">
+        <Card className="border-none shadow-none bg-white">
+          <DialogHeader className="px-6 pt-6 pb-0">
+            <DialogTitle className="text-2xl font-semibold text-[#1F263E] text-center">Financial Details for {bookingDetails?.broker?.name}</DialogTitle>
+          </DialogHeader>
+          <CardContent className="pt-2 pb-0">
+            <div className="border rounded-md bg-white">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Commission Rate</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>TDS %</TableHead>
+                    <TableHead>TDS Amount</TableHead>
+                    <TableHead>Net Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{financials.commissionRate}</TableCell>
+                    <TableCell>{financials.amount}</TableCell>
+                    <TableCell>{financials.tdsPercentage}</TableCell>
+                    <TableCell>{financials.tdsAmount}</TableCell>
+                    <TableCell className="font-medium">{financials.netAmount}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={onClose} className="px-4 py-2 rounded bg-[#1F263E] text-white hover:bg-[#232b47]">Close</Button>
+            </div>
+          </CardContent>
+        </Card>
       </DialogContent>
     </Dialog>
   );
