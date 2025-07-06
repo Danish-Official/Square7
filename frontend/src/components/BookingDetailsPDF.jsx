@@ -168,34 +168,39 @@ const BookingDetailsPDF = ({ data, selectedLayout }) => {
           </View>
         )}
 
-        {/* Broker Details if available */}
-        {data.broker && (
+        {/* Broker Details if available, else show fallback */}
+        {data.broker && typeof data.broker === 'object' ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Advisor Details</Text>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Name:</Text>
-              <Text style={styles.value}>{data.broker.name}</Text>
+              <Text style={styles.value}>{data.broker.name || '-'}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Phone Number:</Text>
-              <Text style={styles.value}>{data.broker.phoneNumber}</Text>
+              <Text style={styles.value}>{data.broker.phoneNumber || '-'}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Commission:</Text>
-              <Text style={styles.value}>{data.broker.commission}%</Text>
+              <Text style={styles.value}>{data.broker.commission ? `${data.broker.commission}%` : '-'}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Commission Amount:</Text>
-              <Text style={styles.value}>Rs. {data.broker.amount}</Text>
+              <Text style={styles.value}>Rs. {data.broker.amount || 0}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.label}>TDS ({data.booking.tdsPercentage}%):</Text>
-              <Text style={styles.value}>Rs. {data.broker.tdsAmount}</Text>
+              <Text style={styles.label}>TDS ({data.booking.tdsPercentage || 0}%):</Text>
+              <Text style={styles.value}>Rs. {data.broker.tdsAmount || 0}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.label}>Net Amount:</Text>
-              <Text style={styles.value}>Rs. {data.broker.netAmount}</Text>
+              <Text style={styles.value}>Rs. {data.broker.netAmount || 0}</Text>
             </View>
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Advisor Details</Text>
+            <Text style={styles.value}>No advisor assigned.</Text>
           </View>
         )}
 

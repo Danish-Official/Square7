@@ -16,6 +16,7 @@ const bookingSchema = new mongoose.Schema(
     bookingDate: { type: Date, required: true, default: Date.now },
     broker: { type: mongoose.Schema.Types.ObjectId, ref: "Broker" },
     commissionRate: { type: Number, required: true }, // Per booking commission rate
+    tdsPercentage: { type: Number, default: 0 }, // TDS value for this booking
     documents: [{
       type: {
         type: String,

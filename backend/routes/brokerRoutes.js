@@ -3,19 +3,67 @@ const router = express.Router();
 const Broker = require('../models/Broker');
 const Booking = require('../models/Booking');
 const authenticate = require('../middleware/authenticate');
+// Add broker to a booking
+router.post('/booking/:bookingId', authenticate(), async (req, res) => {
+  try {
+    const { name, phoneNumber, address, commissionRate, tdsPercentage } = req.body;
+    // Validate required fields
+    if (!name || typeof name !== 'string' || !/^[A-Za-z\s]+$/.test(name)) {
+      return res.status(400).json({ message: 'Invalid or missing broker name' });
+    }
+    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: 'Phone number must be 10 digits' });
+    }
+    // Create broker
+    const broker = new Broker({ name, phoneNumber, address });
+    await broker.save();
 
-// Get all brokers with their plot details
+    // Update booking with broker, commissionRate, tdsPercentage
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.bookingId,
+      {
+        broker: broker._id,
+        commissionRate: commissionRate || 0,
+        tdsPercentage: tdsPercentage || 0
+      },
+      { new: true, runValidators: true }
+    );
+    if (!booking) {
+      // Rollback broker creation if booking not found
+      await Broker.findByIdAndDelete(broker._id);
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    res.status(201).json(broker);
+  } catch (error) {
+    console.error('Error adding broker to booking:', error);
+    res.status(500).json({ message: 'Failed to add broker' });
+  }
+});
+
+// Get all brokers with their plot details, filtered by layout if provided
 router.get('/', authenticate(), async (req, res) => {
   try {
+    const { layoutId } = req.query;
     const brokers = await Broker.find().lean().sort({ createdAt: -1 });
 
     const brokersWithPlots = await Promise.all(
       brokers.map(async (broker) => {
+        // If broker is null/undefined (shouldn't happen, but defensive)
+        if (!broker) return null;
         // Find the latest booking for this broker (not cancelled)
-        const booking = await Booking.findOne({
+        // If layoutId is provided, filter bookings by layoutId
+        const bookingQuery = {
           broker: broker._id,
           status: { $ne: 'cancelled' }
-        })
+        };
+        if (layoutId) {
+          // Find plots for this layout
+          const Plot = require('../models/Plot');
+          const plots = await Plot.find({ layoutId }).select('_id').lean();
+          const plotIds = plots.map(p => p._id);
+          bookingQuery.plot = { $in: plotIds };
+        }
+        const booking = await Booking.findOne(bookingQuery)
           .populate('plot', 'plotNumber layoutId')
           .lean()
           .sort({ bookingDate: -1 });
@@ -28,7 +76,8 @@ router.get('/', authenticate(), async (req, res) => {
       })
     );
 
-    res.status(200).json(brokersWithPlots);
+    // Filter out null/undefined brokers before sending response
+    res.status(200).json(brokersWithPlots.filter(b => b && typeof b === 'object'));
   } catch (error) {
     console.error('Error in /brokers route:', error);
     res.status(500).json({ message: 'Failed to fetch brokers' });
@@ -96,8 +145,14 @@ router.get('/booking/:bookingId', authenticate(), async (req, res) => {
       .populate('broker')
       .lean();
 
-    if (!booking || !booking.broker) {
-      return res.status(404).json({ message: 'Broker not found for this booking' });
+    // If booking exists but broker is null/undefined, return null (not 404)
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // If broker is missing (deleted), return null
+    if (!booking.broker) {
+      return res.status(200).json(null);
     }
 
     res.status(200).json(booking.broker);

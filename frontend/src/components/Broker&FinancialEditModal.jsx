@@ -24,7 +24,7 @@ export const BrokerAndFinancialEditModal = ({
     phoneNumber: '',
     address: '',
     commissionRate: '',
-    tdsPercentage: ''
+    tdsPercentage: '',
   });
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export const BrokerAndFinancialEditModal = ({
       phoneNumber: editedData.phoneNumber || '',
       address: editedData.address || '',
       commissionRate: editedData.commissionRate || '',
-      tdsPercentage: editedData.tdsPercentage || ''
+      tdsPercentage: editedData.tdsPercentage || '',
     });
   }, [editedData, isOpen]);
 

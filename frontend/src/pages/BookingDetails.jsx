@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FileText, Download, Receipt, CircleUserRound, X, Edit2, Trash2, Send } from "lucide-react";
+import AddBrokerModal from "@/components/AddBrokerModal";
 import { toast } from "react-toastify";
 import {
   Table,
@@ -18,7 +19,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PaymentsTable from "@/components/PaymentsTable";
 import PaymentModal from "@/components/PaymentModal";
-import BrokerEditModal from "@/components/BrokerEditModal";
 import { useAuth } from "@/context/AuthContext";
 import { useLayout } from "@/context/LayoutContext";
 import { generatePaymentReceiptPDF, generateStatementPDF } from "@/utils/pdfUtils";
@@ -57,10 +57,12 @@ export default function BookingDetails() {
         ]);
         setBookingDetails(bookingRes.data);
         setInvoice(invoiceRes.data);
-        setBroker(brokerRes.data)
+        // Defensive: if broker is null/undefined, set to null
+        setBroker(brokerRes.data && typeof brokerRes.data === 'object' ? brokerRes.data : null);
       } catch (error) {
         console.error("Error fetching details:", error);
         toast.error("Failed to fetch details");
+        setBroker(null); // Defensive: ensure broker is null on error
       } finally {
         setLoading(false);
       }
@@ -95,13 +97,63 @@ export default function BookingDetails() {
     }
   }, [bookingDetails]);
 
-  if (loading || !bookingDetails) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1F263E] border-t-transparent"></div>
-      </div>
+  // --- Add Broker Modal State and Logic ---
+  const [showAddBrokerModal, setShowAddBrokerModal] = useState(false);
+  const [addBrokerData, setAddBrokerData] = useState({
+    name: '',
+    phoneNumber: '',
+    address: '',
+    commissionRate: '',
+    tdsPercentage: ''
+  });
+
+  // Ensure input fields are always controlled and never undefined
+  // Remove getAddBrokerValue and use direct state access for input values
+  const [addBrokerErrors, setAddBrokerErrors] = useState({});
+
+  // Fix: Use functional update and avoid stale closure for setAddBrokerData
+  const handleAddBrokerChange = (field, value) => {
+    setAddBrokerData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Validation logic
+      let error = '';
+      if (field === 'name' && value && !/^[A-Za-z\s]+$/.test(value)) {
+        error = 'Name should contain only alphabets.';
+      } else if (field === 'phoneNumber' && value && !/^\d{10}$/.test(value)) {
+        error = 'Phone number should be exactly 10 digits.';
+      }
+      setAddBrokerErrors(errorsPrev => ({ ...errorsPrev, [field]: error }));
+      return updated;
+    });
+  };
+
+  const handleAddBroker = async () => {
+    // Validate fields
+    const isValid = ['name', 'phoneNumber'].every(
+      key => addBrokerData[key] && !addBrokerErrors[key]
     );
-  }
+    if (!isValid) {
+      toast.error('Please fill all required fields correctly');
+      return;
+    }
+    try {
+      const payload = {
+        ...addBrokerData,
+        bookingId: bookingDetails._id,
+        commissionRate: addBrokerData.commissionRate || 0,
+        tdsPercentage: addBrokerData.tdsPercentage || 0
+      };
+      const { data } = await apiClient.post(`/brokers/booking/${bookingDetails._id}`, payload);
+      setBroker(data);
+      setShowAddBrokerModal(false);
+      toast.success('Broker added successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add broker');
+    }
+  };
+
+
+  // --- Render Broker Section ---
 
   const handleDocumentDownload = async (doc) => {
     try {
@@ -298,6 +350,7 @@ export default function BookingDetails() {
   // Add this helper function
   const isAdmin = auth.user?.role === "superadmin";
 
+
   // --- Broker Edit Logic ---
   const handleEdit = (broker) => {
     setEditingBroker(broker._id);
@@ -318,7 +371,28 @@ export default function BookingDetails() {
   };
 
   const handleBrokerEditChange = (field, value) => {
-    setEditedBrokerData((prev) => ({ ...prev, [field]: value }));
+    setEditedBrokerData((prev) => {
+      // Always keep bookingId in editedBrokerData for backend update
+      return { ...prev, [field]: value, bookingId: bookingDetails?._id };
+    });
+  };
+
+  // --- Broker Delete Logic ---
+  const handleBrokerDelete = async (broker) => {
+    if (!window.confirm("Are you sure you want to delete this advisor?")) return;
+    try {
+      await apiClient.delete(`/brokers/${broker._id}`);
+      // After deletion, refetch booking and broker details to update UI
+      const [bookingRes, brokerRes] = await Promise.all([
+        apiClient.get(`/bookings/${bookingId}`),
+        apiClient.get(`/brokers/booking/${bookingId}`)
+      ]);
+      setBookingDetails(bookingRes.data);
+      setBroker(brokerRes.data && typeof brokerRes.data === 'object' ? brokerRes.data : null);
+      toast.success("Advisor deleted successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete advisor");
+    }
   };
 
   const handleBrokerSave = async () => {
@@ -456,9 +530,26 @@ export default function BookingDetails() {
                 </div>
 
                 {/* Payment Details Section */}
+
                 <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-[#1F263E]">Payment History</h3>
+                    <Button
+                      className="bg-[#1F263E] text-white ml-auto"
+                      size="sm"
+                      onClick={() => {
+                        setEditingPaymentIndex(null);
+                        setSubsequentPayment({
+                          amount: '',
+                          paymentDate: '',
+                          paymentType: 'Cash',
+                          narration: ''
+                        });
+                        setIsPaymentDialogOpen(true);
+                      }}
+                    >
+                      Add Payment
+                    </Button>
                   </div>
 
                   <PaymentsTable
@@ -469,9 +560,9 @@ export default function BookingDetails() {
                   />
                 </div>
 
-                {broker && (
-                  <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
-                    <h2 className="font-semibold text-[#1F263E] mb-4">Advisor Details</h2>
+                <div className="bg-white rounded-lg shadow-md col-span-2 p-4">
+                  <h2 className="font-semibold text-[#1F263E] mb-4">Advisor Details</h2>
+                  {broker ? (
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -488,7 +579,7 @@ export default function BookingDetails() {
                               onClick={() => setBrokerFinancialsModalOpen(true)}
                               className="text-blue-600 hover:underline"
                             >
-                              {bookingDetails.broker.name}
+                              {(broker && broker.name) ? broker.name : 'N/A'}
                             </button>
                           </TableCell>
                           <TableCell>{broker.phoneNumber}</TableCell>
@@ -499,8 +590,6 @@ export default function BookingDetails() {
                               <Button variant="ghost" size="sm" className="h-8 px-2 lg:px-3" onClick={async () => {
                                 // Generate PDF for advisor (broker) details
                                 try {
-                                  // You should have a BrokerPDF component or similar, or use a utility to generate PDF
-                                  // For now, just a dummy toast
                                   toast.info('Download advisor PDF feature coming soon!');
                                 } catch (error) {
                                   toast.error('Failed to download advisor PDF');
@@ -515,25 +604,42 @@ export default function BookingDetails() {
                         </TableRow>
                       </TableBody>
                     </Table>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <p className="mb-4 text-gray-600">No advisor assigned to this booking.</p>
+                      <Button className="bg-[#1F263E] text-white" onClick={() => setShowAddBrokerModal(true)}>
+                        Add Advisor
+                      </Button>
+                    </div>
+                  )}
 
-                    <BrokerAndFinancialEditModal
-                      isOpen={editingBroker !== null}
-                      onClose={handleBrokerEditCancel}
-                      editedData={editedBrokerData}
-                      handleEditChange={handleBrokerEditChange}
-                      handleSave={handleBrokerSave}
-                      errors={{}}
-                      isAdmin={isAdmin}
-                    />
+                  <BrokerAndFinancialEditModal
+                    isOpen={editingBroker !== null}
+                    onClose={handleBrokerEditCancel}
+                    editedData={editedBrokerData}
+                    handleEditChange={handleBrokerEditChange}
+                    handleSave={handleBrokerSave}
+                    errors={{}}
+                    isAdmin={isAdmin}
+                  />
 
-                    {/* Advisor Modal */}
-                    <BrokerFinancialsModal
-                      open={brokerFinancialsModalOpen}
-                      onClose={() => setBrokerFinancialsModalOpen(false)}
-                      bookingDetails={bookingDetails}
+                  {/* Advisor Modal */}
+                  <BrokerFinancialsModal
+                    open={brokerFinancialsModalOpen}
+                    onClose={() => setBrokerFinancialsModalOpen(false)}
+                    bookingDetails={bookingDetails}
+                  />
+
+                  {showAddBrokerModal && (
+                    <AddBrokerModal
+                      addBrokerData={addBrokerData}
+                      addBrokerErrors={addBrokerErrors}
+                      onChange={handleAddBrokerChange}
+                      onCancel={() => setShowAddBrokerModal(false)}
+                      onAdd={handleAddBroker}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Documents Section */}
                 {bookingDetails.documents?.length > 0 && (

@@ -70,8 +70,7 @@ const styles = StyleSheet.create({
   },
   headerCell: {
     color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: 'bold'
   },
   nameCell: { width: '33%' },
   phoneCell: { width: '25%' },
@@ -92,6 +91,7 @@ const styles = StyleSheet.create({
 
 
 const BrokersManagementPDF = ({ brokers = [] }) => (
+  // Defensive: filter out null/undefined brokers
   <Document>
     <Page size="A4" style={styles.page}>
       <Image src={bgBuilding} style={styles.backgroundBuilding} />
@@ -107,14 +107,14 @@ const BrokersManagementPDF = ({ brokers = [] }) => (
           <Text style={[styles.tableCell, styles.headerCell, styles.phoneCell]}>Contact No.</Text>
           <Text style={[styles.tableCell, styles.headerCell, styles.addressCell]}>Address</Text>
         </View>
-        {brokers.length === 0 ? (
+        {(brokers || []).filter(b => b && typeof b === 'object').length === 0 ? (
           <View style={styles.tableRow}>
             <Text style={[styles.tableCell, styles.nameCell]}>No brokers found.</Text>
             <Text style={[styles.tableCell, styles.phoneCell]}></Text>
             <Text style={[styles.tableCell, styles.addressCell]}></Text>
           </View>
         ) : (
-          brokers.map((broker, idx) => (
+          (brokers || []).filter(b => b && typeof b === 'object').map((broker, idx) => (
             <View style={styles.tableRow} key={broker._id || idx}>
               <Text style={[styles.tableCell, styles.nameCell]}>{broker.name || '-'}</Text>
               <Text style={[styles.tableCell, styles.phoneCell]}>{broker.phoneNumber || '-'}</Text>

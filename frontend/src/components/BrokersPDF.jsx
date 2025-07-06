@@ -88,6 +88,8 @@ const styles = StyleSheet.create({
 });
 
 const BrokersPDF = ({ brokers, selectedLayout }) => {
+  // Defensive: filter out null/undefined brokers
+  const safeBrokers = (brokers || []).filter(b => b && typeof b === 'object');
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -112,11 +114,21 @@ const BrokersPDF = ({ brokers, selectedLayout }) => {
             <Text style={[styles.tableCell, styles.headerCell, styles.commissionCell]}>Net Amount</Text>
           </View>
           
-          {brokers.map((broker, index) => (
+          {safeBrokers.length === 0 ? (
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCell, styles.nameCell]}>No advisors found.</Text>
+              <Text style={[styles.tableCell, styles.phoneCell]}></Text>
+              <Text style={[styles.tableCell, styles.dateCell]}></Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}></Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}></Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}></Text>
+              <Text style={[styles.tableCell, styles.commissionCell]}></Text>
+            </View>
+          ) : safeBrokers.map((broker, index) => (
             <View key={index} style={styles.tableRow}>
               {/* <Text style={[styles.tableCell, styles.srNoCell]}>{index + 1}</Text> Removed Sr. No. */}
-              <Text style={[styles.tableCell, styles.nameCell]}>{broker.name}</Text>
-              <Text style={[styles.tableCell, styles.phoneCell]}>{broker.phoneNumber}</Text>
+              <Text style={[styles.tableCell, styles.nameCell]}>{broker.name || '-'}</Text>
+              <Text style={[styles.tableCell, styles.phoneCell]}>{broker.phoneNumber || '-'}</Text>
               <Text style={[styles.tableCell, styles.dateCell]}>
                 {broker.date ? new Date(broker.date).toLocaleDateString() : '-'}
               </Text>

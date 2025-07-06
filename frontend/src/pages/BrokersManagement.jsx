@@ -6,7 +6,7 @@ import {apiClient} from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/SearchInput";
 import Pagination from "@/components/Pagination";
-import { generateBrokersPDF, generateBrokersManagementPDF } from "@/utils/pdfUtils";
+import { generateBrokersManagementPDF } from "@/utils/pdfUtils";
 import { useLayout } from "@/context/LayoutContext";
 import BrokersTable from "@/components/BrokersTable";
 import { useAuth } from "@/context/AuthContext";
@@ -25,7 +25,11 @@ export default function BrokersManagement() {
   useEffect(() => {
     const fetchBrokers = async () => {
       try {
-        const { data } = await apiClient.get("/brokers");
+        if (!selectedLayout) {
+          setBrokers([]);
+          return;
+        }
+        const { data } = await apiClient.get(`/brokers?layoutId=${selectedLayout}`);
         if (!Array.isArray(data)) {
           toast.error("Invalid data format received from server");
           setBrokers([]);
@@ -38,7 +42,7 @@ export default function BrokersManagement() {
       }
     };
     fetchBrokers();
-  }, []);
+  }, [selectedLayout]);
 
   const validateField = (name, value) => {
     let error = "";
@@ -140,9 +144,11 @@ export default function BrokersManagement() {
     }
   };
 
-  const filteredBrokers = brokers.filter((broker) =>
-    (broker?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase())
-  );
+
+  // Filter out null/undefined brokers and then filter by name
+  const filteredBrokers = (brokers || [])
+    .filter((broker) => broker && typeof broker === 'object')
+    .filter((broker) => (broker?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()));
 
   const totalPages = Math.ceil(filteredBrokers.length / itemsPerPage);
   const paginatedBrokers = filteredBrokers.slice(

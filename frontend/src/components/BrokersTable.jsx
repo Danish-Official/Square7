@@ -37,6 +37,8 @@ export default function BrokersTable({
     setSelectedBroker(null);
   };
 
+  // Defensive: filter out null/undefined brokers
+  const safeBrokers = (brokers || []).filter(b => b && typeof b === 'object');
   return (
     <>
       <Table>
@@ -49,17 +51,21 @@ export default function BrokersTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {brokers.map((broker, index) => (
-            <TableRow key={broker._id}>
+          {safeBrokers.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center">No advisors found.</TableCell>
+            </TableRow>
+          ) : safeBrokers.map((broker, index) => (
+            <TableRow key={broker._id || index}>
               <TableCell>
                 <span
                   className="text-blue-600 cursor-pointer hover:underline"
                   onClick={() => handleBrokerNameClick(broker)}
                 >
-                  {broker.name}
+                  {broker.name || '-'}
                 </span>
               </TableCell>
-              <TableCell>{broker.phoneNumber}</TableCell>
+              <TableCell>{broker.phoneNumber || '-'}</TableCell>
               <TableCell>{broker.address || '-'}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
