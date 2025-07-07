@@ -64,6 +64,11 @@ export default function Expenses() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate contact number: must be exactly 10 digits
+    if (!/^[0-9]{10}$/.test(formData.contactNumber)) {
+      toast.error("Contact number should be exactly 10 digits.");
+      return;
+    }
     try {
       const expenseData = {
         amount: Number(formData.amount),
@@ -216,13 +221,27 @@ export default function Expenses() {
               required
               className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
             />
+            <div>
               <Input
                 type="text"
                 placeholder="Contact No."
                 value={formData.contactNumber}
-                onChange={e => setFormData({ ...formData, contactNumber: e.target.value })}
+                onChange={e => {
+                  // Allow only digits, max 10 digits
+                  const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                  setFormData({ ...formData, contactNumber: value });
+                }}
+                pattern="[0-9]{10}"
+                title="Contact number should be exactly 10 digits."
+                minLength={10}
+                maxLength={10}
+                required
                 className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
+              {formData.contactNumber && formData.contactNumber.length !== 10 && (
+                <div className="text-red-500 text-xs mt-1">Phone number should be exactly 10 digits.</div>
+              )}
+            </div>
             <Input
               type="number"
               placeholder="Amount"
