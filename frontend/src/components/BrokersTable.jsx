@@ -69,14 +69,14 @@ export default function BrokersTable({
               <TableCell>{broker.address || '-'}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3 text-xs" onClick={() => handleEdit(broker)}>
+                  <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3" onClick={() => handleEdit(broker)}>
                     <Edit2
                       size={16}
                       className=""
                     />
                   </Button>
                   {isAdmin && (
-                    <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3 text-xs" onClick={() => handleDelete(broker._id)}>
+                    <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3" onClick={() => handleDelete(broker._id)}>
                       <Trash2
                         color="#f00505"
                         onClick={() => handleDelete(broker._id)}

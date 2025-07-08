@@ -40,6 +40,11 @@ const expenseSchema = new mongoose.Schema({
   layoutId: {
     type: String,
     required: true
+  },
+  documentUrl: {
+    type: String,
+    required: false,
+    trim: true
   }
 }, { timestamps: true });
 

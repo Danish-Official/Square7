@@ -363,13 +363,12 @@ export default function Enquiries() {
               <TableCell>{new Date(enquiry.date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Edit2
-                    className="cursor-pointer"
-                    onClick={() => handleEdit(enquiry)}
-                    size={16}
-                  />
-                  <Download
-                    className="cursor-pointer"
+                  <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3" onClick={() => handleEdit(enquiry)}>
+                    <Edit2
+                      size={16}
+                    />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3"
                     onClick={async () => {
                       try {
                         const blob = await pdf(
@@ -386,17 +385,22 @@ export default function Enquiries() {
                       } catch (error) {
                         toast.error("Failed to download enquiry PDF");
                       }
-                    }}
-                    size={16}
-                  />
-                  <Send className="cursor-pointer" size={16} />
-                  {auth.user?.role === "superadmin" && (
-                    <Trash2
-                      color="#f00505"
-                      className="cursor-pointer"
-                      onClick={() => handleDelete(enquiry._id)}
+                    }}>
+                    <Download
                       size={16}
-                    />)}
+                    />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3" >
+                    <Send className="cursor-pointer" size={16} />
+                  </Button>
+                  {auth.user?.role === "superadmin" && (
+                    <Button variant="ghost" size="sm" className="cursor-pointer h-8 px-2 lg:px-3" onClick={() => handleDelete(enquiry._id)}>
+                      <Trash2
+                        color="#f00505"
+                        size={16}
+                      />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

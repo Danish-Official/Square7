@@ -24,6 +24,7 @@ import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
 import { pdf } from "@react-pdf/renderer";
 import ExpensesPDF from "@/components/ExpensesPDF";
+import FileUploadWithName from "@/components/FileUploadWithName";
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
@@ -138,12 +139,12 @@ export default function Expenses() {
   const handleDownloadStatement = async () => {
     try {
       const blob = await pdf(
-        <ExpensesPDF 
-          expenses={filteredExpenses} 
+        <ExpensesPDF
+          expenses={filteredExpenses}
           selectedLayout={selectedLayout}
         />
       ).toBlob();
-      
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -178,181 +179,227 @@ export default function Expenses() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-semibold">Expenses Management</h1>
+    <>
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-semibold">Expenses Management</h1>
+          </div>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={handleDownloadStatement}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Statement
+            </Button>
+            <Button
+              className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Add Expense
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <Button
-            variant="outline"
-            onClick={handleDownloadStatement}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Statement
-          </Button>
-          <Button
-            className="text-lg font-semibold capitalize cursor-pointer bg-[#1F263E]"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            Add Expense
-          </Button>
-        </div>
-      </div>
 
-      <SearchInput
-        placeholder="Search by name or received by"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+        <SearchInput
+          placeholder="Search by name or received by"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
-      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-[600px] p-6 bg-[#1F263E] rounded-xl">
-          <DialogHeader className="space-y-3 mb-6 text-white">
-            <DialogTitle className="text-2xl font-semibold">
-              {isEditMode ? 'Edit Expense' : 'Add New Expense'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              placeholder="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <div>
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+          <DialogContent className="max-w-[600px] p-6 bg-[#1F263E] rounded-xl">
+            <DialogHeader className="space-y-3 mb-6 text-white">
+              <DialogTitle className="text-2xl font-semibold">
+                {isEditMode ? 'Edit Expense' : 'Add New Expense'}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                type="text"
-                placeholder="Contact No."
-                value={formData.contactNumber}
-                onChange={e => {
-                  // Allow only digits, max 10 digits
-                  const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
-                  setFormData({ ...formData, contactNumber: value });
-                }}
-                pattern="[0-9]{10}"
-                title="Contact number should be exactly 10 digits."
-                minLength={10}
-                maxLength={10}
+                placeholder="Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
               />
-              {formData.contactNumber && formData.contactNumber.length !== 10 && (
-                <div className="text-red-500 text-xs mt-1">Phone number should be exactly 10 digits.</div>
-              )}
-            </div>
-            <Input
-              type="number"
-              placeholder="Amount"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              required
-              min="0"
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              type="number"
-              placeholder="TDS"
-              value={formData.tds}
-              onChange={(e) => setFormData({ ...formData, tds: e.target.value })}
-              required
-              min="0"
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              placeholder="Received By"
-              value={formData.receivedBy}
-              onChange={(e) => setFormData({ ...formData, receivedBy: e.target.value })}
-              required
-              className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <Input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
-            />
-            <div className="flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-                className="bg-white hover:bg-[#f7f7f7] text-[#1F263E]"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-white hover:bg-[#f7f7f7] text-[#1F263E]"
-              >
-                {isEditMode ? 'Update' : 'Create'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Contact No."
+                  value={formData.contactNumber}
+                  onChange={e => {
+                    // Allow only digits, max 10 digits
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                    setFormData({ ...formData, contactNumber: value });
+                  }}
+                  pattern="[0-9]{10}"
+                  title="Contact number should be exactly 10 digits."
+                  minLength={10}
+                  maxLength={10}
+                  required
+                  className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+                />
+                {formData.contactNumber && formData.contactNumber.length !== 10 && (
+                  <div className="text-red-500 text-xs mt-1">Phone number should be exactly 10 digits.</div>
+                )}
+              </div>
+              <Input
+                type="number"
+                placeholder="Amount"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                required
+                min="0"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+              <Input
+                type="number"
+                placeholder="TDS"
+                value={formData.tds}
+                onChange={(e) => setFormData({ ...formData, tds: e.target.value })}
+                required
+                min="0"
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+              <Input
+                placeholder="Received By"
+                value={formData.receivedBy}
+                onChange={(e) => setFormData({ ...formData, receivedBy: e.target.value })}
+                required
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+                className="bg-[#f7f7f7] border-gray-200 focus:border-blue-500"
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseDialog}
+                  className="bg-white hover:bg-[#f7f7f7] text-[#1F263E]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-white hover:bg-[#f7f7f7] text-[#1F263E]"
+                >
+                  {isEditMode ? 'Update' : 'Create'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Contact No.</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>TDS</TableHead>
-            <TableHead>Net Amount</TableHead>
-            <TableHead>Received By</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedExpenses.map((expense, index) => (
-            <TableRow key={expense._id}>
-              <TableCell>{expense.name}</TableCell>
-              <TableCell>{expense.contactNumber}</TableCell>
-              <TableCell>{expense.amount}</TableCell>
-              <TableCell>{expense.tds}%</TableCell>
-              <TableCell>Rs. {expense.netAmount}</TableCell>
-              <TableCell>{expense.receivedBy}</TableCell>
-              <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  <Edit2 className="cursor-pointer" size={16} color="#000" onClick={() => handleEdit(expense)} />
-                  <Download className="cursor-pointer" size={16} color="#000" onClick={async () => {
-                    try {
-                      const blob = await pdf(
-                        <ExpensesPDF expenses={[expense]} selectedLayout={selectedLayout} />
-                      ).toBlob();
-                      const url = URL.createObjectURL(blob);
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = `expense_${expense._id}.pdf`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                      URL.revokeObjectURL(url);
-                    } catch (error) {
-                      toast.error("Failed to download expense PDF");
-                    }
-                  }} />
-                  <Send className="cursor-pointer" size={16} color="#000" />
-                  {auth.user?.role === "superadmin" && (
-                    <Trash2 color="#f00505" className="cursor-pointer" size={16} onClick={() => handleDelete(expense._id)} />
-                  )}
-                </div>
-              </TableCell>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Contact No.</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>TDS</TableHead>
+              <TableHead>Net Amount</TableHead>
+              <TableHead>Received By</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Document</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {paginatedExpenses.map((expense, index) => (
+              <TableRow key={expense._id}>
+                <TableCell>{expense.name}</TableCell>
+                <TableCell>{expense.contactNumber}</TableCell>
+                <TableCell>{expense.amount}</TableCell>
+                <TableCell>{expense.tds}%</TableCell>
+                <TableCell>Rs. {expense.netAmount}</TableCell>
+                <TableCell>{expense.receivedBy}</TableCell>
+                <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <div className="flex flex-row gap-2 items-center min-w-[120px]">
+                    {expense.documentUrl ? (
+                      <button
+                        className="inline-flex items-center gap-1 p-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-medium border border-blue-200 transition"
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem('token') || (auth.token ?? '');
+                            const filename = expense.documentUrl.replace('/uploads/expenses/', '');
+                            const response = await fetch(`/api/expenses/${filename}`, {
+                              headers: { Authorization: `Bearer ${token}` },
+                            });
+                            if (!response.ok) throw new Error('Failed to download');
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(url);
+                          } catch (err) {
+                            toast.error('Failed to download document');
+                          }
+                        }}
+                        title="Download document"
+                      >
+                        <Download size={14} />
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 italic">No document</span>
+                    )}
+                    <FileUploadWithName expense={expense} fetchExpenses={fetchExpenses} />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="cursor-pointer px-1 lg:px-3" onClick={() => handleEdit(expense)}>
+                      <Edit2 size={16} />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="cursor-pointer px-1 lg:px-3"
+                      onClick={async () => {
+                        try {
+                          const blob = await pdf(
+                            <ExpensesPDF expenses={[expense]} selectedLayout={selectedLayout} />
+                          ).toBlob();
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `expense_${expense._id}.pdf`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+                        } catch (error) {
+                          toast.error("Failed to download expense PDF");
+                        }
+                      }} ><Download className="cursor-pointer" size={16} color="#000" /></Button>
+                    <Button variant="ghost" size="sm" className="cursor-pointer px-1 lg:px-3">
+                      <Send className="cursor-pointer" size={16} color="#000" />
+                    </Button>
+                    {auth.user?.role === "superadmin" && (
+                      <Button variant="ghost" size="sm" className="cursor-pointer px-1 lg:px-3" onClick={() => handleDelete(expense._id)}>
+                        <Trash2 color="#f00505" size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
-    </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </>
   );
 }
