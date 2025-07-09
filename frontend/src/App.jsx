@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom"; // Remove BrowserRouter
 import Dashboard from "./pages/Dashboard";
-import PlotManagement from "./pages/LayoutManagement";
+import PlotManagement from "./pages/PlotManagement";
 import BuyersManagement from "./pages/BuyersManagement";
 import UsersManagement from "./pages/UserManagment";
 import NewBooking from "./pages/NewBooking";

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/utils";
 import { useLayout } from "@/context/LayoutContext";
+import { useBuyers } from "@/context/BuyersContext";
 
 const style = document.createElement('style');
 style.textContent = `
@@ -30,6 +31,7 @@ document.head.appendChild(style);
 
 export default function NewBooking() {
   const { selectedLayout } = useLayout();
+  const { fetchBuyers } = useBuyers();
   const location = useLocation();
   const [formData, setFormData] = useState({
     buyerName: "",
@@ -304,10 +306,20 @@ export default function NewBooking() {
         }
       });
 
-      // Handle broker data
+      // --- BROKER MATCHING LOGIC ---
+      // Try to match broker by name (case-insensitive, trimmed)
+      let matchedBroker = null;
       if (formData.brokerId) {
+        matchedBroker = brokerSuggestions.find(b => b._id === formData.brokerId);
+      } else if (formData.brokerName?.trim()) {
+        matchedBroker = brokerSuggestions.find(b =>
+          b.name && b.name.trim().toLowerCase() === formData.brokerName.trim().toLowerCase()
+        );
+      }
+
+      if (matchedBroker && matchedBroker._id) {
         // Existing broker, just send the ID
-        formDataToSend.append('broker', formData.brokerId);
+        formDataToSend.append('broker', matchedBroker._id);
       } else if (formData.brokerName?.trim()) {
         // New broker, send brokerData
         const brokerData = {
@@ -346,6 +358,7 @@ export default function NewBooking() {
       });
 
       toast.success("Booking created successfully!");
+      fetchBuyers();
       navigate(`/booking/${bookingResponse.data._id}`, { replace: true });
 
     } catch (error) {
@@ -993,70 +1006,3 @@ export default function NewBooking() {
     </div>
   );
 }
-
-const DocumentUploader = ({ label, type, formData, isUploading, handleDocumentUpload }) => {
-  const uploadedDoc = formData.documents.find(doc => doc.type === type);
-
-  return (
-    <div className="space-y-2">
-      <Label className="text-lg mb-2 block">{label}</Label>
-      <div className="flex items-center justify-center w-full">
-        <label className={`relative flex flex-col items-center justify-center w-full h-72 border-2 border-gray-300 border-dashed rounded-xl ${!uploadedDoc ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'} bg-white/5 backdrop-blur-sm transition-all duration-300`}>
-          {isUploading && formData.uploadingDoc === type ? (
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
-              <p className="mt-4 text-lg font-medium text-white/80">Processing...</p>
-            </div>
-          ) : uploadedDoc ? (
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <CheckCircle2 className="w-16 h-16 mb-4 text-green-400 animate-scale-check" />
-              <p className="mb-2 text-lg font-medium text-white/80">
-                {uploadedDoc.originalName}
-              </p>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setFormData(prev => ({
-                    ...prev,
-                    documents: prev.documents.filter(doc => doc.type !== type)
-                  }));
-                  if (uploadedDoc.previewUrl) {
-                    URL.revokeObjectURL(uploadedDoc.previewUrl);
-                  }
-                }}
-                className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300"
-              >
-                <X className="w-4 h-4" />
-                <span>Remove</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-16 h-16 mb-4 text-white/60" />
-              <p className="mb-2 text-lg font-medium text-white/80">
-                <span className="font-semibold">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-sm text-white/60">PDF, PNG, JPG or JPEG (MAX. 2MB)</p>
-            </div>
-          )}
-          <input
-            type="file"
-            className="hidden"
-            accept=".pdf,.png,.jpg,.jpeg"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleDocumentUpload(file, type);
-              }
-            }}
-            disabled={isUploading}
-          />
-        </label>
-      </div>
-    </div>
-  );
-};
-

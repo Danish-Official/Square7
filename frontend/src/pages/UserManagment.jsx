@@ -81,7 +81,7 @@ export default function UsersManagement() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <h1 className="text-3xl font-semibold">User Management</h1>
+          <h1 className="text-3xl font-semibold">Users</h1>
           <span>
             <NavLink
               to="/other-page"

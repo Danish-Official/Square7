@@ -6,31 +6,46 @@ const authenticate = require('../middleware/authenticate');
 // Add broker to a booking
 router.post('/booking/:bookingId', authenticate(), async (req, res) => {
   try {
-    const { name, phoneNumber, address, commissionRate, tdsPercentage } = req.body;
-    // Validate required fields
-    if (!name || typeof name !== 'string' || !/^[A-Za-z\s]+$/.test(name)) {
-      return res.status(400).json({ message: 'Invalid or missing broker name' });
-    }
-    if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: 'Phone number must be 10 digits' });
-    }
-    // Create broker
-    const broker = new Broker({ name, phoneNumber, address });
-    await broker.save();
+    const { brokerId, name, phoneNumber, address, commissionRate, tdsPercentage } = req.body;
 
-    // Update booking with broker, commissionRate, tdsPercentage
+    let broker;
+    // If brokerId is provided, associate existing broker
+    if (brokerId) {
+      broker = await Broker.findById(brokerId);
+      if (!broker) {
+        return res.status(404).json({ message: 'Broker not found' });
+      }
+    } else {
+      // Validate required fields for new broker
+      if (!name || typeof name !== 'string' || !/^[A-Za-z\s]+$/.test(name)) {
+        return res.status(400).json({ message: 'Invalid or missing broker name' });
+      }
+      // Only include optional fields if provided
+      const brokerData = { name };
+      if (phoneNumber) brokerData.phoneNumber = phoneNumber;
+      if (address) brokerData.address = address;
+      broker = new Broker(brokerData);
+      await broker.save();
+    }
+
+    // Update booking with broker, commissionRate, tdsPercentage (optional)
+    const bookingUpdate = {
+      broker: broker._id
+    };
+    if (commissionRate !== undefined && commissionRate !== null && commissionRate !== '') {
+      bookingUpdate.commissionRate = commissionRate;
+    }
+    if (tdsPercentage !== undefined && tdsPercentage !== null && tdsPercentage !== '') {
+      bookingUpdate.tdsPercentage = tdsPercentage;
+    }
     const booking = await Booking.findByIdAndUpdate(
       req.params.bookingId,
-      {
-        broker: broker._id,
-        commissionRate: commissionRate || 0,
-        tdsPercentage: tdsPercentage || 0
-      },
+      bookingUpdate,
       { new: true, runValidators: true }
     );
     if (!booking) {
-      // Rollback broker creation if booking not found
-      await Broker.findByIdAndDelete(broker._id);
+      // Rollback broker creation if booking not found and broker was just created
+      if (!brokerId) await Broker.findByIdAndDelete(broker._id);
       return res.status(404).json({ message: 'Booking not found' });
     }
     res.status(201).json(broker);

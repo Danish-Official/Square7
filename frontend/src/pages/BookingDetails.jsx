@@ -106,16 +106,26 @@ export default function BookingDetails() {
     commissionRate: '',
     tdsPercentage: ''
   });
-
-  // Ensure input fields are always controlled and never undefined
-  // Remove getAddBrokerValue and use direct state access for input values
   const [addBrokerErrors, setAddBrokerErrors] = useState({});
+  const [brokerSuggestions, setBrokerSuggestions] = useState([]); // <-- FIX: define brokerSuggestions state
 
-  // Fix: Use functional update and avoid stale closure for setAddBrokerData
+  // Fetch all brokers for suggestions (on mount)
+  useEffect(() => {
+    async function fetchBrokers() {
+      try {
+        const { data } = await apiClient.get("/brokers");
+        setBrokerSuggestions(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setBrokerSuggestions([]);
+      }
+    }
+    fetchBrokers();
+  }, []);
+
+  // Validation logic (only name required)
   const handleAddBrokerChange = (field, value) => {
     setAddBrokerData(prev => {
       const updated = { ...prev, [field]: value };
-      // Validation logic
       let error = '';
       if (field === 'name' && value && !/^[A-Za-z\s]+$/.test(value)) {
         error = 'Name should contain only alphabets.';
@@ -127,23 +137,43 @@ export default function BookingDetails() {
     });
   };
 
+  // Add broker logic: only create new if not matching existing (by name, phone, address)
   const handleAddBroker = async () => {
-    // Validate fields
-    const isValid = ['name', 'phoneNumber'].every(
-      key => addBrokerData[key] && !addBrokerErrors[key]
-    );
-    if (!isValid) {
-      toast.error('Please fill all required fields correctly');
+    if (!addBrokerData.name || addBrokerErrors.name) {
+      toast.error('Please enter a valid name');
       return;
     }
     try {
-      const payload = {
-        ...addBrokerData,
-        bookingId: bookingDetails._id,
-        commissionRate: addBrokerData.commissionRate || 0,
-        tdsPercentage: addBrokerData.tdsPercentage || 0
-      };
-      const { data } = await apiClient.post(`/brokers/booking/${bookingDetails._id}`, payload);
+      // Try to match by brokerId (set if suggestion selected), else by name/phone/address
+      let matchedBroker = null;
+      if (addBrokerData.brokerId) {
+        matchedBroker = brokerSuggestions.find(b => b._id === addBrokerData.brokerId);
+      } else {
+        matchedBroker = brokerSuggestions.find(b =>
+          b.name && b.name.trim().toLowerCase() === addBrokerData.name.trim().toLowerCase() &&
+          (!addBrokerData.phoneNumber || b.phoneNumber === addBrokerData.phoneNumber) &&
+          (!addBrokerData.address || b.address === addBrokerData.address)
+        );
+      }
+
+      let data;
+      if (matchedBroker && matchedBroker._id) {
+        // Existing broker: just associate with booking
+        const payload = {
+          brokerId: matchedBroker._id,
+          commissionRate: addBrokerData.commissionRate,
+          tdsPercentage: addBrokerData.tdsPercentage
+        };
+        data = (await apiClient.post(`/brokers/booking/${bookingDetails._id}`, payload)).data;
+      } else {
+        // New broker: create and associate
+        const payload = { name: addBrokerData.name };
+        if (addBrokerData.phoneNumber) payload.phoneNumber = addBrokerData.phoneNumber;
+        if (addBrokerData.address) payload.address = addBrokerData.address;
+        if (addBrokerData.commissionRate !== undefined && addBrokerData.commissionRate !== '') payload.commissionRate = addBrokerData.commissionRate;
+        if (addBrokerData.tdsPercentage !== undefined && addBrokerData.tdsPercentage !== '') payload.tdsPercentage = addBrokerData.tdsPercentage;
+        data = (await apiClient.post(`/brokers/booking/${bookingDetails._id}`, payload)).data;
+      }
       setBroker(data);
       setShowAddBrokerModal(false);
       toast.success('Broker added successfully');
@@ -505,7 +535,7 @@ export default function BookingDetails() {
                   <h2 className="text-xl font-semibold mb-4 text-center bg-[#1F263E] text-white py-2 rounded-t-md">
                     Plot Details
                   </h2>
-                  <div className="space-y-4 w-[40%] mx-auto p-2">
+                  <div className="space-y-4 w-[50%] mx-auto p-2">
                     <div className="flex items-center">
                       <span className="min-w-[120px] font-medium text-gray-500 text-sm">Plot Number</span>
                       <p className="flex-1 text-sm">{bookingDetails.plot?.plotNumber}</p>

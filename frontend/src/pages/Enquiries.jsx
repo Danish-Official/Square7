@@ -201,7 +201,7 @@ export default function Enquiries() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">Enquiry Management</h1>
+        <h1 className="text-3xl font-semibold">Enquiries</h1>
         <div className="flex gap-4">
           <Button
             variant="outline"

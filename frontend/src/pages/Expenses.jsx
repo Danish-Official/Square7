@@ -183,7 +183,7 @@ export default function Expenses() {
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-semibold">Expenses Management</h1>
+            <h1 className="text-3xl font-semibold">Expenses</h1>
           </div>
           <div className="flex gap-4">
             <Button
